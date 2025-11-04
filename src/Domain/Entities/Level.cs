@@ -1,0 +1,14 @@
+﻿namespace AskAMuslimBackend.Domain.Entities;
+
+public class Level : BaseAuditableEntity
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public LevelDifficulty Difficulty { get; set; }
+
+    // Navigation
+    public ICollection<Course> Courses { get; set; } = new HashSet<Course>();
+
+    // Each level has at most one certificate
+    public Certificate? Certificate { get; set; }
+}
