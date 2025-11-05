@@ -72,7 +72,6 @@ public class ApplicationDbContextInitialiser
             Roles.Administrator,
             Roles.Student,
             Roles.NonMuslim,
-            Roles.Preacher,
             Roles.Instructor
         };
 
@@ -85,16 +84,15 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Default Users ---
-        var users = new List<(string Email, string Password, string Role)>
+        var users = new List<(string Email, string Password, string FirstName, string LastName, string Role, Domain.Enums.UserRole UserRole)>
         {
-            ("administrator@localhost", "Administrator1!", Roles.Administrator),
-            ("student@localhost", "Student1!", Roles.Student),
-            ("nonmuslim@localhost", "NonMuslim1!", Roles.NonMuslim),
-            ("preacher@localhost", "Preacher1!", Roles.Preacher),
-            ("instructor@localhost", "Instructor1!", Roles.Instructor)
+            ("administrator@localhost", "Administrator1!", "Admin", "User", Roles.Administrator, Domain.Enums.UserRole.Admin),
+            ("student@localhost", "Student1!", "John", "Student", Roles.Student, Domain.Enums.UserRole.Student),
+            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", Roles.NonMuslim, Domain.Enums.UserRole.NonMuslim),
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", Roles.Instructor, Domain.Enums.UserRole.Instructor)
         };
 
-        foreach (var (email, password, role) in users)
+        foreach (var (email, password, firstName, lastName, role, userRole) in users)
         {
             if (_userManager.Users.All(u => u.UserName != email))
             {
@@ -102,7 +100,10 @@ public class ApplicationDbContextInitialiser
                 {
                     UserName = email,
                     Email = email,
-                    EmailConfirmed = true // optional
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = userRole,
+                    EmailConfirmed = true
                 };
 
                 var result = await _userManager.CreateAsync(user, password);

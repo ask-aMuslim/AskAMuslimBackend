@@ -22,3 +22,30 @@ public class Result
         return new Result(false, errors);
     }
 }
+
+public class Result<T>
+{
+    internal Result(bool succeeded, IEnumerable<string> errors, T? data = default)
+    {
+        Succeeded = succeeded;
+        Errors = errors.ToArray();
+        Data = data;
+    }
+
+    public bool Succeeded { get; init; }
+
+    public string[] Errors { get; init; }
+
+    public T? Data { get; init; }
+
+    public static Result<T> Success(T data)
+    {
+        return new Result<T>(true, Array.Empty<string>(), data);
+    }
+
+    public static Result<T> Failure(IEnumerable<string> errors)
+    {
+        return new Result<T>(false, errors);
+    }
+}
+
