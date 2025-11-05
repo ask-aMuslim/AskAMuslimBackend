@@ -3,7 +3,7 @@ using AskAMuslimBackend.Domain.Events;
 
 namespace AskAMuslimBackend.Application.TodoItems.Commands.DeleteTodoItem;
 
-public record DeleteTodoItemCommand(int Id) : IRequest;
+public record DeleteTodoItemCommand(Guid Id) : IRequest;
 
 public class DeleteTodoItemCommandHandler : IRequestHandler<DeleteTodoItemCommand>
 {

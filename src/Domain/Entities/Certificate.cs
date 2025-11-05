@@ -2,8 +2,8 @@
 
 public class Certificate : BaseAuditableEntity
 {
-    public int StudentId { get; set; }
-    public int LevelId { get; set; }
+    public Guid StudentId { get; set; }
+    public Guid LevelId { get; set; }
     public string Url { get; set; } = string.Empty;
     public DateTime IssuedAt { get; set; } = DateTime.UtcNow;
 

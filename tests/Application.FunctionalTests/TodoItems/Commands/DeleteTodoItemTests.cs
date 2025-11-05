@@ -12,7 +12,7 @@ public class DeleteTodoItemTests : BaseTestFixture
     [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
-        var command = new DeleteTodoItemCommand(99);
+        var command = new DeleteTodoItemCommand(Guid.Parse("333e4567-e89b-12d7-a456-426614174000"));
 
         await Should.ThrowAsync<NotFoundException>(() => SendAsync(command));
     }

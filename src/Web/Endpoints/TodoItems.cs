@@ -26,14 +26,23 @@ public class TodoItems : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Created<int>> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
+    public async Task<Created<Guid>> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
     {
         var id = await sender.Send(command);
 
         return TypedResults.Created($"/{nameof(TodoItems)}/{id}", id);
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTodoItem(ISender sender, int id, UpdateTodoItemCommand command)
+    public async Task<Results<NoContent, BadRequest>> UpdateTodoItem(ISender sender, Guid id, UpdateTodoItemCommand command)
+    {
+        if (id != Guid.Empty && id != new Guid(command.Id.ToString())) return TypedResults.BadRequest();
+
+        await sender.Send(command);
+
+        return TypedResults.NoContent();
+    }
+
+    public async Task<Results<NoContent, BadRequest>> UpdateTodoItemDetail(ISender sender, Guid id, UpdateTodoItemDetailCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
 
@@ -42,16 +51,7 @@ public class TodoItems : EndpointGroupBase
         return TypedResults.NoContent();
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTodoItemDetail(ISender sender, int id, UpdateTodoItemDetailCommand command)
-    {
-        if (id != command.Id) return TypedResults.BadRequest();
-
-        await sender.Send(command);
-
-        return TypedResults.NoContent();
-    }
-
-    public async Task<NoContent> DeleteTodoItem(ISender sender, int id)
+    public async Task<NoContent> DeleteTodoItem(ISender sender, Guid id)
     {
         await sender.Send(new DeleteTodoItemCommand(id));
 

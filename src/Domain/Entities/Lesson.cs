@@ -2,7 +2,7 @@
 
 public class Lesson : BaseAuditableEntity
 {
-    public int CourseId { get; set; }
+    public Guid CourseId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public LessonType Type { get; set; }

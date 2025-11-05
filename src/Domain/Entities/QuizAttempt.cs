@@ -2,8 +2,8 @@
 
 public class QuizAttempt : BaseAuditableEntity
 {
-    public int QuizId { get; set; }
-    public int EnrollmentId { get; set; }
+    public Guid QuizId { get; set; }
+    public Guid EnrollmentId { get; set; }
     public double Score { get; set; }
     public bool IsPassed { get; set; }
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;

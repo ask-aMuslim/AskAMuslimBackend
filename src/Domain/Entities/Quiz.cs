@@ -2,7 +2,7 @@
 
 public class Quiz : BaseAuditableEntity
 {
-    public int TargetId { get; set; }
+    public Guid TargetId { get; set; }
     public QuizTargetType TargetType { get; set; }
     public string Title { get; set; } = string.Empty;
     public double TotalMarks { get; set; }

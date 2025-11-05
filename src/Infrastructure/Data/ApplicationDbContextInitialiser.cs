@@ -222,7 +222,7 @@ public class ApplicationDbContextInitialiser
             {
                 Title = "Introductory Quiz",
                 TargetId = course.Id,
-                TotalMarks =10,
+                TotalMarks = 10,
                 Questions = new List<Question>
                 {
                     new Question
@@ -249,11 +249,11 @@ public class ApplicationDbContextInitialiser
 
             var enrollment = new Enrollment
             {
-                StudentId =1,
+                StudentId = Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
                 Course = course,
                 EnrolledAt = DateTime.UtcNow,
                 Status = default,
-                CourseProgress =0
+                CourseProgress = 0
             };
 
             _context.Enrollments.Add(enrollment);
@@ -267,7 +267,7 @@ public class ApplicationDbContextInitialiser
                 {
                     QuizId = quiz.Id,
                     EnrollmentId = enrollment.Id,
-                    Score =8.5
+                    Score = 8.5
                 };
 
                 _context.QuizAttempts.Add(attempt);

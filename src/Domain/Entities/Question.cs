@@ -2,7 +2,7 @@
 
 public class Question : BaseAuditableEntity
 {
-    public int QuizId { get; set; }
+    public Guid QuizId { get; set; }
     public string Text { get; set; } = string.Empty;
 
     // Navigation

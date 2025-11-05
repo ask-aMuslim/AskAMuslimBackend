@@ -2,8 +2,8 @@
 
 public class StudentNote : BaseAuditableEntity
 {
-    public int StudentId { get; set; }
-    public int LessonId { get; set; }
+    public Guid StudentId { get; set; }
+    public Guid LessonId { get; set; }
     public string Text { get; set; } = string.Empty;
     public double Timestamp { get; set; }
 

@@ -11,7 +11,7 @@ public class DeleteTodoListTests : BaseTestFixture
     [Test]
     public async Task ShouldRequireValidTodoListId()
     {
-        var command = new DeleteTodoListCommand(99);
+        var command = new DeleteTodoListCommand(Guid.Parse("333e4567-e89b-12d7-a456-426614174000"));
         await Should.ThrowAsync<NotFoundException>(() => SendAsync(command));
     }
 

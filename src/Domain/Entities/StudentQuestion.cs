@@ -2,8 +2,8 @@
 
 public class StudentQuestion : BaseAuditableEntity
 {
-    public int StudentId { get; set; }
-    public int LessonId { get; set; }
+    public Guid StudentId { get; set; }
+    public Guid LessonId { get; set; }
     public string QuestionText { get; set; } = string.Empty;
     public double Timestamp { get; set; } // seconds in the video
     public bool Answered { get; set; }

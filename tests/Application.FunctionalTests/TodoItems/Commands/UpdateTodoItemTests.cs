@@ -12,7 +12,7 @@ public class UpdateTodoItemTests : BaseTestFixture
     [Test]
     public async Task ShouldRequireValidTodoItemId()
     {
-        var command = new UpdateTodoItemCommand { Id = 99, Title = "New Title" };
+        var command = new UpdateTodoItemCommand { Id = Guid.Parse("333e4567-e89b-12d7-a456-426614175555"), Title = "New Title" };
         await Should.ThrowAsync<NotFoundException>(() => SendAsync(command));
     }
 
