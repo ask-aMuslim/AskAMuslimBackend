@@ -26,4 +26,7 @@ public interface IIdentityService
 
     // New: Login or register using Google ID token
     Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken);
+
+    // New: Login or register using Facebook access token
+    Task<Result<AuthenticationResponse>> LoginWithFacebookAsync(string accessToken);
 }

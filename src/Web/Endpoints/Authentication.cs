@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Authentication.Commands.Login;
 using AskAMuslimBackend.Application.Authentication.Commands.Register;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
+using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -27,6 +28,12 @@ public class Authentication : EndpointGroupBase
             .WithName("LoginWithGoogle")
             .WithSummary("Login with Google")
             .WithDescription("Accepts a Google ID token, verifies it and returns a JWT token");
+
+        groupBuilder.MapPost(LoginWithFacebook, "login/facebook")
+            .AllowAnonymous()
+            .WithName("LoginWithFacebook")
+            .WithSummary("Login with Facebook")
+            .WithDescription("Accepts a Facebook access token, verifies it and returns a JWT token");
     }
 
     public async Task<Results<Ok<AuthenticationResponse>, BadRequest<string[]>>> Register(
@@ -62,6 +69,21 @@ public class Authentication : EndpointGroupBase
     public async Task<Results<Ok<AuthenticationResponse>, UnauthorizedHttpResult>> LoginWithGoogle(
         ISender sender,
         LoginWithGoogleCommand command)
+    {
+        try
+        {
+            var result = await sender.Send(command);
+            return TypedResults.Ok(result);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return TypedResults.Unauthorized();
+        }
+    }
+
+    public async Task<Results<Ok<AuthenticationResponse>, UnauthorizedHttpResult>> LoginWithFacebook(
+        ISender sender,
+        LoginWithFacebookCommand command)
     {
         try
         {

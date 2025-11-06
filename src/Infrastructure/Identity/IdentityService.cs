@@ -10,6 +10,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Google.Apis.Auth;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace AskAMuslimBackend.Infrastructure.Identity;
 
@@ -19,17 +22,20 @@ public class IdentityService : IIdentityService
     private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
     private readonly IAuthorizationService _authorizationService;
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
         IAuthorizationService authorizationService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         _userManager = userManager;
         _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
         _authorizationService = authorizationService;
         _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
@@ -176,6 +182,102 @@ public class IdentityService : IIdentityService
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student, // default role, adjust as needed
+                EmailConfirmed = true
+            };
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                return Result<AuthenticationResponse>.Failure(createResult.Errors.Select(e => e.Description));
+            }
+            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+        }
+
+        var token = GenerateJwtToken(user);
+        var expiresAt = DateTime.UtcNow.AddHours(24);
+
+        var authResponse = new AuthenticationResponse
+        {
+            UserId = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName ?? string.Empty,
+            LastName = user.LastName ?? string.Empty,
+            Role = user.Role,
+            Token = token,
+            ExpiresAt = expiresAt
+        };
+
+        return Result<AuthenticationResponse>.Success(authResponse);
+    }
+
+    // New: Facebook sign-in using access token
+    public async Task<Result<AuthenticationResponse>> LoginWithFacebookAsync(string accessToken)
+    {
+        var appId = _configuration["Authentication:Facebook:AppId"];
+        var appSecret = _configuration["Authentication:Facebook:AppSecret"];
+        if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(appSecret))
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Facebook AppId/AppSecret not configured." });
+        }
+
+        // Validate token and get user info from Graph API
+        // Using app access token to debug the provided user token
+        var appAccessToken = $"{appId}|{appSecret}";
+        var http = _httpClientFactory.CreateClient();
+
+        // Step 1: debug_token to validate
+        var debugUri = $"https://graph.facebook.com/debug_token?input_token={accessToken}&access_token={appAccessToken}";
+        var debugResponse = await http.GetAsync(debugUri);
+        if (!debugResponse.IsSuccessStatusCode)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook token (debug call failed)." });
+        }
+
+        using var debugDoc = JsonDocument.Parse(await debugResponse.Content.ReadAsStringAsync());
+        var dataEl = debugDoc.RootElement.GetProperty("data");
+        var isValid = dataEl.GetProperty("is_valid").GetBoolean();
+        if (!isValid)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook token." });
+        }
+
+        var userId = dataEl.TryGetProperty("user_id", out var userIdProp) ? userIdProp.GetString() : null;
+
+        // Step 2: fetch user profile
+        var fields = "id,name,first_name,last_name,email";
+        // email permission might not be granted; handle null email.
+        var meUri = $"https://graph.facebook.com/v18.0/me?fields={fields}&access_token={accessToken}";
+        var meResp = await http.GetAsync(meUri);
+        if (!meResp.IsSuccessStatusCode)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Unable to fetch Facebook user profile." });
+        }
+
+        using var meDoc = JsonDocument.Parse(await meResp.Content.ReadAsStringAsync());
+        var email = meDoc.RootElement.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+        var firstName = meDoc.RootElement.TryGetProperty("first_name", out var fnProp) ? fnProp.GetString() : null;
+        var lastName = meDoc.RootElement.TryGetProperty("last_name", out var lnProp) ? lnProp.GetString() : null;
+        var fbId = meDoc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetString() : userId;
+
+        // Fallback email if not present: create a synthetic email based on FB id and app domain
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            var audience = _configuration["JwtSettings:Audience"] ?? "askamuslim.local";
+            email = $"fb_{fbId}@{audience}";
+        }
+
+        firstName ??= "";
+        lastName ??= "";
+
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                Role = UserRole.Student,
                 EmailConfirmed = true
             };
             var createResult = await _userManager.CreateAsync(user);
