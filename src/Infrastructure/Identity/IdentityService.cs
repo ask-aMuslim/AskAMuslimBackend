@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Google.Apis.Auth;
 
 namespace AskAMuslimBackend.Infrastructure.Identity;
 
@@ -121,6 +122,70 @@ public class IdentityService : IIdentityService
         }
 
         // Generate token
+        var token = GenerateJwtToken(user);
+        var expiresAt = DateTime.UtcNow.AddHours(24);
+
+        var authResponse = new AuthenticationResponse
+        {
+            UserId = user.Id,
+            Email = user.Email!,
+            FirstName = user.FirstName ?? string.Empty,
+            LastName = user.LastName ?? string.Empty,
+            Role = user.Role,
+            Token = token,
+            ExpiresAt = expiresAt
+        };
+
+        return Result<AuthenticationResponse>.Success(authResponse);
+    }
+
+    // New: Google sign-in using ID token
+    public async Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken)
+    {
+        var googleClientId = _configuration["Authentication:Google:ClientId"];
+        if (string.IsNullOrWhiteSpace(googleClientId))
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Google ClientId not configured." });
+        }
+
+        GoogleJsonWebSignature.Payload payload;
+        try
+        {
+            var validationSettings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new List<string> { googleClientId }
+            };
+            payload = await GoogleJsonWebSignature.ValidateAsync(idToken, validationSettings);
+        }
+        catch (InvalidJwtException ex)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Google token: {ex.Message}" });
+        }
+
+        var email = payload.Email;
+        var firstName = payload.GivenName ?? string.Empty;
+        var lastName = payload.FamilyName ?? string.Empty;
+
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+        {
+            user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
+                Role = UserRole.Student, // default role, adjust as needed
+                EmailConfirmed = true
+            };
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                return Result<AuthenticationResponse>.Failure(createResult.Errors.Select(e => e.Description));
+            }
+            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+        }
+
         var token = GenerateJwtToken(user);
         var expiresAt = DateTime.UtcNow.AddHours(24);
 

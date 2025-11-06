@@ -23,4 +23,7 @@ public interface IIdentityService
         UserRole role);
 
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
+
+    // New: Login or register using Google ID token
+    Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken);
 }

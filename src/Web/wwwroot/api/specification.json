@@ -83,6 +83,38 @@
         }
       }
     },
+    "/api/Authentication/login/google": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "LoginWithGoogle",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginWithGoogleCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/TodoItems": {
       "get": {
         "tags": [
@@ -926,6 +958,15 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginWithGoogleCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "idToken": {
             "type": "string"
           }
         }
