@@ -2,7 +2,8 @@
 
 public class Certificate : BaseAuditableEntity
 {
-    public Guid StudentId { get; set; }
+    // Changed StudentId to string to match Identity ApplicationUser Id
+    public string StudentId { get; set; } = string.Empty;
     public Guid LevelId { get; set; }
     public string Url { get; set; } = string.Empty;
     public DateTime IssuedAt { get; set; } = DateTime.UtcNow;

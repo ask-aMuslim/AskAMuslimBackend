@@ -120,6 +120,14 @@ public class ApplicationDbContextInitialiser
             }
         }
 
+        // Obtain a valid student user id for FK assignments
+        var studentUserId = _userManager.Users.FirstOrDefault(u => u.Email == "student@localhost")?.Id;
+        if (studentUserId == null)
+        {
+            _logger.LogWarning("Student user not found; skipping student-related seed data.");
+            return; // Cannot seed dependent entities without a valid user
+        }
+
         // Default data
         // Seed, if necessary
         if (!_context.TodoLists.Any())
@@ -250,7 +258,7 @@ public class ApplicationDbContextInitialiser
 
             var enrollment = new Enrollment
             {
-                StudentId = Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
+                StudentId = studentUserId, // use real ApplicationUser Id
                 Course = course,
                 EnrolledAt = DateTime.UtcNow,
                 Status = default,
@@ -267,7 +275,7 @@ public class ApplicationDbContextInitialiser
                 var attempt = new QuizAttempt
                 {
                     QuizId = quiz.Id,
-                    EnrollmentId = enrollment.Id,
+                    StudentId = studentUserId,
                     Score = 8.5
                 };
 
@@ -284,6 +292,7 @@ public class ApplicationDbContextInitialiser
             var certificate = new Certificate
             {
                 Level = level,
+                StudentId = studentUserId, // assign valid user
                 Url = "https://example.com/certificates/sample.pdf",
                 IssuedAt = DateTime.UtcNow
             };

@@ -1,4 +1,5 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,6 +20,13 @@ public class StudentQuestionConfiguration : IEntityTypeConfiguration<StudentQues
         builder.HasOne(q => q.Lesson)
             .WithMany(l => l.StudentQuestions)
             .HasForeignKey(q => q.LessonId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // FK to ApplicationUser (Student)
+        builder
+            .HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(q => q.StudentId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

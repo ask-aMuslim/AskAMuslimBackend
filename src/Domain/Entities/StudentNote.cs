@@ -2,7 +2,8 @@
 
 public class StudentNote : BaseAuditableEntity
 {
-    public Guid StudentId { get; set; }
+    // Changed StudentId to string to match Identity ApplicationUser Id
+    public string StudentId { get; set; } = string.Empty;
     public Guid LessonId { get; set; }
     public string Text { get; set; } = string.Empty;
     public double Timestamp { get; set; }

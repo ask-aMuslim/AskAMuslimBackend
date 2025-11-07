@@ -2,7 +2,8 @@
 
 public class Enrollment : BaseAuditableEntity
 {
-    public Guid StudentId { get; set; }
+    // Changed StudentId to string to match Identity ApplicationUser Id
+    public string StudentId { get; set; } = string.Empty;
     public Guid CourseId { get; set; }
     public DateTime EnrolledAt { get; set; } = DateTime.UtcNow;
     public EnrollmentStatus Status { get; set; } = EnrollmentStatus.Active;
