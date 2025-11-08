@@ -1,5 +1,4 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
-using AskAMuslimBackend.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,7 +30,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
 
         // FK to ApplicationUser (Student)
         builder
-            .HasOne<ApplicationUser>()
+            .HasOne<Student>()
             .WithMany()
             .HasForeignKey(e => e.StudentId)
             .OnDelete(DeleteBehavior.Restrict);

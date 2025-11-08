@@ -1,5 +1,4 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
-using AskAMuslimBackend.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -23,7 +22,7 @@ public class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAttempt>
 
         // FK to ApplicationUser (Student)
         builder
-            .HasOne<ApplicationUser>()
+            .HasOne<Student>()
             .WithMany()
             .HasForeignKey(e => e.StudentId)
             .OnDelete(DeleteBehavior.Restrict);

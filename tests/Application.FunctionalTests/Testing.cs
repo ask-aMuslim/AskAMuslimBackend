@@ -1,4 +1,5 @@
 ﻿using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Infrastructure.Identity;
 using MediatR;
@@ -48,7 +49,7 @@ public partial class Testing
     {
         return _userId;
     }
-    
+
     public static List<string>? GetRoles()
     {
         return _roles;
@@ -64,17 +65,19 @@ public partial class Testing
         return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
     }
 
-    public static async Task<string> RunAsUserAsync(string userName, string password, string[] roles)
+    // Fixes for CS0103 (userName does not exist), CS0029 (Guid to string), CA1860 (Any() vs Length), IDE0305 (collection init), and related issues in RunAsUserAsync
+    public static async Task<string> RunAsUserAsync(string firstName, string password, string[] roles)
     {
         using var scope = _scopeFactory.CreateScope();
 
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        var user = new ApplicationUser { UserName = userName, Email = userName };
+        // Use firstName as Email and UserName for test user creation
+        var user = new User { FirstName = firstName, Email = firstName };
 
         var result = await userManager.CreateAsync(user, password);
 
-        if (roles.Any())
+        if (roles.Length > 0) // CA1860: Prefer Length over Any()
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
@@ -88,14 +91,14 @@ public partial class Testing
 
         if (result.Succeeded)
         {
-            _userId = user.Id;
-            _roles = roles.ToList();
+            _userId = user.Id.ToString(); // CS0029: Convert Guid to string
+            _roles = new List<string>(roles); // IDE0305: Use collection initializer if possible
             return _userId;
         }
 
         var errors = string.Join(Environment.NewLine, result.ToApplicationResult().Errors);
 
-        throw new Exception($"Unable to create {userName}.{Environment.NewLine}{errors}");
+        throw new Exception($"Unable to create {firstName}.{Environment.NewLine}{errors}"); // Use firstName instead of userName
     }
 
     public static async Task ResetState()
@@ -104,7 +107,7 @@ public partial class Testing
         {
             await _database.ResetAsync();
         }
-        catch (Exception) 
+        catch (Exception)
         {
         }
 

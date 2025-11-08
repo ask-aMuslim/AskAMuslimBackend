@@ -243,7 +243,7 @@ public class ApplicationDbContextInitialiser
 
             var enrollment = new Enrollment
             {
-                StudentId = studentId.ToString(), // use Student entity Id
+                StudentId = studentId, // use Student entity Id
                 Course = course,
                 EnrolledAt = DateTime.UtcNow,
                 Status = default,
@@ -260,7 +260,7 @@ public class ApplicationDbContextInitialiser
                 var attempt = new QuizAttempt
                 {
                     QuizId = quiz.Id,
-                    StudentId = studentId.ToString(),
+                    StudentId = studentId,
                     Score = 8.5
                 };
 
@@ -277,7 +277,7 @@ public class ApplicationDbContextInitialiser
             var certificate = new Certificate
             {
                 Level = level,
-                StudentId = studentId.ToString(), // use Student entity Id
+                StudentId = studentId, // use Student entity Id
                 Url = "https://example.com/certificates/sample.pdf",
                 IssuedAt = DateTime.UtcNow
             };

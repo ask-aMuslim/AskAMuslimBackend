@@ -3,7 +3,7 @@
 public class QuizAttempt : BaseAuditableEntity
 {
     public Guid QuizId { get; set; }
-    public string StudentId { get; set; } = string.Empty;
+    public Guid StudentId { get; set; }
     public double Score { get; set; }
     public bool IsPassed { get; set; }
     public DateTime StartedAt { get; set; } = DateTime.UtcNow;

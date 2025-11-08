@@ -1,5 +1,4 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
-using AskAMuslimBackend.Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -24,7 +23,7 @@ public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
 
         // FK to ApplicationUser (Student)
         builder
-            .HasOne<ApplicationUser>()
+            .HasOne<Student>()
             .WithMany()
             .HasForeignKey(c => c.StudentId)
             .OnDelete(DeleteBehavior.Restrict);

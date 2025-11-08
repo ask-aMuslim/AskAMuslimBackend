@@ -23,7 +23,7 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
     public async Task<InstructorDto?> Handle(GetInstructorProfileQuery request, CancellationToken cancellationToken)
     {
         var userId = request.UserId ?? _currentUser.Id;
-        
+
         if (string.IsNullOrEmpty(userId))
         {
             return null;
@@ -31,7 +31,7 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
 
         var instructor = await _context.Instructors
             .Include(i => i.Courses)
-            .FirstOrDefaultAsync(i => i.UserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(i => i.UserId.ToString() == userId, cancellationToken);
 
         if (instructor == null)
         {
