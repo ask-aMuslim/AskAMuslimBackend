@@ -3,8 +3,8 @@ using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Infrastructure.Data.Interceptors;
 using AskAMuslimBackend.Infrastructure.Identity;
+using AskAMuslimBackend.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +37,9 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
+        // Register password hasher
+        builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"] ?? "YourSuperSecretKeyForDevelopmentPurposeOnly123456!";
@@ -63,12 +66,6 @@ public static class DependencyInjection
         });
 
         builder.Services.AddAuthorizationBuilder();
-
-        builder.Services
-            .AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddApiEndpoints();
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();

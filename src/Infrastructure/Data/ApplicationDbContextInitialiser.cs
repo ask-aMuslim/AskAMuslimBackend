@@ -1,8 +1,7 @@
-﻿using AskAMuslimBackend.Domain.Constants;
+﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
-using AskAMuslimBackend.Infrastructure.Identity;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -25,15 +24,13 @@ public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, IPasswordHasher passwordHasher)
     {
         _logger = logger;
         _context = context;
-        _userManager = userManager;
-        _roleManager = roleManager;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task InitialiseAsync()
@@ -66,67 +63,55 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        // --- Default Roles ---
-        var roles = new[]
+        // --- Default Users (no need for roles anymore, role is part of User entity) ---
+        var users = new List<(string Email, string Password, string FirstName, string LastName, Domain.Enums.UserRole UserRole)>
         {
-            Roles.Administrator,
-            Roles.Student,
-            Roles.NonMuslim,
-            Roles.Instructor
+            ("administrator@localhost", "Administrator1!", "Admin", "User", Domain.Enums.UserRole.Admin),
+            ("student@localhost", "Student1!", "John", "Student", Domain.Enums.UserRole.Student),
+            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", Domain.Enums.UserRole.NonMuslim),
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", Domain.Enums.UserRole.Instructor)
         };
 
-        foreach (var role in roles)
+        foreach (var (email, password, firstName, lastName, userRole) in users)
         {
-            if (!_roleManager.Roles.Any(r => r.Name == role))
+            if (!_context.Users.Any(u => u.Email == email))
             {
-                await _roleManager.CreateAsync(new IdentityRole(role));
-            }
-        }
-
-        // --- Default Users ---
-        var users = new List<(string Email, string Password, string FirstName, string LastName, string Role, Domain.Enums.UserRole UserRole)>
-        {
-            ("administrator@localhost", "Administrator1!", "Admin", "User", Roles.Administrator, Domain.Enums.UserRole.Admin),
-            ("student@localhost", "Student1!", "John", "Student", Roles.Student, Domain.Enums.UserRole.Student),
-            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", Roles.NonMuslim, Domain.Enums.UserRole.NonMuslim),
-            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", Roles.Instructor, Domain.Enums.UserRole.Instructor)
-        };
-
-        foreach (var (email, password, firstName, lastName, role, userRole) in users)
-        {
-            if (_userManager.Users.All(u => u.UserName != email))
-            {
-                var user = new ApplicationUser
+                var user = new User
                 {
-                    UserName = email,
                     Email = email,
+                    PasswordHash = _passwordHasher.HashPassword(password),
                     FirstName = firstName,
                     LastName = lastName,
                     Role = userRole,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await _userManager.CreateAsync(user, password);
-
-                if (result.Succeeded && !string.IsNullOrWhiteSpace(role))
-                {
-                    await _userManager.AddToRoleAsync(user, role);
-                }
-                else if (!result.Succeeded)
-                {
-                    _logger.LogError("Failed to create user {Email}: {Errors}", email,
-                        string.Join(", ", result.Errors.Select(e => e.Description)));
-                }
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+                
+                // Create role-specific entity
+                await CreateRoleSpecificEntity(user.Id, userRole);
             }
         }
 
-        // Obtain a valid student user id for FK assignments
-        var studentUserId = _userManager.Users.FirstOrDefault(u => u.Email == "student@localhost")?.Id;
+        // Obtain the Student entity ID (not User ID) for FK assignments
+        var studentUserId = _context.Users.FirstOrDefault(u => u.Email == "student@localhost")?.Id;
         if (studentUserId == null)
         {
             _logger.LogWarning("Student user not found; skipping student-related seed data.");
             return; // Cannot seed dependent entities without a valid user
         }
+
+        var studentEntity = _context.Students.FirstOrDefault(s => s.UserId == studentUserId.Value);
+        if (studentEntity == null)
+        {
+            _logger.LogWarning("Student entity not found for user; skipping student-related seed data.");
+            return;
+        }
+
+        var studentId = studentEntity.Id; // This is the Student entity's Id, not the User's Id
 
         // Default data
         // Seed, if necessary
@@ -258,7 +243,7 @@ public class ApplicationDbContextInitialiser
 
             var enrollment = new Enrollment
             {
-                StudentId = studentUserId, // use real ApplicationUser Id
+                StudentId = studentId.ToString(), // use Student entity Id
                 Course = course,
                 EnrolledAt = DateTime.UtcNow,
                 Status = default,
@@ -275,7 +260,7 @@ public class ApplicationDbContextInitialiser
                 var attempt = new QuizAttempt
                 {
                     QuizId = quiz.Id,
-                    StudentId = studentUserId,
+                    StudentId = studentId.ToString(),
                     Score = 8.5
                 };
 
@@ -292,13 +277,83 @@ public class ApplicationDbContextInitialiser
             var certificate = new Certificate
             {
                 Level = level,
-                StudentId = studentUserId, // assign valid user
+                StudentId = studentId.ToString(), // use Student entity Id
                 Url = "https://example.com/certificates/sample.pdf",
                 IssuedAt = DateTime.UtcNow
             };
 
             _context.Certificates.Add(certificate);
             await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task CreateRoleSpecificEntity(Guid userId, Domain.Enums.UserRole role)
+    {
+        switch (role)
+        {
+            case Domain.Enums.UserRole.Student:
+                if (!_context.Students.Any(s => s.UserId == userId))
+                {
+                    var student = new Student
+                    {
+                        UserId = userId,
+                        EnrollmentDate = DateTime.UtcNow,
+                        IsActive = true
+                    };
+                    _context.Students.Add(student);
+                    await _context.SaveChangesAsync();
+                }
+                break;
+
+            case Domain.Enums.UserRole.Instructor:
+                if (!_context.Instructors.Any(i => i.UserId == userId))
+                {
+                    var instructor = new Instructor
+                    {
+                        UserId = userId,
+                        JoinedDate = DateTime.UtcNow,
+                        IsActive = true,
+                        IsVerified = false
+                    };
+                    _context.Instructors.Add(instructor);
+                    await _context.SaveChangesAsync();
+                }
+                break;
+
+            case Domain.Enums.UserRole.Admin:
+                if (!_context.Admins.Any(a => a.UserId == userId))
+                {
+                    var admin = new Admin
+                    {
+                        UserId = userId,
+                        JoinedDate = DateTime.UtcNow,
+                        IsActive = true,
+                        IsSuperAdmin = false,
+                        CanManageUsers = true,
+                        CanManageCourses = true,
+                        CanManageContent = true,
+                        CanViewReports = true,
+                        CanManageRoles = false
+                    };
+                    _context.Admins.Add(admin);
+                    await _context.SaveChangesAsync();
+                }
+                break;
+
+            case Domain.Enums.UserRole.NonMuslim:
+                // NonMuslim users are treated as students
+                if (!_context.Students.Any(s => s.UserId == userId))
+                {
+                    var nonMuslimStudent = new Student
+                    {
+                        UserId = userId,
+                        EnrollmentDate = DateTime.UtcNow,
+                        IsActive = true
+                    };
+                    _context.Students.Add(nonMuslimStudent);
+                    await _context.SaveChangesAsync();
+                }
+                break;
         }
     }
 }

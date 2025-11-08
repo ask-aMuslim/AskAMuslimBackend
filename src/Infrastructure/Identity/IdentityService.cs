@@ -1,8 +1,8 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using AskAMuslimBackend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -10,52 +10,64 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Google.Apis.Auth;
-using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace AskAMuslimBackend.Infrastructure.Identity;
 
 public class IdentityService : IIdentityService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IUserClaimsPrincipalFactory<ApplicationUser> _userClaimsPrincipalFactory;
-    private readonly IAuthorizationService _authorizationService;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
 
     public IdentityService(
-        UserManager<ApplicationUser> userManager,
-        IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
-        IAuthorizationService authorizationService,
+        ApplicationDbContext dbContext,
+        IPasswordHasher passwordHasher,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
-        _userManager = userManager;
-        _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
-        _authorizationService = authorizationService;
+        _dbContext = dbContext;
+        _passwordHasher = passwordHasher;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            return null;
+        }
 
-        return user?.UserName;
+        var user = await _dbContext.Users.FindAsync(userGuid);
+        return user?.Email;
     }
 
     public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
     {
-        var user = new ApplicationUser
+        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userName);
+        if (existingUser != null)
         {
-            UserName = userName,
+            return (Result.Failure(new[] { "User with this email already exists." }), string.Empty);
+        }
+
+        var user = new User
+        {
             Email = userName,
+            PasswordHash = _passwordHasher.HashPassword(password),
+            FirstName = string.Empty,
+            LastName = string.Empty,
+            Role = UserRole.NonMuslim,
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
-        var result = await _userManager.CreateAsync(user, password);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync(default);
 
-        return (result.ToApplicationResult(), user.Id);
+        return (Result.Success(), user.Id.ToString());
     }
 
     public async Task<Result<AuthenticationResponse>> RegisterUserAsync(
@@ -66,32 +78,29 @@ public class IdentityService : IIdentityService
         UserRole role)
     {
         // Check if user already exists
-        var existingUser = await _userManager.FindByEmailAsync(email);
+        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "User with this email already exists." });
         }
 
-        var user = new ApplicationUser
+        var user = new User
         {
-            UserName = email,
             Email = email,
+            PasswordHash = _passwordHasher.HashPassword(password),
             FirstName = firstName,
             LastName = lastName,
             Role = role,
-            EmailConfirmed = true // Auto-confirm for now
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
         };
 
-        var result = await _userManager.CreateAsync(user, password);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync(default);
 
-        if (!result.Succeeded)
-        {
-            return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
-        }
-
-        // Add role to user
-        var roleName = role.ToString();
-        await _userManager.AddToRoleAsync(user, roleName);
+        // Create role-specific entity
+        await CreateRoleSpecificEntity(user.Id, role);
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -99,10 +108,10 @@ public class IdentityService : IIdentityService
 
         var authResponse = new AuthenticationResponse
         {
-            UserId = user.Id,
-            Email = user.Email!,
-            FirstName = user.FirstName!,
-            LastName = user.LastName!,
+            UserId = user.Id.ToString(),
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Role = user.Role,
             Token = token,
             ExpiresAt = expiresAt
@@ -111,21 +120,81 @@ public class IdentityService : IIdentityService
         return Result<AuthenticationResponse>.Success(authResponse);
     }
 
+    private async Task CreateRoleSpecificEntity(Guid userId, UserRole role)
+    {
+        switch (role)
+        {
+            case UserRole.Student:
+                var student = new Student
+                {
+                    UserId = userId,
+                    EnrollmentDate = DateTime.UtcNow,
+                    IsActive = true
+                };
+                _dbContext.Students.Add(student);
+                break;
+
+            case UserRole.Instructor:
+                var instructor = new Instructor
+                {
+                    UserId = userId,
+                    JoinedDate = DateTime.UtcNow,
+                    IsActive = true,
+                    IsVerified = false
+                };
+                _dbContext.Instructors.Add(instructor);
+                break;
+
+            case UserRole.Admin:
+                var admin = new Admin
+                {
+                    UserId = userId,
+                    JoinedDate = DateTime.UtcNow,
+                    IsActive = true,
+                    IsSuperAdmin = false,
+                    CanManageUsers = true,
+                    CanManageCourses = true,
+                    CanManageContent = true,
+                    CanViewReports = true,
+                    CanManageRoles = false
+                };
+                _dbContext.Admins.Add(admin);
+                break;
+
+            case UserRole.NonMuslim:
+                // NonMuslim users are treated as students
+                var nonMuslimStudent = new Student
+                {
+                    UserId = userId,
+                    EnrollmentDate = DateTime.UtcNow,
+                    IsActive = true
+                };
+                _dbContext.Students.Add(nonMuslimStudent);
+                break;
+        }
+
+        await _dbContext.SaveChangesAsync(default);
+    }
+
     public async Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         
         if (user == null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
+        var isPasswordValid = _passwordHasher.VerifyPassword(password, user.PasswordHash);
         
         if (!isPasswordValid)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
+
+        // Update last login
+        user.LastLoginAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(default);
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -133,10 +202,10 @@ public class IdentityService : IIdentityService
 
         var authResponse = new AuthenticationResponse
         {
-            UserId = user.Id,
-            Email = user.Email!,
-            FirstName = user.FirstName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
+            UserId = user.Id.ToString(),
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Role = user.Role,
             Token = token,
             ExpiresAt = expiresAt
@@ -172,24 +241,25 @@ public class IdentityService : IIdentityService
         var firstName = payload.GivenName ?? string.Empty;
         var lastName = payload.FamilyName ?? string.Empty;
 
-        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
         {
-            user = new ApplicationUser
+            user = new User
             {
-                UserName = email,
                 Email = email,
+                PasswordHash = string.Empty, // No password for OAuth users
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student, // default role, adjust as needed
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
-            var createResult = await _userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
-            {
-                return Result<AuthenticationResponse>.Failure(createResult.Errors.Select(e => e.Description));
-            }
-            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(default);
+
+            // Create student entity for default role
+            await CreateRoleSpecificEntity(user.Id, user.Role);
         }
 
         var token = GenerateJwtToken(user);
@@ -197,10 +267,10 @@ public class IdentityService : IIdentityService
 
         var authResponse = new AuthenticationResponse
         {
-            UserId = user.Id,
-            Email = user.Email!,
-            FirstName = user.FirstName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
+            UserId = user.Id.ToString(),
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Role = user.Role,
             Token = token,
             ExpiresAt = expiresAt
@@ -268,24 +338,25 @@ public class IdentityService : IIdentityService
         firstName ??= "";
         lastName ??= "";
 
-        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (user == null)
         {
-            user = new ApplicationUser
+            user = new User
             {
-                UserName = email,
                 Email = email,
+                PasswordHash = string.Empty, // No password for OAuth users
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student,
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
             };
-            var createResult = await _userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
-            {
-                return Result<AuthenticationResponse>.Failure(createResult.Errors.Select(e => e.Description));
-            }
-            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(default);
+
+            // Create student entity for default role
+            await CreateRoleSpecificEntity(user.Id, user.Role);
         }
 
         var token = GenerateJwtToken(user);
@@ -293,10 +364,10 @@ public class IdentityService : IIdentityService
 
         var authResponse = new AuthenticationResponse
         {
-            UserId = user.Id,
-            Email = user.Email!,
-            FirstName = user.FirstName ?? string.Empty,
-            LastName = user.LastName ?? string.Empty,
+            UserId = user.Id.ToString(),
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Role = user.Role,
             Token = token,
             ExpiresAt = expiresAt
@@ -305,7 +376,7 @@ public class IdentityService : IIdentityService
         return Result<AuthenticationResponse>.Success(authResponse);
     }
 
-    private string GenerateJwtToken(ApplicationUser user)
+    private string GenerateJwtToken(User user)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT Secret Key not configured");
@@ -314,8 +385,8 @@ public class IdentityService : IIdentityService
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Email, user.Email!),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Role, user.Role.ToString()),
             new("role", user.Role.ToString()),
@@ -338,38 +409,52 @@ public class IdentityService : IIdentityService
 
     public async Task<bool> IsInRoleAsync(string userId, string role)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            return false;
+        }
 
-        return user != null && await _userManager.IsInRoleAsync(user, role);
+        var user = await _dbContext.Users.FindAsync(userGuid);
+
+        return user != null && user.Role.ToString().Equals(role, StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<bool> AuthorizeAsync(string userId, string policyName)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            return false;
+        }
+
+        var user = await _dbContext.Users.FindAsync(userGuid);
 
         if (user == null)
         {
             return false;
         }
 
-        var principal = await _userClaimsPrincipalFactory.CreateAsync(user);
-
-        var result = await _authorizationService.AuthorizeAsync(principal, policyName);
-
-        return result.Succeeded;
+        // For now, we'll do basic policy checking
+        // You can extend this to handle specific policies
+        return user.IsActive;
     }
 
     public async Task<Result> DeleteUserAsync(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        if (!Guid.TryParse(userId, out var userGuid))
+        {
+            return Result.Failure(new[] { "Invalid user ID format." });
+        }
+
+        var user = await _dbContext.Users.FindAsync(userGuid);
 
         return user != null ? await DeleteUserAsync(user) : Result.Success();
     }
 
-    public async Task<Result> DeleteUserAsync(ApplicationUser user)
+    public async Task<Result> DeleteUserAsync(User user)
     {
-        var result = await _userManager.DeleteAsync(user);
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync(default);
 
-        return result.ToApplicationResult();
+        return Result.Success();
     }
 }
