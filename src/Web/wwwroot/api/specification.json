@@ -434,6 +434,147 @@
         ]
       }
     },
+    "/api/Certificates/{id}": {
+      "get": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "GetCertificate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "DeleteCertificate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Certificates/by-student/{studentId}": {
+      "get": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "GetByStudent",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CertificateDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Certificates": {
+      "post": {
+        "tags": [
+          "Certificates"
+        ],
+        "operationId": "CreateCertificate",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCertificateCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Courses": {
       "get": {
         "tags": [
@@ -721,7 +862,7 @@
         "tags": [
           "Enrollments"
         ],
-        "operationId": "GetByStudent",
+        "operationId": "GetByStudent2",
         "parameters": [
           {
             "name": "studentId",
@@ -3185,6 +3326,48 @@
           "description": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "CertificateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "levelId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateCertificateCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "levelId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "url": {
+            "type": "string"
           }
         }
       },
