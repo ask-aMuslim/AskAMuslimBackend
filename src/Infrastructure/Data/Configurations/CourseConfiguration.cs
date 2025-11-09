@@ -25,6 +25,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(c => c.Rating)
             .HasPrecision(3, 2);
 
+        builder.Property(c => c.Order)
+            .HasDefaultValue(0);
+
+        builder.HasIndex(c => c.Order);
+
         builder.HasOne(c => c.Level)
             .WithMany(l => l.Courses)
             .HasForeignKey(c => c.LevelId)

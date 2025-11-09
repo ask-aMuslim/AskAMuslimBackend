@@ -9,6 +9,7 @@ public class Course : BaseAuditableEntity
     public string? ThumbnailUrl { get; set; }
     public bool IsPublished { get; set; }
     public double Rating { get; set; }
+    public int Order { get; set; }
 
     // Navigation
     public Level? Level { get; set; }
