@@ -10,7 +10,7 @@ public class Enrollment : BaseAuditableEntity
     public double CourseProgress { get; set; }
 
     // Navigation
+    public Student? Student { get; set; }
     public Course? Course { get; set; }
-    public ICollection<QuizAttempt> QuizAttempts { get; set; } = new HashSet<QuizAttempt>();
 }
 

@@ -14,4 +14,5 @@ public class Student : BaseEntity
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<StudentNote> StudentNotes { get; set; } = new List<StudentNote>();
     public ICollection<StudentQuestion> StudentQuestions { get; set; } = new List<StudentQuestion>();
+    public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
 }

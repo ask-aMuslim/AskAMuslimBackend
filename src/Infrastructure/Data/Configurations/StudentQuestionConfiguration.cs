@@ -21,10 +21,8 @@ public class StudentQuestionConfiguration : IEntityTypeConfiguration<StudentQues
             .HasForeignKey(q => q.LessonId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // FK to ApplicationUser (Student)
-        builder
-            .HasOne<Student>()
-            .WithMany()
+        builder.HasOne(q => q.Student)
+            .WithMany(s => s.StudentQuestions)
             .HasForeignKey(q => q.StudentId)
             .OnDelete(DeleteBehavior.Cascade);
     }

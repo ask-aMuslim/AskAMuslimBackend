@@ -10,5 +10,6 @@ public class StudentQuestion : BaseAuditableEntity
     public string? AnswerText { get; set; }
 
     // Navigation
+    public Student? Student { get; set; }
     public Lesson? Lesson { get; set; }
 }

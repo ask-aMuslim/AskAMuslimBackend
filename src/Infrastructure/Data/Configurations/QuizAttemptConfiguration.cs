@@ -20,11 +20,12 @@ public class QuizAttemptConfiguration : IEntityTypeConfiguration<QuizAttempt>
             .HasForeignKey(a => a.QuizId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // FK to ApplicationUser (Student)
-        builder
-            .HasOne<Student>()
-            .WithMany()
-            .HasForeignKey(e => e.StudentId)
+        builder.HasOne(a => a.Student)
+            .WithMany(s => s.QuizAttempts)
+            .HasForeignKey(a => a.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(a => new { a.StudentId, a.QuizId });
+        builder.HasIndex(a => new { a.StudentId, a.QuizId, a.AttemptNumber }).IsUnique();
     }
 }

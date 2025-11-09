@@ -28,10 +28,8 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
             .HasForeignKey(e => e.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // FK to ApplicationUser (Student)
-        builder
-            .HasOne<Student>()
-            .WithMany()
+        builder.HasOne(e => e.Student)
+            .WithMany(s => s.Enrollments)
             .HasForeignKey(e => e.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
     }

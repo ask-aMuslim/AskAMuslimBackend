@@ -8,5 +8,6 @@ public class StudentNote : BaseAuditableEntity
     public double Timestamp { get; set; }
 
     // Navigation
+    public Student? Student { get; set; }
     public Lesson? Lesson { get; set; }
 }

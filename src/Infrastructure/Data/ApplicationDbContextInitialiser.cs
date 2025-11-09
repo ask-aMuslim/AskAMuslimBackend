@@ -1,8 +1,10 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
-using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace AskAMuslimBackend.Infrastructure.Data;
@@ -25,21 +27,33 @@ public class ApplicationDbContextInitialiser
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IHostEnvironment _env;
 
-    public ApplicationDbContextInitialiser(ILogger<ApplicationDbContextInitialiser> logger, ApplicationDbContext context, IPasswordHasher passwordHasher)
+    public ApplicationDbContextInitialiser(
+        ILogger<ApplicationDbContextInitialiser> logger,
+        ApplicationDbContext context,
+        IPasswordHasher passwordHasher,
+        IHostEnvironment env)
     {
         _logger = logger;
         _context = context;
         _passwordHasher = passwordHasher;
+        _env = env;
     }
 
     public async Task InitialiseAsync()
     {
         try
         {
-            // See https://jasontaylor.dev/ef-core-database-initialisation-strategies
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
+            if (_env.IsDevelopment())
+            {
+                await _context.Database.EnsureDeletedAsync();
+                await _context.Database.EnsureCreatedAsync();
+            }
+            else
+            {
+                await _context.Database.MigrateAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -63,59 +77,87 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         // --- Default Users (no need for roles anymore, role is part of User entity) ---
-        var users = new List<(string Email, string Password, string FirstName, string LastName, Domain.Enums.UserRole UserRole)>
+        var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole)>
         {
-            ("administrator@localhost", "Administrator1!", "Admin", "User", Domain.Enums.UserRole.Admin),
-            ("student@localhost", "Student1!", "John", "Student", Domain.Enums.UserRole.Student),
-            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", Domain.Enums.UserRole.NonMuslim),
-            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", Domain.Enums.UserRole.Instructor)
+            ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin),
+            ("student@localhost", "Student1!", "John", "Student", UserRole.Student),
+            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim),
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor)
         };
 
-        foreach (var (email, password, firstName, lastName, userRole) in users)
-        {
-            if (!_context.Users.Any(u => u.Email == email))
-            {
-                var user = new User
-                {
-                    Email = email,
-                    PasswordHash = _passwordHasher.HashPassword(password),
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Role = userRole,
-                    EmailConfirmed = true,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
+        var seedEmails = userSeeds.Select(s => s.Email).ToList();
+        var existingEmails = await _context.Users
+            .AsNoTracking()
+            .Where(u => seedEmails.Contains(u.Email))
+            .Select(u => u.Email)
+            .ToListAsync();
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-                
-                // Create role-specific entity
-                await CreateRoleSpecificEntity(user.Id, userRole);
+        var newUsers = new List<User>();
+        foreach (var (email, password, firstName, lastName, userRole) in userSeeds)
+        {
+            if (existingEmails.Contains(email)) continue;
+
+            newUsers.Add(new User
+            {
+                Email = email,
+                PasswordHash = _passwordHasher.HashPassword(password),
+                FirstName = firstName,
+                LastName = lastName,
+                Role = userRole,
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        if (newUsers.Count > 0)
+        {
+            _context.Users.AddRange(newUsers);
+            await _context.SaveChangesAsync();
+
+            // Create role-specific entities without saving each time; save once after.
+            foreach (var user in newUsers)
+            {
+                await CreateRoleSpecificEntity(user.Id, user.Role);
             }
+            await _context.SaveChangesAsync();
         }
 
         // Obtain the Student entity ID (not User ID) for FK assignments
-        var studentUserId = _context.Users.FirstOrDefault(u => u.Email == "student@localhost")?.Id;
-        if (studentUserId == null)
+        var studentUserId = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Email == "student@localhost")
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync();
+
+        if (studentUserId is null)
         {
             _logger.LogWarning("Student user not found; skipping student-related seed data.");
+            await transaction.CommitAsync();
             return; // Cannot seed dependent entities without a valid user
         }
 
-        var studentEntity = _context.Students.FirstOrDefault(s => s.UserId == studentUserId.Value);
-        if (studentEntity == null)
+        var studentId = await _context.Students
+            .AsNoTracking()
+            .Where(s => s.UserId == studentUserId.Value)
+            .Select(s => (Guid?)s.Id)
+            .FirstOrDefaultAsync();
+
+        if (studentId is null)
         {
             _logger.LogWarning("Student entity not found for user; skipping student-related seed data.");
+            await transaction.CommitAsync();
             return;
         }
 
-        var studentId = studentEntity.Id; // This is the Student entity's Id, not the User's Id
+        var studentEntityId = studentId.Value; // This is the Student entity's Id, not the User's Id
 
         // Default data
         // Seed, if necessary
-        if (!_context.TodoLists.Any())
+        if (!await _context.TodoLists.AsNoTracking().AnyAsync())
         {
             _context.TodoLists.Add(new TodoList
             {
@@ -134,7 +176,7 @@ public class ApplicationDbContextInitialiser
 
         // --- Categories ---
 
-        if (!_context.Categories.Any())
+        if (!await _context.Categories.AsNoTracking().AnyAsync())
         {
             var categories = new List<Category>
             {
@@ -148,7 +190,7 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Levels ---
-        if (!_context.Levels.Any())
+        if (!await _context.Levels.AsNoTracking().AnyAsync())
         {
             var levels = new List<Level>
             {
@@ -162,10 +204,10 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Courses ---
-        if (!_context.Courses.Any())
+        if (!await _context.Courses.AsNoTracking().AnyAsync())
         {
-            var firstCategory = _context.Categories.First();
-            var firstLevel = _context.Levels.First();
+            var firstCategory = await _context.Categories.AsNoTracking().OrderBy(c => c.Title).FirstAsync();
+            var firstLevel = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
 
             var courses = new List<Course>
             {
@@ -173,20 +215,20 @@ public class ApplicationDbContextInitialiser
                 {
                     Title = "Introduction to Islam",
                     Description = "Basics of belief, practice and history.",
-                    Category = firstCategory,
-                    Level = firstLevel,
+                    CategoryId = firstCategory.Id,
+                    LevelId = firstLevel.Id,
                     IsPublished = true,
-                    Rating =4.7,
+                    Rating = 4.7,
                     Order = 1
                 },
                 new Course
                 {
                     Title = "Quranic Recitation Basics",
                     Description = "Learn tajweed and basic recitation.",
-                    Category = firstCategory,
-                    Level = firstLevel,
+                    CategoryId = firstCategory.Id,
+                    LevelId = firstLevel.Id,
                     IsPublished = true,
-                    Rating =4.5,
+                    Rating = 4.5,
                     Order = 2
                 }
             };
@@ -196,14 +238,14 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Lessons ---
-        if (!_context.Lessons.Any())
+        if (!await _context.Lessons.AsNoTracking().AnyAsync())
         {
-            var course = _context.Courses.First();
+            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
             var lessons = new List<Lesson>
             {
-                new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", Course = course, Order =1 },
-                new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", Course = course, Order =2 }
+                new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1 },
+                new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2 }
             };
 
             _context.Lessons.AddRange(lessons);
@@ -211,9 +253,9 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Quizzes, Questions, Options ---
-        if (!_context.Quizzes.Any())
+        if (!await _context.Quizzes.AsNoTracking().AnyAsync())
         {
-            var course = _context.Courses.First();
+            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync(); // deterministic
 
             var quiz = new Quiz
             {
@@ -240,16 +282,17 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Enrollments & QuizAttempts ---
-        if (!_context.Enrollments.Any())
+        if (!await _context.Enrollments.AsNoTracking().AnyAsync())
         {
-            var course = _context.Courses.First();
+            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync(); // deterministic
 
             var enrollment = new Enrollment
             {
-                StudentId = studentId, // use Student entity Id
-                Course = course,
+                StudentId = studentEntityId, // use Student entity Id
+                CourseId = course.Id,
                 EnrolledAt = DateTime.UtcNow,
-                Status = default,
+                Status = EnrollmentStatus.Active, // avoid undefined enum value
+                LevelProgress = 0,
                 CourseProgress = 0
             };
 
@@ -257,14 +300,14 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
 
             // Add a quiz attempt for the enrollment if a quiz exists
-            var quiz = _context.Quizzes.FirstOrDefault(q => q.TargetId == course.Id);
+            var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.TargetId == course.Id);
             if (quiz != null)
             {
                 var attempt = new QuizAttempt
                 {
                     QuizId = quiz.Id,
-                    StudentId = studentId,
-                    Score = 8.5
+                    StudentId = studentEntityId,
+                    Score = 8.5M
                 };
 
                 _context.QuizAttempts.Add(attempt);
@@ -273,14 +316,14 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Certificates ---
-        if (!_context.Certificates.Any())
+        if (!await _context.Certificates.AsNoTracking().AnyAsync())
         {
-            var level = _context.Levels.First();
+            var level = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync(); // deterministic
 
             var certificate = new Certificate
             {
-                Level = level,
-                StudentId = studentId, // use Student entity Id
+                LevelId = level.Id,
+                StudentId = studentEntityId, // use Student entity Id
                 Url = "https://example.com/certificates/sample.pdf",
                 IssuedAt = DateTime.UtcNow
             };
@@ -288,45 +331,43 @@ public class ApplicationDbContextInitialiser
             _context.Certificates.Add(certificate);
             await _context.SaveChangesAsync();
         }
+
+        await transaction.CommitAsync();
     }
 
-    private async Task CreateRoleSpecificEntity(Guid userId, Domain.Enums.UserRole role)
+    private Task CreateRoleSpecificEntity(Guid userId, UserRole role)
     {
         switch (role)
         {
-            case Domain.Enums.UserRole.Student:
-                if (!_context.Students.Any(s => s.UserId == userId))
+            case UserRole.Student:
+                if (!_context.Students.AsNoTracking().Any(s => s.UserId == userId))
                 {
-                    var student = new Student
+                    _context.Students.Add(new Student
                     {
                         UserId = userId,
                         EnrollmentDate = DateTime.UtcNow,
                         IsActive = true
-                    };
-                    _context.Students.Add(student);
-                    await _context.SaveChangesAsync();
+                    });
                 }
                 break;
 
-            case Domain.Enums.UserRole.Instructor:
-                if (!_context.Instructors.Any(i => i.UserId == userId))
+            case UserRole.Instructor:
+                if (!_context.Instructors.AsNoTracking().Any(i => i.UserId == userId))
                 {
-                    var instructor = new Instructor
+                    _context.Instructors.Add(new Instructor
                     {
                         UserId = userId,
                         JoinedDate = DateTime.UtcNow,
                         IsActive = true,
                         IsVerified = false
-                    };
-                    _context.Instructors.Add(instructor);
-                    await _context.SaveChangesAsync();
+                    });
                 }
                 break;
 
-            case Domain.Enums.UserRole.Admin:
-                if (!_context.Admins.Any(a => a.UserId == userId))
+            case UserRole.Admin:
+                if (!_context.Admins.AsNoTracking().Any(a => a.UserId == userId))
                 {
-                    var admin = new Admin
+                    _context.Admins.Add(new Admin
                     {
                         UserId = userId,
                         JoinedDate = DateTime.UtcNow,
@@ -337,26 +378,24 @@ public class ApplicationDbContextInitialiser
                         CanManageContent = true,
                         CanViewReports = true,
                         CanManageRoles = false
-                    };
-                    _context.Admins.Add(admin);
-                    await _context.SaveChangesAsync();
+                    });
                 }
                 break;
 
-            case Domain.Enums.UserRole.NonMuslim:
+            case UserRole.NonMuslim:
                 // NonMuslim users are treated as students
-                if (!_context.Students.Any(s => s.UserId == userId))
+                if (!_context.Students.AsNoTracking().Any(s => s.UserId == userId))
                 {
-                    var nonMuslimStudent = new Student
+                    _context.Students.Add(new Student
                     {
                         UserId = userId,
                         EnrollmentDate = DateTime.UtcNow,
                         IsActive = true
-                    };
-                    _context.Students.Add(nonMuslimStudent);
-                    await _context.SaveChangesAsync();
+                    });
                 }
                 break;
         }
+
+        return Task.CompletedTask;
     }
 }

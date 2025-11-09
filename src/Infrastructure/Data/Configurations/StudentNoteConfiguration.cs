@@ -21,10 +21,8 @@ public class StudentNoteConfiguration : IEntityTypeConfiguration<StudentNote>
             .HasForeignKey(n => n.LessonId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // FK to ApplicationUser (Student)
-        builder
-            .HasOne<Student>()
-            .WithMany()
+        builder.HasOne(n => n.Student)
+            .WithMany(s => s.StudentNotes)
             .HasForeignKey(n => n.StudentId)
             .OnDelete(DeleteBehavior.Cascade);
     }
