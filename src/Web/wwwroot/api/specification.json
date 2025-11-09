@@ -1462,6 +1462,164 @@
         ]
       }
     },
+    "/api/QuizAttempts/by-quiz/{quizId}": {
+      "get": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "GetForQuiz",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizAttemptDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/QuizAttempts/by-student/{studentId}": {
+      "get": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "GetForStudent",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QuizAttemptDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/QuizAttempts": {
+      "post": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "StartAttempt",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateQuizAttemptCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/QuizAttempts/complete/{attemptId}": {
+      "put": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "CompleteAttempt",
+        "parameters": [
+          {
+            "name": "attemptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteQuizAttemptCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Quizzes": {
       "get": {
         "tags": [
@@ -3039,6 +3197,75 @@
           },
           "text": {
             "type": "string"
+          }
+        }
+      },
+      "QuizAttemptDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "quizId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "score": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "isPassed": {
+            "type": "boolean"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "attemptNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateQuizAttemptCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quizId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
+      "CompleteQuizAttemptCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "score": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "isPassed": {
+            "type": "boolean"
           }
         }
       },
