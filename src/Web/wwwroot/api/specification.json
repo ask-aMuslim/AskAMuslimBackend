@@ -1628,7 +1628,7 @@
         "operationId": "GetQuizzesWithPagination",
         "parameters": [
           {
-            "name": "TargetId",
+            "name": "LevelId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -1636,6 +1636,26 @@
               "nullable": true
             },
             "x-position": 1
+          },
+          {
+            "name": "CourseId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "LessonId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 3
           },
           {
             "name": "TargetType",
@@ -1648,7 +1668,7 @@
                 }
               ]
             },
-            "x-position": 2
+            "x-position": 4
           },
           {
             "name": "PageNumber",
@@ -1658,7 +1678,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 3
+            "x-position": 5
           },
           {
             "name": "PageSize",
@@ -1668,7 +1688,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 4
+            "x-position": 6
           }
         ],
         "responses": {
@@ -3307,9 +3327,20 @@
             "type": "string",
             "format": "guid"
           },
-          "targetId": {
+          "levelId": {
             "type": "string",
-            "format": "guid"
+            "format": "guid",
+            "nullable": true
+          },
+          "courseId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
           },
           "targetType": {
             "$ref": "#/components/schemas/QuizTargetType"
@@ -3345,9 +3376,20 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "targetId": {
+          "levelId": {
             "type": "string",
-            "format": "guid"
+            "format": "guid",
+            "nullable": true
+          },
+          "courseId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
           },
           "targetType": {
             "$ref": "#/components/schemas/QuizTargetType"
@@ -3369,9 +3411,20 @@
             "type": "string",
             "format": "guid"
           },
-          "targetId": {
+          "levelId": {
             "type": "string",
-            "format": "guid"
+            "format": "guid",
+            "nullable": true
+          },
+          "courseId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
           },
           "targetType": {
             "$ref": "#/components/schemas/QuizTargetType"

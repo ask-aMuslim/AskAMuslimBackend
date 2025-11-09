@@ -7,7 +7,9 @@ namespace AskAMuslimBackend.Application.Quizzes.Queries.GetQuizzesWithPagination
 
 public record GetQuizzesWithPaginationQuery : IRequest<PaginatedList<QuizBriefDto>>
 {
-    public Guid? TargetId { get; init; }
+    public Guid? LevelId { get; init; }
+    public Guid? CourseId { get; init; }
+    public Guid? LessonId { get; init; }
     public QuizTargetType? TargetType { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
@@ -28,9 +30,17 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
     {
         var query = _context.Quizzes.AsQueryable();
 
-        if (request.TargetId.HasValue)
+        if (request.LevelId.HasValue)
         {
-            query = query.Where(q => q.TargetId == request.TargetId.Value);
+            query = query.Where(q => q.LevelId == request.LevelId.Value);
+        }
+        if (request.CourseId.HasValue)
+        {
+            query = query.Where(q => q.CourseId == request.CourseId.Value);
+        }
+        if (request.LessonId.HasValue)
+        {
+            query = query.Where(q => q.LessonId == request.LessonId.Value);
         }
         if (request.TargetType.HasValue)
         {

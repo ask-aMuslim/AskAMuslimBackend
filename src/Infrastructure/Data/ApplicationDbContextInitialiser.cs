@@ -260,7 +260,8 @@ public class ApplicationDbContextInitialiser
             var quiz = new Quiz
             {
                 Title = "Introductory Quiz",
-                TargetId = course.Id,
+                CourseId = course.Id,
+                TargetType = QuizTargetType.Course,
                 TotalMarks = 10,
                 Questions = new List<Question>
                 {
@@ -300,7 +301,7 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
 
             // Add a quiz attempt for the enrollment if a quiz exists
-            var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.TargetId == course.Id);
+            var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.CourseId == course.Id);
             if (quiz != null)
             {
                 var attempt = new QuizAttempt
