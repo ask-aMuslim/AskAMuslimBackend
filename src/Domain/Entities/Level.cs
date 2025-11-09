@@ -4,6 +4,7 @@ public class Level : BaseAuditableEntity
 {
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public  int Order { get; set; }
     public LevelDifficulty Difficulty { get; set; }
 
     // Navigation

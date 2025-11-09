@@ -133,40 +133,28 @@ public class ApplicationDbContextInitialiser
         }
 
         // --- Categories ---
-        // Deterministic GUIDs to keep IDs stable across resets (avoid client stale ID issues)
-        var categoryIds = new[]
-        {
-            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1"),
-            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2"),
-            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3")
-        };
+
         if (!_context.Categories.Any())
         {
             var categories = new List<Category>
             {
-                new Category { Id = categoryIds[0], Title = "Islamic Studies", Description = "Foundational topics on Islam." },
-                new Category { Id = categoryIds[1], Title = "Quran", Description = "Quranic studies and recitation." },
-                new Category { Id = categoryIds[2], Title = "Hadith", Description = "Prophetic traditions and explanations." }
+                new Category { Title = "Islamic Studies", Description = "Foundational topics on Islam." },
+                new Category { Title = "Quran", Description = "Quranic studies and recitation." },
+                new Category { Title = "Hadith", Description = "Prophetic traditions and explanations." }
             };
-
+            
             _context.Categories.AddRange(categories);
             await _context.SaveChangesAsync();
         }
 
         // --- Levels ---
-        var levelIds = new[]
-        {
-            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1"),
-            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2"),
-            Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3")
-        };
         if (!_context.Levels.Any())
         {
             var levels = new List<Level>
             {
-                new Level { Id = levelIds[0], Title = "Beginner", Description = "Introductory level for new learners.", Difficulty = default },
-                new Level { Id = levelIds[1], Title = "Intermediate", Description = "For learners with some background.", Difficulty = default },
-                new Level { Id = levelIds[2], Title = "Advanced", Description = "In-depth topics and advanced study.", Difficulty = default }
+                new Level { Title = "Beginner", Description = "Introductory level for new learners.", Difficulty = default, Order = 1 },
+                new Level { Title = "Intermediate", Description = "For learners with some background.", Difficulty = default, Order = 2 },
+                new Level { Title = "Advanced", Description = "In-depth topics and advanced study.", Difficulty = default, Order = 3 }
             };
 
             _context.Levels.AddRange(levels);

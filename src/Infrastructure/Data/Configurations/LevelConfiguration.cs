@@ -16,6 +16,11 @@ public class LevelConfiguration : IEntityTypeConfiguration<Level>
             .IsRequired()
             .HasMaxLength(150);
 
+        builder.Property(l => l.Order)
+            .HasDefaultValue(0);
+
+        builder.HasIndex(l => l.Order);
+
         builder.Property(l => l.Difficulty)
             .HasConversion<string>() // 👈 Enum stored as string
             .HasMaxLength(50);
