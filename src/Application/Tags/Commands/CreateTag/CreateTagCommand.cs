@@ -2,41 +2,41 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 
-namespace AskAMuslimBackend.Application.Categories.Commands.CreateCategory;
+namespace AskAMuslimBackend.Application.Tags.Commands.CreateTag;
 
-public record CreateCategoryCommand : IRequest<Guid>
+public record CreateTagCommand : IRequest<Guid>
 {
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
 }
 
-public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Guid>
+public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
 
-    public CreateCategoryCommandHandler(IApplicationDbContext context)
+    public CreateTagCommandHandler(IApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateTagCommand request, CancellationToken cancellationToken)
     {
-        var category = new Category
+        var tag = new Tag
         {
             Title = request.Title,
             Description = request.Description
         };
 
-        _context.Categories.Add(category);
+        _context.Tags.Add(tag);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return category.Id;
+        return tag.Id;
     }
 }
 
-public class CreateCategoryCommandValidator : AbstractValidator<CreateCategoryCommand>
+public class CreateTagCommandValidator : AbstractValidator<CreateTagCommand>
 {
-    public CreateCategoryCommandValidator()
+    public CreateTagCommandValidator()
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")

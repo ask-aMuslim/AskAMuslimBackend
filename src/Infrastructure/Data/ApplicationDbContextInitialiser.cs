@@ -79,7 +79,7 @@ public class ApplicationDbContextInitialiser
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        // --- Default Users (no need for roles anymore, role is part of User entity) ---
+        // --- Default Users ---
         var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole)>
         {
             ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin),
@@ -126,7 +126,7 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
-        // Obtain the Student entity ID (not User ID) for FK assignments
+        // Obtain Student entity Id for FK seeds
         var studentUserId = await _context.Users
             .AsNoTracking()
             .Where(u => u.Email == "student@localhost")
@@ -137,7 +137,7 @@ public class ApplicationDbContextInitialiser
         {
             _logger.LogWarning("Student user not found; skipping student-related seed data.");
             await transaction.CommitAsync();
-            return; // Cannot seed dependent entities without a valid user
+            return;
         }
 
         var studentId = await _context.Students
@@ -153,10 +153,9 @@ public class ApplicationDbContextInitialiser
             return;
         }
 
-        var studentEntityId = studentId.Value; // This is the Student entity's Id, not the User's Id
+        var studentEntityId = studentId.Value;
 
-        // Default data
-        // Seed, if necessary
+        // --- Todo List ---
         if (!await _context.TodoLists.AsNoTracking().AnyAsync())
         {
             _context.TodoLists.Add(new TodoList
@@ -174,18 +173,17 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
-        // --- Categories ---
-
-        if (!await _context.Categories.AsNoTracking().AnyAsync())
+        // --- Tags ---
+        if (!await _context.Tags.AsNoTracking().AnyAsync())
         {
-            var categories = new List<Category>
+            var tags = new List<Tag>
             {
-                new Category { Title = "Islamic Studies", Description = "Foundational topics on Islam." },
-                new Category { Title = "Quran", Description = "Quranic studies and recitation." },
-                new Category { Title = "Hadith", Description = "Prophetic traditions and explanations." }
+                new Tag { Title = "Islamic Studies", Description = "Foundational topics on Islam." },
+                new Tag { Title = "Quran", Description = "Quranic studies and recitation." },
+                new Tag { Title = "Hadith", Description = "Prophetic traditions and explanations." },
+                new Tag { Title = "Beginner Friendly", Description = "Suitable for newcomers." }
             };
-            
-            _context.Categories.AddRange(categories);
+            _context.Tags.AddRange(tags);
             await _context.SaveChangesAsync();
         }
 
@@ -203,38 +201,48 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
-        // --- Courses ---
+        // --- Courses & CourseTags ---
         if (!await _context.Courses.AsNoTracking().AnyAsync())
         {
-            var firstCategory = await _context.Categories.AsNoTracking().OrderBy(c => c.Title).FirstAsync();
             var firstLevel = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+            var tagIds = await _context.Tags.AsNoTracking().OrderBy(t => t.Title).Select(t => t.Id).ToListAsync();
 
-            var courses = new List<Course>
+            var introCourse = new Course
             {
-                new Course
-                {
-                    Title = "Introduction to Islam",
-                    Description = "Basics of belief, practice and history.",
-                    CategoryId = firstCategory.Id,
-                    LevelId = firstLevel.Id,
-                    IsPublished = true,
-                    Rating = 4.7,
-                    Order = 1
-                },
-                new Course
-                {
-                    Title = "Quranic Recitation Basics",
-                    Description = "Learn tajweed and basic recitation.",
-                    CategoryId = firstCategory.Id,
-                    LevelId = firstLevel.Id,
-                    IsPublished = true,
-                    Rating = 4.5,
-                    Order = 2
-                }
+                Title = "Introduction to Islam",
+                Description = "Basics of belief, practice and history.",
+                LevelId = firstLevel.Id,
+                IsPublished = true,
+                Rating = 4.7,
+                Order = 1
             };
 
-            _context.Courses.AddRange(courses);
+            var recitationCourse = new Course
+            {
+                Title = "Quranic Recitation Basics",
+                Description = "Learn tajweed and basic recitation.",
+                LevelId = firstLevel.Id,
+                IsPublished = true,
+                Rating = 4.5,
+                Order = 2
+            };
+
+            _context.Courses.AddRange(introCourse, recitationCourse);
             await _context.SaveChangesAsync();
+
+            // Link some tags (first two tags to first course, first + third to second)
+            if (tagIds.Count >= 3)
+            {
+                var courseTags = new List<CourseTag>
+                {
+                    new CourseTag { CourseId = introCourse.Id, TagId = tagIds[0] },
+                    new CourseTag { CourseId = introCourse.Id, TagId = tagIds[1] },
+                    new CourseTag { CourseId = recitationCourse.Id, TagId = tagIds[0] },
+                    new CourseTag { CourseId = recitationCourse.Id, TagId = tagIds[2] }
+                };
+                _context.CourseTags.AddRange(courseTags);
+                await _context.SaveChangesAsync();
+            }
         }
 
         // --- Lessons ---
@@ -255,7 +263,7 @@ public class ApplicationDbContextInitialiser
         // --- Quizzes, Questions, Options ---
         if (!await _context.Quizzes.AsNoTracking().AnyAsync())
         {
-            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync(); // deterministic
+            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
             var quiz = new Quiz
             {
@@ -285,14 +293,14 @@ public class ApplicationDbContextInitialiser
         // --- Enrollments & QuizAttempts ---
         if (!await _context.Enrollments.AsNoTracking().AnyAsync())
         {
-            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync(); // deterministic
+            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
             var enrollment = new Enrollment
             {
-                StudentId = studentEntityId, // use Student entity Id
+                StudentId = studentEntityId,
                 CourseId = course.Id,
                 EnrolledAt = DateTime.UtcNow,
-                Status = EnrollmentStatus.Active, // avoid undefined enum value
+                Status = EnrollmentStatus.Active,
                 LevelProgress = 0,
                 CourseProgress = 0
             };
@@ -300,7 +308,6 @@ public class ApplicationDbContextInitialiser
             _context.Enrollments.Add(enrollment);
             await _context.SaveChangesAsync();
 
-            // Add a quiz attempt for the enrollment if a quiz exists
             var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.CourseId == course.Id);
             if (quiz != null)
             {
@@ -319,12 +326,12 @@ public class ApplicationDbContextInitialiser
         // --- Certificates ---
         if (!await _context.Certificates.AsNoTracking().AnyAsync())
         {
-            var level = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync(); // deterministic
+            var level = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
 
             var certificate = new Certificate
             {
                 LevelId = level.Id,
-                StudentId = studentEntityId, // use Student entity Id
+                StudentId = studentEntityId,
                 Url = "https://example.com/certificates/sample.pdf",
                 IssuedAt = DateTime.UtcNow
             };
@@ -384,7 +391,6 @@ public class ApplicationDbContextInitialiser
                 break;
 
             case UserRole.NonMuslim:
-                // NonMuslim users are treated as students
                 if (!_context.Students.AsNoTracking().Any(s => s.UserId == userId))
                 {
                     _context.Students.Add(new Student

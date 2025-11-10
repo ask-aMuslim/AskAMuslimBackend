@@ -1,8 +1,8 @@
 using AskAMuslimBackend.Domain.Entities;
 
-namespace AskAMuslimBackend.Application.Categories.Queries;
+namespace AskAMuslimBackend.Application.Tags.Queries;
 
-public class CategoryBriefDto
+public class TagBriefDto
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
@@ -13,8 +13,8 @@ public class CategoryBriefDto
     {
         public Mapping()
         {
-            CreateMap<Category, CategoryBriefDto>()
-                .ForMember(dest => dest.TotalCourses, opt => opt.MapFrom(src => src.Courses.Count));
+            CreateMap<Tag, TagBriefDto>()
+                .ForMember(dest => dest.TotalCourses, opt => opt.MapFrom(src => src.CourseTags.Count));
         }
     }
 }

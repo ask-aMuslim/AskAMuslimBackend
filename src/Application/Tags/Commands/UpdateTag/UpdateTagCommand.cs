@@ -1,27 +1,27 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using FluentValidation;
 
-namespace AskAMuslimBackend.Application.Categories.Commands.UpdateCategory;
+namespace AskAMuslimBackend.Application.Tags.Commands.UpdateTag;
 
-public record UpdateCategoryCommand : IRequest
+public record UpdateTagCommand : IRequest
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
 }
 
-public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand>
+public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand>
 {
     private readonly IApplicationDbContext _context;
 
-    public UpdateCategoryCommandHandler(IApplicationDbContext context)
+    public UpdateTagCommandHandler(IApplicationDbContext context)
     {
         _context = context;
     }
 
-    public async Task Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateTagCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _context.Categories.FindAsync(new object[] { request.Id }, cancellationToken);
+        var entity = await _context.Tags.FindAsync(new object[] { request.Id }, cancellationToken);
         Guard.Against.NotFound(request.Id, entity);
 
         entity.Title = request.Title;
@@ -31,11 +31,11 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
     }
 }
 
-public class UpdateCategoryCommandValidator : AbstractValidator<UpdateCategoryCommand>
+public class UpdateTagCommandValidator : AbstractValidator<UpdateTagCommand>
 {
-    public UpdateCategoryCommandValidator()
+    public UpdateTagCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty().WithMessage("Category Id is required.");
+        RuleFor(x => x.Id).NotEmpty().WithMessage("Tag Id is required.");
 
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")

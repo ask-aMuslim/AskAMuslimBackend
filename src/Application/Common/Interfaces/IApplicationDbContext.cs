@@ -10,7 +10,8 @@ public interface IApplicationDbContext
     DbSet<TodoItem> TodoItems { get; }
 
     // Content
-    DbSet<Category> Categories { get; }
+    DbSet<Tag> Tags { get; }
+    DbSet<CourseTag> CourseTags { get; }
     DbSet<Level> Levels { get; }
     DbSet<Course> Courses { get; }
     DbSet<Lesson> Lessons { get; }

@@ -1,10 +1,10 @@
 using FluentValidation;
 
-namespace AskAMuslimBackend.Application.Categories.Queries.GetCategoriesWithPagination;
+namespace AskAMuslimBackend.Application.Tags.Queries.GetTagsWithPagination;
 
-public class GetCategoriesWithPaginationQueryValidator : AbstractValidator<GetCategoriesWithPaginationQuery>
+public class GetTagsWithPaginationQueryValidator : AbstractValidator<GetTagsWithPaginationQuery>
 {
-    public GetCategoriesWithPaginationQueryValidator()
+    public GetTagsWithPaginationQueryValidator()
     {
         RuleFor(x => x.PageNumber)
             .GreaterThanOrEqualTo(1).WithMessage("PageNumber at least greater than or equal to 1.");

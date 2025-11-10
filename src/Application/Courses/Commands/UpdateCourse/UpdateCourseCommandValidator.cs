@@ -13,11 +13,11 @@ public class UpdateCourseCommandValidator : AbstractValidator<UpdateCourseComman
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
 
-        RuleFor(x => x.CategoryId)
-            .NotEmpty().WithMessage("Category is required.");
-
         RuleFor(x => x.LevelId)
             .NotEmpty().WithMessage("Level is required.");
+
+        RuleForEach(x => x.TagIds)
+            .NotEmpty().WithMessage("Tag Id must not be empty.");
 
         RuleFor(x => x.Description)
             .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.")

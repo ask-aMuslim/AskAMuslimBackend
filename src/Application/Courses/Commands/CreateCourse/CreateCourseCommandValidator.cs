@@ -16,13 +16,12 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
 
-        RuleFor(x => x.CategoryId)
-            .NotEmpty().WithMessage("Category is required.")
-            .MustAsync(CategoryExists).WithMessage("Category does not exist.");
-
         RuleFor(x => x.LevelId)
             .NotEmpty().WithMessage("Level is required.")
             .MustAsync(LevelExists).WithMessage("Level does not exist.");
+
+        RuleForEach(x => x.TagIds)
+            .MustAsync(TagExists).WithMessage("One or more tags do not exist.");
 
         RuleFor(x => x.Description)
             .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.")
@@ -36,9 +35,9 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");
     }
 
-    private async Task<bool> CategoryExists(Guid categoryId, CancellationToken ct)
-        => await _context.Categories.AnyAsync(c => c.Id == categoryId, ct);
-
     private async Task<bool> LevelExists(Guid levelId, CancellationToken ct)
         => await _context.Levels.AnyAsync(l => l.Id == levelId, ct);
+
+    private async Task<bool> TagExists(Guid tagId, CancellationToken ct)
+        => await _context.Tags.AnyAsync(t => t.Id == tagId, ct);
 }

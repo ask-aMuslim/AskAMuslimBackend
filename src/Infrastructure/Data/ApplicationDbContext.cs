@@ -13,7 +13,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<TodoList> TodoLists => Set<TodoList>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
-    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<CourseTag> CourseTags => Set<CourseTag>();
     public DbSet<Level> Levels => Set<Level>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
