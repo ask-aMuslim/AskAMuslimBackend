@@ -23,6 +23,9 @@ public interface IApplicationDbContext
     DbSet<Certificate> Certificates { get; }
     DbSet<StudentNote> StudentNotes { get; }
     DbSet<StudentQuestion> StudentQuestions { get; }
+    DbSet<QA> QAs { get; }
+    DbSet<QATranslation> QATranslations { get; }
+    DbSet<QATag> QATags { get; }
 
     // User Management
     DbSet<Student> Students { get; }

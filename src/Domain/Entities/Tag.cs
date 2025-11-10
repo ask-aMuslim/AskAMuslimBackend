@@ -7,4 +7,5 @@ public class Tag : BaseAuditableEntity
 
     // Navigation
     public ICollection<CourseTag> CourseTags { get; set; } = new HashSet<CourseTag>();
+    public ICollection<QATag> QATags { get; set; } = new HashSet<QATag>();
 }

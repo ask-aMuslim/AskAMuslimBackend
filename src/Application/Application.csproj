@@ -17,11 +17,4 @@
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Categories\Commands\DeleteCategory\" />
-    <Folder Include="Categories\Commands\UpdateCategory\" />
-    <Folder Include="Categories\Queries\GetCategoriesWithPagination\" />
-    <Folder Include="Categories\Queries\GetCategoryById\" />
-  </ItemGroup>
-
 </Project>

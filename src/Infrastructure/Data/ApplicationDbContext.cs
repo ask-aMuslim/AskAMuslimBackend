@@ -26,6 +26,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<StudentNote> StudentNotes => Set<StudentNote>();
     public DbSet<StudentQuestion> StudentQuestions => Set<StudentQuestion>();
+    public DbSet<QA> QAs => Set<QA>();
+    public DbSet<QATranslation> QATranslations => Set<QATranslation>();
+    public DbSet<QATag> QATags => Set<QATag>();
     
     // User Management
     public DbSet<Student> Students => Set<Student>();
