@@ -1,0 +1,54 @@
+using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.QAs.Commands.CreateQA;
+using AskAMuslimBackend.Application.QAs.Commands.DeleteQA;
+using AskAMuslimBackend.Application.QAs.Commands.UpdateQA;
+using AskAMuslimBackend.Application.QAs.Queries;
+using AskAMuslimBackend.Application.QAs.Queries.GetQAById;
+using AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
+using Microsoft.AspNetCore.Http.HttpResults;
+
+namespace AskAMuslimBackend.Web.Endpoints;
+
+public class QAs : EndpointGroupBase
+{
+    public override void Map(RouteGroupBuilder groupBuilder)
+    {
+        groupBuilder.MapGet(GetQAsWithPagination).WithName("GetQAs").WithSummary("Get QAs");
+        groupBuilder.MapGet(GetQAById, "{id}").WithName("GetQA").WithSummary("Get QA by id");
+        groupBuilder.MapPost(CreateQA).RequireAuthorization().WithName("CreateQA").WithSummary("Create QA");
+        groupBuilder.MapPut(UpdateQA, "{id}").RequireAuthorization().WithName("UpdateQA").WithSummary("Update QA");
+        groupBuilder.MapDelete(DeleteQA, "{id}").RequireAuthorization().WithName("DeleteQA").WithSummary("Delete QA");
+    }
+
+    public async Task<Ok<PaginatedList<QABriefDto>>> GetQAsWithPagination(ISender sender, [AsParameters] GetQAsWithPaginationQuery query)
+    {
+        var result = await sender.Send(query);
+        return TypedResults.Ok(result);
+        
+    }
+
+    public async Task<Results<Ok<QADetailDto>, NotFound>> GetQAById(ISender sender, Guid id)
+    {
+        var result = await sender.Send(new GetQAByIdQuery(id));
+        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+    }
+
+    public async Task<Created<Guid>> CreateQA(ISender sender, CreateQACommand command)
+    {
+        var id = await sender.Send(command);
+        return TypedResults.Created($"/{nameof(QAs)}/{id}", id);
+    }
+
+    public async Task<Results<NoContent, BadRequest>> UpdateQA(ISender sender, Guid id, UpdateQACommand command)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command);
+        return TypedResults.NoContent();
+    }
+
+    public async Task<NoContent> DeleteQA(ISender sender, Guid id)
+    {
+        await sender.Send(new DeleteQACommand(id));
+        return TypedResults.NoContent();
+    }
+}

@@ -340,6 +340,50 @@ public class ApplicationDbContextInitialiser
             await _context.SaveChangesAsync();
         }
 
+        // --- QAs & QATranslations & QATags ---
+        if (!await _context.QAs.AsNoTracking().AnyAsync())
+        {
+            var tagsByTitle = await _context.Tags.AsNoTracking().ToDictionaryAsync(t => t.Title, t => t.Id);
+
+            var qa1 = new QA
+            {
+                ImageUrl = null,
+                VideoUrl = null,
+                IsPublished = true,
+                Translations = new List<QATranslation>
+                {
+                    new QATranslation { Language = Language.En, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
+                    new QATranslation { Language = Language.Ar, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
+                }
+            };
+
+            var qa2 = new QA
+            {
+                ImageUrl = null,
+                VideoUrl = null,
+                IsPublished = true,
+                Translations = new List<QATranslation>
+                {
+                    new QATranslation { Language = Language.En, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
+                    new QATranslation { Language = Language.Ar, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
+                }
+            };
+
+            // Attach tags by title when available
+            if (tagsByTitle.TryGetValue("Islamic Studies", out var islamicStudiesTag))
+            {
+                qa1.QATags.Add(new QATag { TagId = islamicStudiesTag });
+                qa2.QATags.Add(new QATag { TagId = islamicStudiesTag });
+            }
+            if (tagsByTitle.TryGetValue("Beginner Friendly", out var beginnerTag))
+            {
+                qa1.QATags.Add(new QATag { TagId = beginnerTag });
+            }
+
+            _context.QAs.AddRange(qa1, qa2);
+            await _context.SaveChangesAsync();
+        }
+
         await transaction.CommitAsync();
     }
 
