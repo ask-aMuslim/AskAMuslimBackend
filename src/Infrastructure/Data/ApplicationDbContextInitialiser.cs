@@ -192,9 +192,9 @@ public class ApplicationDbContextInitialiser
         {
             var levels = new List<Level>
             {
-                new Level { Title = "Beginner", Description = "Introductory level for new learners.", Difficulty = default, Order = 1 },
-                new Level { Title = "Intermediate", Description = "For learners with some background.", Difficulty = default, Order = 2 },
-                new Level { Title = "Advanced", Description = "In-depth topics and advanced study.", Difficulty = default, Order = 3 }
+                new Level { Title = "Beginner", Description = "Introductory level for new learners.", Difficulty = LevelDifficulty.Beginner, Order = 1 },
+                new Level { Title = "Intermediate", Description = "For learners with some background.", Difficulty = LevelDifficulty.Intermediate, Order = 2 },
+                new Level { Title = "Advanced", Description = "In-depth topics and advanced study.", Difficulty = LevelDifficulty.Advanced, Order = 3 }
             };
 
             _context.Levels.AddRange(levels);
@@ -252,8 +252,8 @@ public class ApplicationDbContextInitialiser
 
             var lessons = new List<Lesson>
             {
-                new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1 },
-                new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2 }
+                new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1, Type = LessonType.Article },
+                new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2, Type = LessonType.Article }
             };
 
             _context.Lessons.AddRange(lessons);

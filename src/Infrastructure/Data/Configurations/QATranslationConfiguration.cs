@@ -12,7 +12,7 @@ public class QATranslationConfiguration : IEntityTypeConfiguration<QATranslation
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Language)
             .IsRequired()
-            .HasConversion<int>(); // store as int
+            .HasConversion<string>();
         builder.Property(t => t.QuestionText).IsRequired();
         builder.Property(t => t.AnswerText).IsRequired();
 
