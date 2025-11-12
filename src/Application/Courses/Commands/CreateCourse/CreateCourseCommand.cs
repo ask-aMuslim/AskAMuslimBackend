@@ -1,7 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.CreateCourse;
 
@@ -27,23 +25,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, G
 
     public async Task<Guid> Handle(CreateCourseCommand request, CancellationToken cancellationToken)
     {
-        // Defensive existence checks
-        var levelExists = await _context.Levels.AsNoTracking().AnyAsync(l => l.Id == request.LevelId, cancellationToken);
-        if (!levelExists)
-        {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("LevelId", "Level does not exist.") });
-        }
-
-        if (request.TagIds.Count > 0)
-        {
-            var existingTagIds = await _context.Tags.AsNoTracking().Where(t => request.TagIds.Contains(t.Id)).Select(t => t.Id).ToListAsync(cancellationToken);
-            var missing = request.TagIds.Except(existingTagIds).ToList();
-            if (missing.Any())
-            {
-                throw new ValidationException(missing.Select(id => new FluentValidation.Results.ValidationFailure("TagIds", $"Tag {id} does not exist.")).ToList());
-            }
-        }
-
+        // Assumes validator already ensured LevelId and TagIds exist.
         var course = new Course
         {
             LevelId = request.LevelId,
@@ -54,7 +36,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, G
             Order = request.Order
         };
 
-        if (request.TagIds.Any())
+        if (request.TagIds.Count != 0)
         {
             foreach (var tagId in request.TagIds.Distinct())
             {
@@ -64,7 +46,6 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, G
 
         _context.Courses.Add(course);
         await _context.SaveChangesAsync(cancellationToken);
-
         return course.Id;
     }
 }
