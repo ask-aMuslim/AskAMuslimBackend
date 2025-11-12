@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
 
-public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>
+public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
@@ -55,12 +56,10 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
     }
 }
 
-public class GetQAsWithPaginationQueryValidator : AbstractValidator<GetQAsWithPaginationQuery>
+public class GetQAsWithPaginationQueryValidator : PaginationQueryValidator<GetQAsWithPaginationQuery>
 {
     public GetQAsWithPaginationQueryValidator()
     {
-        RuleFor(x => x.PageNumber).GreaterThanOrEqualTo(1);
-        RuleFor(x => x.PageSize).GreaterThanOrEqualTo(1);
         RuleFor(x => x.Language).IsInEnum();
     }
 }

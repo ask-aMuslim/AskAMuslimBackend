@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 
 namespace AskAMuslimBackend.Application.Tags.Queries.GetTagsWithPagination;
 
-public record GetTagsWithPaginationQuery : IRequest<PaginatedList<TagBriefDto>>
+public record GetTagsWithPaginationQuery : IRequest<PaginatedList<TagBriefDto>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
