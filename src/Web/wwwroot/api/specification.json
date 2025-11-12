@@ -1526,6 +1526,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "Language",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Language"
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -4163,26 +4172,37 @@
             "type": "string",
             "format": "guid"
           },
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
+          "questionText": {
+            "type": "string"
           },
-          "videoUrl": {
-            "type": "string",
-            "nullable": true
+          "answerText": {
+            "type": "string"
           },
-          "isPublished": {
-            "type": "boolean"
-          },
-          "translationsCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "tagsCount": {
-            "type": "integer",
-            "format": "int32"
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
+      },
+      "Language": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "En",
+          "Ar",
+          "Fr",
+          "Es",
+          "De"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
       },
       "QADetailDto": {
         "type": "object",
@@ -4236,24 +4256,6 @@
             "type": "string"
           }
         }
-      },
-      "Language": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "En",
-          "Ar",
-          "Fr",
-          "Es",
-          "De"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
       },
       "CreateQACommand": {
         "type": "object",

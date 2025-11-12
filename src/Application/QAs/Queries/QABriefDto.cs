@@ -1,23 +1,23 @@
 using AskAMuslimBackend.Domain.Entities;
+using AutoMapper;
 
 namespace AskAMuslimBackend.Application.QAs.Queries;
 
 public class QABriefDto
 {
     public Guid Id { get; init; }
-    public string? ImageUrl { get; init; }
-    public string? VideoUrl { get; init; }
-    public bool IsPublished { get; init; }
-    public int TranslationsCount { get; init; }
-    public int TagsCount { get; init; }
+    public string QuestionText { get; init; } = string.Empty;
+    public string AnswerText { get; init; } = string.Empty;
+    public IReadOnlyCollection<string> Tags { get; init; } = [];
 
     private class Mapping : Profile
     {
         public Mapping()
         {
             CreateMap<QA, QABriefDto>()
-                .ForMember(d => d.TranslationsCount, opt => opt.MapFrom(s => s.Translations.Count))
-                .ForMember(d => d.TagsCount, opt => opt.MapFrom(s => s.QATags.Count));
+                .ForMember(d => d.QuestionText, opt => opt.Ignore())
+                .ForMember(d => d.AnswerText, opt => opt.Ignore())
+                .ForMember(d => d.Tags, opt => opt.Ignore());
         }
     }
 }
