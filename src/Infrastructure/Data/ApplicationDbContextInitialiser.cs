@@ -416,6 +416,52 @@ public class ApplicationDbContextInitialiser
             }
         }
 
+        // --- Events & EventRegistrations ---
+        if (!await _context.Events.AsNoTracking().AnyAsync())
+        {
+            var speaker = "Dr. Ahmed";
+            var now = DateTime.UtcNow;
+            var event1 = new Event
+            {
+                Title = "Understanding Ramadan",
+                Description = "A session on the spiritual dimensions of Ramadan.",
+                SpeakerName = speaker,
+                ImageUrl = null,
+                StartDateTime = now.AddDays(7),
+                EndDateTime = now.AddDays(7).AddHours(2),
+                MeetingLink = "https://meet.example.com/ramadan",
+                IsPublished = true
+            };
+            var event2 = new Event
+            {
+                Title = "Intro to Quranic Sciences",
+                Description = "Overview of 'Ulum al-Quran.",
+                SpeakerName = "Ustadh Bilal",
+                ImageUrl = null,
+                StartDateTime = now.AddDays(14),
+                EndDateTime = now.AddDays(14).AddHours(1),
+                MeetingLink = "https://meet.example.com/quranic-sciences",
+                IsPublished = true
+            };
+
+            _context.Events.AddRange(event1, event2);
+            await _context.SaveChangesAsync();
+
+            // Register the student user for event1
+            var studentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            if (studentUser != null)
+            {
+                _context.EventRegistrations.Add(new EventRegistration
+                {
+                    EventId = event1.Id,
+                    UserId = studentUser.Id,
+                    QuestionText = "Will there be a Q&A session?",
+                    Status = EventStatus.Approved
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+
         await transaction.CommitAsync();
     }
 
