@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<QA> QAs => Set<QA>();
     public DbSet<QATranslation> QATranslations => Set<QATranslation>();
     public DbSet<QATag> QATags => Set<QATag>();
+    public DbSet<MeetingRequest> MeetingRequests => Set<MeetingRequest>();
     
     // User Management
     public DbSet<Student> Students => Set<Student>();

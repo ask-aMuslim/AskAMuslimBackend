@@ -10,7 +10,7 @@ public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>, I
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
     public bool? IsPublished { get; init; }
-    public Language Language { get; init; } = Language.En;
+    public Language Language { get; init; } = Language.English;
 }
 
 public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, PaginatedList<QABriefDto>>

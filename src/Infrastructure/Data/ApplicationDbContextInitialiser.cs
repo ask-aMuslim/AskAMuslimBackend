@@ -85,7 +85,8 @@ public class ApplicationDbContextInitialiser
             ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin),
             ("student@localhost", "Student1!", "John", "Student", UserRole.Student),
             ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim),
-            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor)
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor),
+            ("preacher@localhost", "Preacher1!", "Ali", "Preacher", UserRole.Preacher) // Added preacher
         };
 
         var seedEmails = userSeeds.Select(s => s.Email).ToList();
@@ -352,8 +353,8 @@ public class ApplicationDbContextInitialiser
                 IsPublished = true,
                 Translations = new List<QATranslation>
                 {
-                    new QATranslation { Language = Language.En, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
-                    new QATranslation { Language = Language.Ar, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
+                    new QATranslation { Language = Language.English, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
+                    new QATranslation { Language = Language.Arabic, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
                 }
             };
 
@@ -364,8 +365,8 @@ public class ApplicationDbContextInitialiser
                 IsPublished = true,
                 Translations = new List<QATranslation>
                 {
-                    new QATranslation { Language = Language.En, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
-                    new QATranslation { Language = Language.Ar, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
+                    new QATranslation { Language = Language.English, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
+                    new QATranslation { Language = Language.Arabic, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
                 }
             };
 
@@ -382,6 +383,37 @@ public class ApplicationDbContextInitialiser
 
             _context.QAs.AddRange(qa1, qa2);
             await _context.SaveChangesAsync();
+        }
+
+        // --- Meeting Requests Seed ---
+        if (!await _context.MeetingRequests.AsNoTracking().AnyAsync())
+        {
+            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+            if (requesterUser != null && scholarUser != null)
+            {
+                _context.MeetingRequests.Add(new MeetingRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    // No ScholarId until accepted
+                    Topic = MeetingTopic.GeneralInquiry,
+                    Message = "I would like to learn more about the basics of Islam.",
+                    Language = Language.English,
+                    ScheduledAt = DateTime.UtcNow.AddDays(2),
+                    Status = MeetingRequestStatus.Pending,
+                });
+                _context.MeetingRequests.Add(new MeetingRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    ScholarId = scholarUser.Id,
+                    Topic = MeetingTopic.Quran,
+                    Message = "Questions about Quranic recitation rules.",
+                    Language = Language.Arabic,
+                    ScheduledAt = DateTime.UtcNow.AddDays(5),
+                    Status = MeetingRequestStatus.Accepted,
+                });
+                await _context.SaveChangesAsync();
+            }
         }
 
         await transaction.CommitAsync();
@@ -442,6 +474,19 @@ public class ApplicationDbContextInitialiser
                         UserId = userId,
                         EnrollmentDate = DateTime.UtcNow,
                         IsActive = true
+                    });
+                }
+                break;
+
+            case UserRole.Preacher:
+                if (!_context.Instructors.AsNoTracking().Any(i => i.UserId == userId))
+                {
+                    _context.Instructors.Add(new Instructor
+                    {
+                        UserId = userId,
+                        JoinedDate = DateTime.UtcNow,
+                        IsActive = true,
+                        IsVerified = false
                     });
                 }
                 break;

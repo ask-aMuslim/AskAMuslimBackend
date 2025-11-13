@@ -26,6 +26,7 @@ public interface IApplicationDbContext
     DbSet<QA> QAs { get; }
     DbSet<QATranslation> QATranslations { get; }
     DbSet<QATag> QATags { get; }
+    DbSet<MeetingRequest> MeetingRequests { get; } // Added
 
     // User Management
     DbSet<Student> Students { get; }
