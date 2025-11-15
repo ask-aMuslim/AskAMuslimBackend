@@ -266,6 +266,7 @@ public class ApplicationDbContextInitialiser
         {
             var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
+            // Course quiz
             var quiz = new Quiz
             {
                 Title = "Introductory Quiz",
@@ -289,6 +290,45 @@ public class ApplicationDbContextInitialiser
 
             _context.Quizzes.Add(quiz);
             await _context.SaveChangesAsync();
+
+            // Level quiz
+            var levelId = course.LevelId;
+            _context.Quizzes.Add(new Quiz
+            {
+                Title = "Level Check",
+                LevelId = levelId,
+                TargetType = QuizTargetType.Level,
+                TotalMarks = 10
+            });
+
+            // Lesson quiz (for the first lesson)
+            var firstLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).FirstOrDefaultAsync();
+            if (firstLesson != null)
+            {
+                _context.Quizzes.Add(new Quiz
+                {
+                    Title = "Lesson Quick Quiz",
+                    LessonId = firstLesson.Id,
+                    TargetType = QuizTargetType.Lesson,
+                    TotalMarks = 10
+                });
+            }
+
+            // Lesson quiz (for the second lesson)
+            var secondLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).Skip(1).FirstOrDefaultAsync();
+            if (secondLesson != null)
+            {
+                _context.Quizzes.Add(new Quiz
+                {
+                    Title = "Lesson Quick Quiz 2",
+                    LessonId = secondLesson.Id,
+                    TargetType = QuizTargetType.Lesson,
+                    TotalMarks = 10
+                });
+
+            }
+
+             await _context.SaveChangesAsync();
         }
 
         // --- Enrollments & QuizAttempts ---
@@ -322,6 +362,30 @@ public class ApplicationDbContextInitialiser
                 _context.QuizAttempts.Add(attempt);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        // --- Student Notes ---
+        if (!await _context.StudentNotes.AsNoTracking().AnyAsync())
+        {
+            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+            _context.StudentNotes.AddRange(
+                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Key point about Shahada.", Timestamp = 12.5 },
+                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Clarify Five Pillars order.", Timestamp = 89.3 }
+            );
+            await _context.SaveChangesAsync();
+        }
+
+        // --- Student Questions ---
+        if (!await _context.StudentQuestions.AsNoTracking().AnyAsync())
+        {
+            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+            _context.StudentQuestions.AddRange(
+                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Can you expand on the meaning of Shahada?", Timestamp = 30, Answered = false },
+                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Is Zakat mandatory for everyone?", Timestamp = 145, Answered = true, AnswerText = "Zakat is mandatory once nisab is reached." }
+            );
+            await _context.SaveChangesAsync();
         }
 
         // --- Certificates ---

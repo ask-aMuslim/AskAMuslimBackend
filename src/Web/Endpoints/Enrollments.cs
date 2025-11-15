@@ -1,6 +1,5 @@
 using AskAMuslimBackend.Application.Enrollments.Commands.CreateEnrollment;
 using AskAMuslimBackend.Application.Enrollments.Commands.DeleteEnrollment;
-using AskAMuslimBackend.Application.Enrollments.Commands.UpdateEnrollmentProgress;
 using AskAMuslimBackend.Application.Enrollments.Commands.UpdateEnrollmentStatus;
 using AskAMuslimBackend.Application.Enrollments.Queries;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentById;
@@ -19,7 +18,6 @@ public class Enrollments : EndpointGroupBase
         groupBuilder.MapGet(GetByStudent, "by-student/{studentId}").RequireAuthorization().WithName("GetEnrollmentsByStudent").WithSummary("Get enrollments by student id");
         groupBuilder.MapPost(CreateEnrollment).RequireAuthorization().WithName("CreateEnrollment").WithSummary("Create a new enrollment");
         groupBuilder.MapPut(UpdateEnrollmentStatus, "{id}/status").RequireAuthorization().WithName("UpdateEnrollmentStatus").WithSummary("Update enrollment status");
-        groupBuilder.MapPut(UpdateEnrollmentProgress, "{id}/progress").RequireAuthorization().WithName("UpdateEnrollmentProgress").WithSummary("Update enrollment progress");
         groupBuilder.MapDelete(DeleteEnrollment, "{id}").RequireAuthorization().WithName("DeleteEnrollment").WithSummary("Delete an enrollment");
     }
 
@@ -48,13 +46,6 @@ public class Enrollments : EndpointGroupBase
     }
 
     public async Task<Results<NoContent, BadRequest>> UpdateEnrollmentStatus(ISender sender, Guid id, UpdateEnrollmentStatusCommand command)
-    {
-        if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
-    }
-
-    public async Task<Results<NoContent, BadRequest>> UpdateEnrollmentProgress(ISender sender, Guid id, UpdateEnrollmentProgressCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
         await sender.Send(command);

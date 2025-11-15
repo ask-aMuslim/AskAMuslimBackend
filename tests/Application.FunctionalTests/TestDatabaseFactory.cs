@@ -4,12 +4,28 @@ public static class TestDatabaseFactory
 {
     public static async Task<ITestDatabase> CreateAsync()
     {
-        // Testcontainers requires Docker. To use a local SQL Server database instead,
-        // switch to `SqlTestDatabase` and update appsettings.json.
-        var database = new SqlTestcontainersTestDatabase();
+        // Prefer Testcontainers when available, otherwise fallback to local SQL using appsettings.json.
+        // You can force Testcontainers by setting env var USE_TESTCONTAINERS=true.
+        var useTestcontainers = Environment.GetEnvironmentVariable("USE_TESTCONTAINERS");
 
-        await database.InitialiseAsync();
+        if (string.Equals(useTestcontainers, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            var forced = new SqlTestcontainersTestDatabase();
+            await forced.InitialiseAsync();
+            return forced;
+        }
 
-        return database;
+        try
+        {
+            var containerDb = new SqlTestcontainersTestDatabase();
+            await containerDb.InitialiseAsync();
+            return containerDb;
+        }
+        catch
+        {
+            var localDb = new SqlTestDatabase();
+            await localDb.InitialiseAsync();
+            return localDb;
+        }
     }
 }
