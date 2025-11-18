@@ -1,5 +1,4 @@
 using AskAMuslimBackend.Domain.Entities;
-using AutoMapper;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Queries;
 
@@ -33,6 +32,7 @@ public class MuslimTubeVideoBriefDto
     public string? ThumbnailMediumUrl { get; set; }
     public string? ThumbnailHighUrl { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
+    public string VideoUrl { get; set; } = string.Empty;
 
     private class Mapping : Profile
     {

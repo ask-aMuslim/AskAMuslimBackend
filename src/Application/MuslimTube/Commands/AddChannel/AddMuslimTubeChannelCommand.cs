@@ -118,7 +118,8 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
                     ThumbnailDefaultUrl = v.ThumbnailDefaultUrl,
                     ThumbnailMediumUrl = v.ThumbnailMediumUrl,
                     ThumbnailHighUrl = v.ThumbnailHighUrl,
-                    PublishedAt = v.PublishedAt
+                    PublishedAt = v.PublishedAt,
+                    VideoUrl = $"https://www.youtube.com/watch?v={v.YouTubeVideoId}"
                 });
             }
         }

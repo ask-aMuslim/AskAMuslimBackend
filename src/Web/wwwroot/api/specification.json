@@ -2171,6 +2171,41 @@
         }
       }
     },
+    "/api/MuslimTube/videos/{id}": {
+      "get": {
+        "tags": [
+          "MuslimTube"
+        ],
+        "operationId": "GetVideoById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MuslimTubeVideoBriefDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/MuslimTube/channels/{channelId}/videos": {
       "get": {
         "tags": [
@@ -5550,6 +5585,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "videoUrl": {
+            "type": "string"
           }
         }
       },

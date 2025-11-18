@@ -48,6 +48,7 @@ public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMusli
                 ThumbnailMediumUrl = v.ThumbnailMediumUrl,
                 ThumbnailHighUrl = v.ThumbnailHighUrl,
                 PublishedAt = v.PublishedAt,
+                VideoUrl = $"https://www.youtube.com/watch?v={v.YouTubeVideoId}"
             });
             added++;
         }

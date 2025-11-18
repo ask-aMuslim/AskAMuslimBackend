@@ -15,4 +15,7 @@ public class MuslimTubeVideo : BaseAuditableEntity
     public string? ThumbnailHighUrl { get; set; }
 
     public DateTimeOffset? PublishedAt { get; set; }
+
+    // Direct link to watch the video on YouTube
+    public string VideoUrl { get; set; } = string.Empty;
 }
