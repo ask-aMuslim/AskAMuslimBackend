@@ -12,6 +12,14 @@ public class InstructorConfiguration : IEntityTypeConfiguration<Instructor>
 
         builder.HasKey(i => i.Id);
 
+        builder.HasIndex(i => i.UserId)
+            .IsUnique();
+
+        builder.HasOne<User>()
+            .WithOne()
+            .HasForeignKey<Instructor>(i => i.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Property(i => i.Rating)
             .HasPrecision(3, 2); // Allows values like 4.75, 5.00
 

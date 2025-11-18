@@ -31,6 +31,10 @@ public interface IApplicationDbContext
     DbSet<Student> Students { get; }
     DbSet<Instructor> Instructors { get; }
     DbSet<Admin> Admins { get; }
+    DbSet<Preacher> Preachers { get; }
+    DbSet<AdminNote> AdminNotes { get; }
+    DbSet<Notification> Notifications { get; }
+    DbSet<UserPermission> UserPermissions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

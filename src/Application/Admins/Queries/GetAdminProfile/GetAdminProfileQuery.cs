@@ -55,12 +55,7 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
             IsSuperAdmin = admin.IsSuperAdmin,
             IsActive = admin.IsActive,
             JoinedDate = admin.JoinedDate,
-            LastLoginDate = admin.LastLoginDate,
-            CanManageUsers = admin.CanManageUsers,
-            CanManageCourses = admin.CanManageCourses,
-            CanManageContent = admin.CanManageContent,
-            CanViewReports = admin.CanViewReports,
-            CanManageRoles = admin.CanManageRoles
+            LastLoginDate = admin.LastLoginDate
         };
     }
 }

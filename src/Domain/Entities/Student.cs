@@ -6,6 +6,7 @@ public class Student : BaseEntity
     public string? Bio { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
+    public string? Country { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public DateTime EnrollmentDate { get; set; } = DateTime.UtcNow;
     public bool IsActive { get; set; } = true;
@@ -15,4 +16,5 @@ public class Student : BaseEntity
     public ICollection<StudentNote> StudentNotes { get; set; } = new List<StudentNote>();
     public ICollection<StudentQuestion> StudentQuestions { get; set; } = new List<StudentQuestion>();
     public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
+    public ICollection<AdminNote> AdminNotes { get; set; } = new List<AdminNote>();
 }

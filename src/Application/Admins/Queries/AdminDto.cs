@@ -13,9 +13,4 @@ public class AdminDto
     public bool IsActive { get; set; }
     public DateTime JoinedDate { get; set; }
     public DateTime? LastLoginDate { get; set; }
-    public bool CanManageUsers { get; set; }
-    public bool CanManageCourses { get; set; }
-    public bool CanManageContent { get; set; }
-    public bool CanViewReports { get; set; }
-    public bool CanManageRoles { get; set; }
 }

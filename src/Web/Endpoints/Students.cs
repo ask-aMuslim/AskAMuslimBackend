@@ -1,7 +1,10 @@
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Students.Commands.UpdateStudentProfile;
 using AskAMuslimBackend.Application.Students.Queries;
 using AskAMuslimBackend.Application.Students.Queries.GetAllStudents;
 using AskAMuslimBackend.Application.Students.Queries.GetStudentProfile;
+using AskAMuslimBackend.Application.Students.Queries.GetStudentDashboard;
+using AskAMuslimBackend.Domain.Constants;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -24,6 +27,11 @@ public class Students : EndpointGroupBase
             .RequireAuthorization()
             .WithName("GetAllStudents")
             .WithSummary("Get all students (Admin only)");
+
+        groupBuilder.MapGet(GetStudentDashboard, "dashboard")
+            .RequireAuthorization(Policies.ViewAllUsers)
+            .WithName("GetStudentDashboard")
+            .WithSummary("Get student dashboard with progress tracking (Admin panel)");
 
         groupBuilder.MapPut(UpdateStudentProfile, "me")
             .RequireAuthorization()
@@ -48,6 +56,13 @@ public class Students : EndpointGroupBase
     public async Task<Ok<List<StudentDto>>> GetAllStudents(ISender sender)
     {
         var result = await sender.Send(new GetAllStudentsQuery());
+        
+        return TypedResults.Ok(result);
+    }
+
+    public async Task<Ok<PaginatedList<StudentDashboardDto>>> GetStudentDashboard(ISender sender, [AsParameters] GetStudentDashboardQuery query)
+    {
+        var result = await sender.Send(query);
         
         return TypedResults.Ok(result);
     }

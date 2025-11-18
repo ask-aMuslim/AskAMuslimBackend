@@ -25,6 +25,7 @@ public class AnswerStudentQuestionCommandHandler : IRequestHandler<AnswerStudent
 
         entity.Answered = true;
         entity.AnswerText = request.AnswerText;
+        entity.AnsweredAt = DateTimeOffset.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
     }

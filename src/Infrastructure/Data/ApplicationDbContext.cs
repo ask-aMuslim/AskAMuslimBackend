@@ -1,15 +1,15 @@
 ﻿using System.Reflection;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext, IApplicationDbContext
+public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-
-    public DbSet<User> Users => Set<User>();
     public DbSet<TodoList> TodoLists => Set<TodoList>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
@@ -34,6 +34,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Instructor> Instructors => Set<Instructor>();
     public DbSet<Admin> Admins => Set<Admin>();
+    public DbSet<Preacher> Preachers => Set<Preacher>();
+    public DbSet<AdminNote> AdminNotes => Set<AdminNote>();
+    public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

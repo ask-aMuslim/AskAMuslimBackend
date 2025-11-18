@@ -2,6 +2,7 @@
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,18 +27,21 @@ public class ApplicationDbContextInitialiser
 {
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IHostEnvironment _env;
 
     public ApplicationDbContextInitialiser(
         ILogger<ApplicationDbContextInitialiser> logger,
         ApplicationDbContext context,
-        IPasswordHasher passwordHasher,
+        UserManager<User> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager,
         IHostEnvironment env)
     {
         _logger = logger;
         _context = context;
-        _passwordHasher = passwordHasher;
+        _userManager = userManager;
+        _roleManager = roleManager;
         _env = env;
     }
 
@@ -79,45 +83,58 @@ public class ApplicationDbContextInitialiser
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
+        // --- Seed Identity Roles ---
+        var roles = new[] { "Admin", "Student", "Instructor", "NonMuslim", "Preacher" };
+        foreach (var roleName in roles)
+        {
+            if (!await _roleManager.RoleExistsAsync(roleName))
+            {
+                await _roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+            }
+        }
+
         // --- Default Users ---
         var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole)>
         {
             ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin),
             ("student@localhost", "Student1!", "John", "Student", UserRole.Student),
             ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim),
-            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor)
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor),
+            ("preacher@localhost", "Preacher1!", "Ahmed", "Preacher", UserRole.Preacher)
         };
-
-        var seedEmails = userSeeds.Select(s => s.Email).ToList();
-        var existingEmails = await _context.Users
-            .AsNoTracking()
-            .Where(u => seedEmails.Contains(u.Email))
-            .Select(u => u.Email)
-            .ToListAsync();
 
         var newUsers = new List<User>();
         foreach (var (email, password, firstName, lastName, userRole) in userSeeds)
         {
-            if (existingEmails.Contains(email)) continue;
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if (existingUser != null) continue;
 
-            newUsers.Add(new User
+            var user = new User
             {
+                UserName = email,
                 Email = email,
-                PasswordHash = _passwordHasher.HashPassword(password),
                 FirstName = firstName,
                 LastName = lastName,
                 Role = userRole,
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
-            });
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, userRole.ToString());
+                newUsers.Add(user);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to create user {Email}: {Errors}", email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
         }
 
         if (newUsers.Count > 0)
         {
-            _context.Users.AddRange(newUsers);
-            await _context.SaveChangesAsync();
-
             // Create role-specific entities without saving each time; save once after.
             foreach (var user in newUsers)
             {
@@ -127,13 +144,8 @@ public class ApplicationDbContextInitialiser
         }
 
         // Obtain Student entity Id for FK seeds
-        var studentUserId = await _context.Users
-            .AsNoTracking()
-            .Where(u => u.Email == "student@localhost")
-            .Select(u => (Guid?)u.Id)
-            .FirstOrDefaultAsync();
-
-        if (studentUserId is null)
+        var studentUser = await _userManager.FindByEmailAsync("student@localhost");
+        if (studentUser is null)
         {
             _logger.LogWarning("Student user not found; skipping student-related seed data.");
             await transaction.CommitAsync();
@@ -142,7 +154,7 @@ public class ApplicationDbContextInitialiser
 
         var studentId = await _context.Students
             .AsNoTracking()
-            .Where(s => s.UserId == studentUserId.Value)
+            .Where(s => s.UserId == studentUser.Id)
             .Select(s => (Guid?)s.Id)
             .FirstOrDefaultAsync();
 
@@ -424,12 +436,20 @@ public class ApplicationDbContextInitialiser
                         UserId = userId,
                         JoinedDate = DateTime.UtcNow,
                         IsActive = true,
-                        IsSuperAdmin = false,
-                        CanManageUsers = true,
-                        CanManageCourses = true,
-                        CanManageContent = true,
-                        CanViewReports = true,
-                        CanManageRoles = false
+                        IsSuperAdmin = false
+                    });
+                }
+                break;
+
+            case UserRole.Preacher:
+                if (!_context.Preachers.AsNoTracking().Any(p => p.UserId == userId))
+                {
+                    _context.Preachers.Add(new Preacher
+                    {
+                        UserId = userId,
+                        JoinedDate = DateTime.UtcNow,
+                        IsActive = true,
+                        IsVerified = false
                     });
                 }
                 break;

@@ -6,6 +6,84 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/AdminNotes/{studentId}": {
+      "get": {
+        "tags": [
+          "AdminNotes"
+        ],
+        "operationId": "GetAdminNotes",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminNoteDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/AdminNotes": {
+      "post": {
+        "tags": [
+          "AdminNotes"
+        ],
+        "operationId": "CreateAdminNote",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminNoteCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Admins/me": {
       "get": {
         "tags": [
@@ -1345,6 +1423,133 @@
         ]
       }
     },
+    "/api/Notifications/{userId}": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "GetUserNotifications",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "UnreadOnly",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/send": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "SendNotification",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendNotificationCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/{notificationId}/mark-read": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "MarkAsRead",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Options/by-question/{questionId}": {
       "get": {
         "tags": [
@@ -1489,6 +1694,132 @@
             "JWT": []
           }
         ]
+      }
+    },
+    "/api/Preachers/me": {
+      "get": {
+        "tags": [
+          "Preachers"
+        ],
+        "operationId": "GetMyProfile3",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreacherDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Preachers"
+        ],
+        "operationId": "UpdatePreacherProfile",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreacherProfileCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Preachers/{userId}": {
+      "get": {
+        "tags": [
+          "Preachers"
+        ],
+        "operationId": "GetPreacherProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreacherDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Preachers": {
+      "get": {
+        "tags": [
+          "Preachers"
+        ],
+        "operationId": "GetAllPreachers",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PreacherDto"
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/QAs": {
@@ -2497,6 +2828,41 @@
         }
       }
     },
+    "/api/StudentQuestions/by-student/{studentId}": {
+      "get": {
+        "tags": [
+          "StudentQuestions"
+        ],
+        "operationId": "GetByStudent3",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentQuestionDto2"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/StudentQuestions": {
       "post": {
         "tags": [
@@ -2585,7 +2951,7 @@
         "tags": [
           "Students"
         ],
-        "operationId": "GetMyProfile3",
+        "operationId": "GetMyProfile4",
         "responses": {
           "200": {
             "description": "",
@@ -2699,6 +3065,71 @@
                   "items": {
                     "$ref": "#/components/schemas/StudentDto"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Students/dashboard": {
+      "get": {
+        "tags": [
+          "Students"
+        ],
+        "operationId": "GetStudentDashboard",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "Country",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedListOfStudentDashboardDto"
                 }
               }
             }
@@ -3239,38 +3670,57 @@
           }
         ]
       }
-    },
-    "/api/WeatherForecasts": {
-      "get": {
-        "tags": [
-          "WeatherForecasts"
-        ],
-        "operationId": "GetWeatherForecasts",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
     }
   },
   "components": {
     "schemas": {
+      "AdminNoteDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "adminUserId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "adminName": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAdminNoteCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          }
+        }
+      },
       "AdminDto": {
         "type": "object",
         "additionalProperties": false,
@@ -3314,21 +3764,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "canManageUsers": {
-            "type": "boolean"
-          },
-          "canManageCourses": {
-            "type": "boolean"
-          },
-          "canManageContent": {
-            "type": "boolean"
-          },
-          "canViewReports": {
-            "type": "boolean"
-          },
-          "canManageRoles": {
-            "type": "boolean"
           }
         }
       },
@@ -3381,13 +3816,15 @@
           "Admin",
           "Student",
           "Instructor",
-          "NonMuslim"
+          "NonMuslim",
+          "Preacher"
         ],
         "enum": [
           1,
           2,
           3,
-          4
+          4,
+          5
         ]
       },
       "RegisterCommand": {
@@ -4077,6 +4514,49 @@
           }
         }
       },
+      "NotificationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SendNotificationCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
       "OptionBriefDto": {
         "type": "object",
         "additionalProperties": false,
@@ -4122,6 +4602,118 @@
           },
           "isCorrect": {
             "type": "boolean"
+          }
+        }
+      },
+      "PreacherDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "specialization": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkedInProfile": {
+            "type": "string",
+            "nullable": true
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "joinedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rating": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "totalReviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "certifications": {
+            "type": "string",
+            "nullable": true
+          },
+          "organization": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdatePreacherProfileCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "specialization": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "linkedInProfile": {
+            "type": "string",
+            "nullable": true
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "certifications": {
+            "type": "string",
+            "nullable": true
+          },
+          "organization": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4726,6 +5318,39 @@
           }
         }
       },
+      "StudentQuestionDto2": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "questionText": {
+            "type": "string"
+          },
+          "answerText": {
+            "type": "string",
+            "nullable": true
+          },
+          "isAnswered": {
+            "type": "boolean"
+          },
+          "answeredAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateStudentQuestionCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -4808,6 +5433,103 @@
           "totalEnrollments": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PaginatedListOfStudentDashboardDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudentDashboardDto"
+            }
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StudentDashboardDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "progress": {
+            "$ref": "#/components/schemas/StudentProgressDto"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StudentProgressDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "currentLevel": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentCourse": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentLesson": {
+            "type": "string",
+            "nullable": true
+          },
+          "averageExamMarks": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "completedCourses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalEnrollments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overallProgress": {
+            "type": "number",
+            "format": "decimal"
           }
         }
       },
@@ -5140,27 +5862,6 @@
           "title": {
             "type": "string",
             "nullable": true
-          }
-        }
-      },
-      "WeatherForecast": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "temperatureC": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "temperatureF": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "summary": {
-            "type": "string"
           }
         }
       }

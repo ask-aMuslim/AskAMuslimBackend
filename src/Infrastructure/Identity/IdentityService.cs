@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -17,18 +18,21 @@ namespace AskAMuslimBackend.Infrastructure.Identity;
 public class IdentityService : IIdentityService
 {
     private readonly ApplicationDbContext _dbContext;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly UserManager<User> _userManager;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
 
     public IdentityService(
         ApplicationDbContext dbContext,
-        IPasswordHasher passwordHasher,
+        UserManager<User> userManager,
+        RoleManager<IdentityRole<Guid>> roleManager,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory)
     {
         _dbContext = dbContext;
-        _passwordHasher = passwordHasher;
+        _userManager = userManager;
+        _roleManager = roleManager;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
     }
@@ -40,13 +44,13 @@ public class IdentityService : IIdentityService
             return null;
         }
 
-        var user = await _dbContext.Users.FindAsync(userGuid);
+        var user = await _userManager.FindByIdAsync(userId);
         return user?.Email;
     }
 
     public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
     {
-        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == userName);
+        var existingUser = await _userManager.FindByEmailAsync(userName);
         if (existingUser != null)
         {
             return (Result.Failure(new[] { "User with this email already exists." }), string.Empty);
@@ -54,8 +58,8 @@ public class IdentityService : IIdentityService
 
         var user = new User
         {
+            UserName = userName,
             Email = userName,
-            PasswordHash = _passwordHasher.HashPassword(password),
             FirstName = string.Empty,
             LastName = string.Empty,
             Role = UserRole.NonMuslim,
@@ -64,8 +68,14 @@ public class IdentityService : IIdentityService
             CreatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync(default);
+        var result = await _userManager.CreateAsync(user, password);
+        
+        if (!result.Succeeded)
+        {
+            return (Result.Failure(result.Errors.Select(e => e.Description)), string.Empty);
+        }
+
+        await _userManager.AddToRoleAsync(user, UserRole.NonMuslim.ToString());
 
         return (Result.Success(), user.Id.ToString());
     }
@@ -78,7 +88,7 @@ public class IdentityService : IIdentityService
         UserRole role)
     {
         // Check if user already exists
-        var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var existingUser = await _userManager.FindByEmailAsync(email);
         if (existingUser != null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "User with this email already exists." });
@@ -86,8 +96,8 @@ public class IdentityService : IIdentityService
 
         var user = new User
         {
+            UserName = email,
             Email = email,
-            PasswordHash = _passwordHasher.HashPassword(password),
             FirstName = firstName,
             LastName = lastName,
             Role = role,
@@ -96,8 +106,15 @@ public class IdentityService : IIdentityService
             CreatedAt = DateTime.UtcNow
         };
 
-        _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync(default);
+        var result = await _userManager.CreateAsync(user, password);
+        
+        if (!result.Succeeded)
+        {
+            return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+        }
+
+        // Add user to role
+        await _userManager.AddToRoleAsync(user, role.ToString());
 
         // Create role-specific entity
         await CreateRoleSpecificEntity(user.Id, role);
@@ -151,14 +168,20 @@ public class IdentityService : IIdentityService
                     UserId = userId,
                     JoinedDate = DateTime.UtcNow,
                     IsActive = true,
-                    IsSuperAdmin = false,
-                    CanManageUsers = true,
-                    CanManageCourses = true,
-                    CanManageContent = true,
-                    CanViewReports = true,
-                    CanManageRoles = false
+                    IsSuperAdmin = false
                 };
                 _dbContext.Admins.Add(admin);
+                break;
+
+            case UserRole.Preacher:
+                var preacher = new Preacher
+                {
+                    UserId = userId,
+                    JoinedDate = DateTime.UtcNow,
+                    IsActive = true,
+                    IsVerified = false
+                };
+                _dbContext.Preachers.Add(preacher);
                 break;
 
             case UserRole.NonMuslim:
@@ -178,14 +201,14 @@ public class IdentityService : IIdentityService
 
     public async Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _userManager.FindByEmailAsync(email);
         
         if (user == null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
 
-        var isPasswordValid = _passwordHasher.VerifyPassword(password, user.PasswordHash);
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
         
         if (!isPasswordValid)
         {
@@ -194,7 +217,7 @@ public class IdentityService : IIdentityService
 
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(default);
+        await _userManager.UpdateAsync(user);
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -203,7 +226,7 @@ public class IdentityService : IIdentityService
         var authResponse = new AuthenticationResponse
         {
             UserId = user.Id.ToString(),
-            Email = user.Email,
+            Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
@@ -241,13 +264,13 @@ public class IdentityService : IIdentityService
         var firstName = payload.GivenName ?? string.Empty;
         var lastName = payload.FamilyName ?? string.Empty;
 
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
             user = new User
             {
+                UserName = email,
                 Email = email,
-                PasswordHash = string.Empty, // No password for OAuth users
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student, // default role, adjust as needed
@@ -255,8 +278,14 @@ public class IdentityService : IIdentityService
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
-            _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync(default);
+            
+            var result = await _userManager.CreateAsync(user);
+            if (!result.Succeeded)
+            {
+                return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+            }
+            
+            await _userManager.AddToRoleAsync(user, user.Role.ToString());
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
@@ -268,7 +297,7 @@ public class IdentityService : IIdentityService
         var authResponse = new AuthenticationResponse
         {
             UserId = user.Id.ToString(),
-            Email = user.Email,
+            Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
@@ -338,13 +367,13 @@ public class IdentityService : IIdentityService
         firstName ??= "";
         lastName ??= "";
 
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
             user = new User
             {
+                UserName = email,
                 Email = email,
-                PasswordHash = string.Empty, // No password for OAuth users
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student,
@@ -352,8 +381,14 @@ public class IdentityService : IIdentityService
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
-            _dbContext.Users.Add(user);
-            await _dbContext.SaveChangesAsync(default);
+            
+            var result = await _userManager.CreateAsync(user);
+            if (!result.Succeeded)
+            {
+                return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+            }
+            
+            await _userManager.AddToRoleAsync(user, user.Role.ToString());
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
@@ -365,7 +400,7 @@ public class IdentityService : IIdentityService
         var authResponse = new AuthenticationResponse
         {
             UserId = user.Id.ToString(),
-            Email = user.Email,
+            Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
@@ -386,7 +421,7 @@ public class IdentityService : IIdentityService
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
             new(ClaimTypes.Role, user.Role.ToString()),
             new("role", user.Role.ToString()),
@@ -414,9 +449,9 @@ public class IdentityService : IIdentityService
             return false;
         }
 
-        var user = await _dbContext.Users.FindAsync(userGuid);
+        var user = await _userManager.FindByIdAsync(userId);
 
-        return user != null && user.Role.ToString().Equals(role, StringComparison.OrdinalIgnoreCase);
+        return user != null && await _userManager.IsInRoleAsync(user, role);
     }
 
     public async Task<bool> AuthorizeAsync(string userId, string policyName)
@@ -426,7 +461,7 @@ public class IdentityService : IIdentityService
             return false;
         }
 
-        var user = await _dbContext.Users.FindAsync(userGuid);
+        var user = await _userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -445,15 +480,19 @@ public class IdentityService : IIdentityService
             return Result.Failure(new[] { "Invalid user ID format." });
         }
 
-        var user = await _dbContext.Users.FindAsync(userGuid);
+        var user = await _userManager.FindByIdAsync(userId);
 
         return user != null ? await DeleteUserAsync(user) : Result.Success();
     }
 
     public async Task<Result> DeleteUserAsync(User user)
     {
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync(default);
+        var result = await _userManager.DeleteAsync(user);
+        
+        if (!result.Succeeded)
+        {
+            return Result.Failure(result.Errors.Select(e => e.Description));
+        }
 
         return Result.Success();
     }

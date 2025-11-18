@@ -14,6 +14,7 @@ public class Instructor : BaseEntity
     public DateTime JoinedDate { get; set; } = DateTime.UtcNow;
     public decimal Rating { get; set; } = 0;
     public int TotalReviews { get; set; } = 0;
+    public bool HasAccessToAllCourses { get; set; } = false;
     
     // Navigation properties
     public ICollection<Course> Courses { get; set; } = new List<Course>();
