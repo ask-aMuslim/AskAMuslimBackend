@@ -35,5 +35,9 @@ public interface IApplicationDbContext
     DbSet<Instructor> Instructors { get; }
     DbSet<Admin> Admins { get; }
 
+    // MuslimTube
+    DbSet<MuslimTubeChannel> MuslimTubeChannels { get; }
+    DbSet<MuslimTubeVideo> MuslimTubeVideos { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

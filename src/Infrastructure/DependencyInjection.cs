@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using AskAMuslimBackend.Application.MuslimTube.Queries.Caching;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -32,13 +33,15 @@ public static class DependencyInjection
         });
 
         builder.Services.AddHttpClient();
+        builder.Services.AddMemoryCache();
 
         builder.Services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
-        // Register password hasher
         builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+        builder.Services.AddScoped<IYouTubeService, YouTubeService>();
+        builder.Services.AddSingleton<IMuslimTubeCache, MuslimTubeMemoryCache>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

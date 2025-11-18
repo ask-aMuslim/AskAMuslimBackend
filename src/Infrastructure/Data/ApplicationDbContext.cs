@@ -38,6 +38,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Instructor> Instructors => Set<Instructor>();
     public DbSet<Admin> Admins => Set<Admin>();
 
+    // MuslimTube
+    public DbSet<MuslimTubeChannel> MuslimTubeChannels => Set<MuslimTubeChannel>();
+    public DbSet<MuslimTubeVideo> MuslimTubeVideos => Set<MuslimTubeVideo>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
