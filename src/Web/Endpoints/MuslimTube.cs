@@ -37,9 +37,9 @@ public class MuslimTube : EndpointGroupBase
     }
 
     // GET /MuslimTube/channels/{id}/videos
-    public async Task<Ok<PaginatedList<MuslimTubeVideoBriefDto>>> GetVideosByChannel(ISender sender, Guid channelId, [AsParameters] GetMuslimTubeVideosByChannelQuery query)
+    public async Task<Ok<PaginatedList<MuslimTubeVideoBriefDto>>> GetVideosByChannel(ISender sender, [AsParameters] GetMuslimTubeVideosByChannelQuery query)
     {
-        var result = await sender.Send(query with { ChannelId = channelId });
+        var result = await sender.Send(query);
         return TypedResults.Ok(result);
     }
 
