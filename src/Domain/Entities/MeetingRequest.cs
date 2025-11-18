@@ -6,11 +6,11 @@ public class MeetingRequest : BaseAuditableEntity
 {
     public Guid RequesterId { get; set; } // Student or NonMuslim (User.Id)
     public Guid? ScholarId { get; set; }   // Instructor or Preacher (User.Id) - set when accepted
-    public MeetingTopic Topic { get; set; }
+    public MeetingInquiryTopic Topic { get; set; }
     public string Message { get; set; } = string.Empty;
-    public Language Language { get; set; }
+    public List<Language> Languages { get; set; } = new();
     public DateTime ScheduledAt { get; set; }
-    public MeetingRequestStatus Status { get; set; } = MeetingRequestStatus.Pending;
+    public MeetingInquiryRequestStatus Status { get; set; } = MeetingInquiryRequestStatus.Pending;
 
     // Admin response (optional)
     public string? Response { get; set; }

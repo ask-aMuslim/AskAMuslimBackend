@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByScholar;
 
-public record GetMeetingRequestsByScholarQuery(Guid ScholarId, MeetingRequestStatus? Status = null) : IRequest<List<MeetingRequestDto>>;
+public record GetMeetingRequestsByScholarQuery(Guid ScholarId, MeetingInquiryRequestStatus? Status = null) : IRequest<List<MeetingRequestDto>>;
 
 public class GetMeetingRequestsByScholarQueryHandler : IRequestHandler<GetMeetingRequestsByScholarQuery, List<MeetingRequestDto>>
 {

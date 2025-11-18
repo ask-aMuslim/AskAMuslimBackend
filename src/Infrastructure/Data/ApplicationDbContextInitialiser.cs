@@ -460,21 +460,52 @@ public class ApplicationDbContextInitialiser
                 {
                     RequesterId = requesterUser.Id,
                     // No ScholarId until accepted
-                    Topic = MeetingTopic.GeneralInquiry,
+                    Topic = MeetingInquiryTopic.GeneralInquiry,
                     Message = "I would like to learn more about the basics of Islam.",
-                    Language = Language.English,
+                    Languages = [Language.English],
                     ScheduledAt = DateTime.UtcNow.AddDays(2),
-                    Status = MeetingRequestStatus.Pending,
+                    Status = MeetingInquiryRequestStatus.Pending,
                 });
                 _context.MeetingRequests.Add(new MeetingRequest
                 {
                     RequesterId = requesterUser.Id,
                     ScholarId = scholarUser.Id,
-                    Topic = MeetingTopic.Quran,
+                    Topic = MeetingInquiryTopic.Quran,
                     Message = "Questions about Quranic recitation rules.",
-                    Language = Language.Arabic,
+                    Languages = [Language.Arabic, Language.English],
                     ScheduledAt = DateTime.UtcNow.AddDays(5),
-                    Status = MeetingRequestStatus.Accepted,
+                    Status = MeetingInquiryRequestStatus.Accepted,
+                    Response = "Looking forward to our meeting! here is the link https://meet.google.com/qwt-mxag-kyf"
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // --- Inquiry Requests Seed ---
+        if (!await _context.InquiryRequests.AsNoTracking().AnyAsync())
+        {
+            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+            if (requesterUser != null && scholarUser != null)
+            {
+                _context.InquiryRequests.Add(new InquiryRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    // No ScholarId until accepted
+                    Topic = MeetingInquiryTopic.GeneralInquiry,
+                    Message = "I would like to learn more about the basics of Islam.",
+                    Languages = [Language.English, Language.Arabic],
+                    Status = MeetingInquiryRequestStatus.Pending,
+                });
+                _context.InquiryRequests.Add(new InquiryRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    ScholarId = scholarUser.Id,
+                    Topic = MeetingInquiryTopic.Quran,
+                    Message = "Questions about Quranic recitation rules.",
+                    Languages = [Language.Arabic],
+                    Status = MeetingInquiryRequestStatus.Accepted,
+                    Response = "Looking forward to our discussion!"
                 });
                 await _context.SaveChangesAsync();
             }

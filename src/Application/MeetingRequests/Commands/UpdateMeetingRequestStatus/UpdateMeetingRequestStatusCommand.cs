@@ -8,7 +8,7 @@ namespace AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRe
 public record UpdateMeetingRequestStatusCommand : IRequest
 {
     public Guid Id { get; init; }
-    public MeetingRequestStatus Status { get; init; }
+    public MeetingInquiryRequestStatus Status { get; init; }
 }
 
 public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMeetingRequestStatusCommand>
@@ -35,7 +35,7 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
         var isScholar = entity.ScholarId.HasValue && guidUser == entity.ScholarId.Value;
 
         // If accepting and no scholar yet, any user with scholar role can accept
-        var acceptingWithoutAssignedScholar = request.Status == MeetingRequestStatus.Accepted && !entity.ScholarId.HasValue;
+        var acceptingWithoutAssignedScholar = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ScholarId.HasValue;
         if (acceptingWithoutAssignedScholar)
         {
             // Verify user role is Instructor or Preacher
@@ -47,18 +47,18 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
             }
 
             entity.ScholarId = guidUser; // Claim the request
-            entity.Status = MeetingRequestStatus.Accepted;
+            entity.Status = MeetingInquiryRequestStatus.Accepted;
             await _context.SaveChangesAsync(cancellationToken);
             return;
         }
 
         var allowed = request.Status switch
         {
-            MeetingRequestStatus.Accepted => isScholar,
-            MeetingRequestStatus.Rejected => isScholar,
-            MeetingRequestStatus.Cancelled => isRequester || isScholar,
-            MeetingRequestStatus.Completed => isScholar,
-            MeetingRequestStatus.Pending => false,
+            MeetingInquiryRequestStatus.Accepted => isScholar,
+            MeetingInquiryRequestStatus.Rejected => isScholar,
+            MeetingInquiryRequestStatus.Cancelled => isRequester || isScholar,
+            MeetingInquiryRequestStatus.Completed => isScholar,
+            MeetingInquiryRequestStatus.Pending => false,
             _ => false
         };
         if (!allowed) throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Status", "Not authorised to set this status.") });

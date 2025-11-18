@@ -28,13 +28,13 @@ public class MeetingRequests : EndpointGroupBase
         return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
     }
 
-    public async Task<Ok<List<MeetingRequestDto>>> GetByRequester(ISender sender, Guid requesterId, MeetingRequestStatus? status)
+    public async Task<Ok<List<MeetingRequestDto>>> GetByRequester(ISender sender, Guid requesterId, MeetingInquiryRequestStatus? status)
     {
         var result = await sender.Send(new GetMeetingRequestsByRequesterQuery(requesterId, status));
         return TypedResults.Ok(result);
     }
 
-    public async Task<Ok<List<MeetingRequestDto>>> GetByScholar(ISender sender, Guid scholarId, MeetingRequestStatus? status)
+    public async Task<Ok<List<MeetingRequestDto>>> GetByScholar(ISender sender, Guid scholarId, MeetingInquiryRequestStatus? status)
     {
         var result = await sender.Send(new GetMeetingRequestsByScholarQuery(scholarId, status));
         return TypedResults.Ok(result);

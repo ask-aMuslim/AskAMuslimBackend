@@ -1240,6 +1240,275 @@
         ]
       }
     },
+    "/api/InquiryRequests/{id}": {
+      "get": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "GetById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InquiryRequestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/InquiryRequests/by-requester/{requesterId}": {
+      "get": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "GetByRequester",
+        "parameters": [
+          {
+            "name": "requesterId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
+                }
+              ]
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InquiryRequestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/InquiryRequests/by-scholar/{scholarId}": {
+      "get": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "GetByScholar",
+        "parameters": [
+          {
+            "name": "scholarId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
+                }
+              ]
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InquiryRequestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/InquiryRequests": {
+      "post": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "Create",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInquiryRequestCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "format": "guid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/InquiryRequests/{id}/status": {
+      "put": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "UpdateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInquiryRequestStatusCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/InquiryRequests/{id}/response": {
+      "put": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "UpdateResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateInquiryRequestResponseCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Instructors/me": {
       "get": {
         "tags": [
@@ -1749,7 +2018,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "GetById",
+        "operationId": "GetById2",
         "parameters": [
           {
             "name": "id",
@@ -1784,7 +2053,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "GetByRequester",
+        "operationId": "GetByRequester2",
         "parameters": [
           {
             "name": "requesterId",
@@ -1803,7 +2072,7 @@
               "nullable": true,
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/MeetingRequestStatus"
+                  "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
                 }
               ]
             },
@@ -1837,7 +2106,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "GetByScholar",
+        "operationId": "GetByScholar2",
         "parameters": [
           {
             "name": "scholarId",
@@ -1856,7 +2125,7 @@
               "nullable": true,
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/MeetingRequestStatus"
+                  "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
                 }
               ]
             },
@@ -1890,7 +2159,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "Create",
+        "operationId": "Create2",
         "requestBody": {
           "x-name": "command",
           "content": {
@@ -1928,7 +2197,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "UpdateStatus",
+        "operationId": "UpdateStatus2",
         "parameters": [
           {
             "name": "id",
@@ -1973,7 +2242,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "UpdateResponse",
+        "operationId": "UpdateResponse2",
         "parameters": [
           {
             "name": "id",
@@ -3300,7 +3569,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetById2",
+        "operationId": "GetById3",
         "parameters": [
           {
             "name": "id",
@@ -3436,7 +3705,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetById3",
+        "operationId": "GetById4",
         "parameters": [
           {
             "name": "id",
@@ -4939,6 +5208,152 @@
           }
         }
       },
+      "InquiryRequestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "requesterId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "scholarId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "topic": {
+            "$ref": "#/components/schemas/MeetingInquiryTopic"
+          },
+          "message": {
+            "type": "string"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
+          },
+          "response": {
+            "type": "string",
+            "nullable": true
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MeetingInquiryTopic": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "GeneralInquiry",
+          "Quran",
+          "Hadith",
+          "ComparativeReligion",
+          "ConversionGuidance",
+          "IslamicHistory",
+          "Fiqh",
+          "Theology"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
+      },
+      "Language": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "English",
+          "Arabic",
+          "French",
+          "Spanish",
+          "German"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "MeetingInquiryRequestStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "Accepted",
+          "Rejected",
+          "Cancelled",
+          "Completed"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "CreateInquiryRequestCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "topic": {
+            "$ref": "#/components/schemas/MeetingInquiryTopic"
+          },
+          "message": {
+            "type": "string"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
+          }
+        }
+      },
+      "UpdateInquiryRequestStatusCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
+          }
+        }
+      },
+      "UpdateInquiryRequestResponseCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "response": {
+            "type": "string"
+          }
+        }
+      },
       "InstructorDto": {
         "type": "object",
         "additionalProperties": false,
@@ -5329,20 +5744,23 @@
             "nullable": true
           },
           "topic": {
-            "$ref": "#/components/schemas/MeetingTopic"
+            "$ref": "#/components/schemas/MeetingInquiryTopic"
           },
           "message": {
             "type": "string"
           },
-          "language": {
-            "$ref": "#/components/schemas/Language"
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
           },
           "scheduledAt": {
             "type": "string",
             "format": "date-time"
           },
           "status": {
-            "$ref": "#/components/schemas/MeetingRequestStatus"
+            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
           },
           "response": {
             "type": "string",
@@ -5350,78 +5768,21 @@
           }
         }
       },
-      "MeetingTopic": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "GeneralInquiry",
-          "Quran",
-          "Hadith",
-          "ComparativeReligion",
-          "ConversionGuidance",
-          "IslamicHistory",
-          "Fiqh",
-          "Theology"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      "Language": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "English",
-          "Arabic",
-          "French",
-          "Spanish",
-          "German"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
-      },
-      "MeetingRequestStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Pending",
-          "Accepted",
-          "Rejected",
-          "Cancelled",
-          "Completed"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
-      },
       "CreateMeetingRequestCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "topic": {
-            "$ref": "#/components/schemas/MeetingTopic"
+            "$ref": "#/components/schemas/MeetingInquiryTopic"
           },
           "message": {
             "type": "string"
           },
-          "language": {
-            "$ref": "#/components/schemas/Language"
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
           },
           "scheduledAt": {
             "type": "string",
@@ -5438,7 +5799,7 @@
             "format": "guid"
           },
           "status": {
-            "$ref": "#/components/schemas/MeetingRequestStatus"
+            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
           }
         }
       },

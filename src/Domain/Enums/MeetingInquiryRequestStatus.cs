@@ -1,6 +1,6 @@
 namespace AskAMuslimBackend.Domain.Enums;
 
-public enum MeetingRequestStatus
+public enum MeetingInquiryRequestStatus
 {
     Pending = 1,
     Accepted = 2,

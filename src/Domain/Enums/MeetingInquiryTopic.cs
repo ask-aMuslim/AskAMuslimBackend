@@ -1,6 +1,6 @@
 namespace AskAMuslimBackend.Domain.Enums;
 
-public enum MeetingTopic
+public enum MeetingInquiryTopic
 {
     GeneralInquiry = 1,
     Quran = 2,

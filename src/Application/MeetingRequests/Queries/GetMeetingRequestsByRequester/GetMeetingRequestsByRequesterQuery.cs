@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
 
-public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingRequestStatus? Status = null) : IRequest<List<MeetingRequestDto>>;
+public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingInquiryRequestStatus? Status = null) : IRequest<List<MeetingRequestDto>>;
 
 public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeetingRequestsByRequesterQuery, List<MeetingRequestDto>>
 {

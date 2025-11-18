@@ -8,9 +8,9 @@ namespace AskAMuslimBackend.Application.MeetingRequests.Commands.CreateMeetingRe
 
 public record CreateMeetingRequestCommand : IRequest<Guid>
 {
-    public MeetingTopic Topic { get; init; }
+    public MeetingInquiryTopic Topic { get; init; }
     public string Message { get; init; } = string.Empty;
-    public Language Language { get; init; }
+    public List<Language> Languages { get; init; } = new();
     public DateTime ScheduledAt { get; init; }
 }
 
@@ -39,9 +39,9 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
             RequesterId = requesterGuid,
             Topic = request.Topic,
             Message = request.Message,
-            Language = request.Language,
+            Languages = request.Languages,
             ScheduledAt = request.ScheduledAt,
-            Status = MeetingRequestStatus.Pending,
+            Status = MeetingInquiryRequestStatus.Pending,
         };
 
         _context.MeetingRequests.Add(mr);
@@ -55,8 +55,9 @@ public class CreateMeetingRequestCommandValidator : AbstractValidator<CreateMeet
     public CreateMeetingRequestCommandValidator()
     {
         RuleFor(x => x.Topic).IsInEnum();
-        RuleFor(x => x.Language).IsInEnum();
         RuleFor(x => x.Message).NotEmpty().MaximumLength(4000);
         RuleFor(x => x.ScheduledAt).GreaterThan(DateTime.UtcNow).WithMessage("Scheduled time must be in the future.");
+        RuleFor(x => x.Languages).NotEmpty().WithMessage("At least one language must be provided.");
+        RuleForEach(x => x.Languages).IsInEnum();
     }
 }
