@@ -1968,6 +1968,51 @@
         ]
       }
     },
+    "/api/MeetingRequests/{id}/response": {
+      "put": {
+        "tags": [
+          "MeetingRequests"
+        ],
+        "operationId": "UpdateResponse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMeetingRequestResponseCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/MuslimTube/channels": {
       "get": {
         "tags": [
@@ -5263,6 +5308,10 @@
           },
           "status": {
             "$ref": "#/components/schemas/MeetingRequestStatus"
+          },
+          "response": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -5355,6 +5404,19 @@
           },
           "status": {
             "$ref": "#/components/schemas/MeetingRequestStatus"
+          }
+        }
+      },
+      "UpdateMeetingRequestResponseCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "response": {
+            "type": "string"
           }
         }
       },

@@ -13,6 +13,7 @@ public class MeetingRequestDto
     public Language Language { get; init; }
     public DateTime ScheduledAt { get; init; }
     public MeetingRequestStatus Status { get; init; }
+    public string? Response { get; init; }
 
     private class Mapping : Profile
     {

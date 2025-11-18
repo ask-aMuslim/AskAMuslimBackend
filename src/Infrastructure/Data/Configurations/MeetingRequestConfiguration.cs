@@ -27,6 +27,10 @@ public class MeetingRequestConfiguration : IEntityTypeConfiguration<MeetingReque
             .IsRequired()
             .HasMaxLength(4000);
 
+        // Admin response is optional
+        builder.Property(m => m.Response)
+            .HasMaxLength(4000);
+
         builder.HasIndex(m => new { m.ScholarId, m.ScheduledAt });
 
         builder.HasOne(m => m.Requester)

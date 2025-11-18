@@ -12,6 +12,9 @@ public class MeetingRequest : BaseAuditableEntity
     public DateTime ScheduledAt { get; set; }
     public MeetingRequestStatus Status { get; set; } = MeetingRequestStatus.Pending;
 
+    // Admin response (optional)
+    public string? Response { get; set; }
+
     // Navigation (optional lightweight user references)
     public User? Requester { get; set; }
     public User? Scholar { get; set; }

@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.MeetingRequests.Commands.CreateMeetingRequest;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestStatus;
+using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestResponse;
 using AskAMuslimBackend.Application.MeetingRequests.Queries;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestById;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
@@ -18,6 +19,7 @@ public class MeetingRequests : EndpointGroupBase
         groupBuilder.MapGet(GetByScholar, "by-scholar/{scholarId}").RequireAuthorization().WithName("GetMeetingRequestsByScholar").WithSummary("Get meeting requests for scholar");
         groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateMeetingRequest").WithSummary("Create meeting request");
         groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateMeetingRequestStatus").WithSummary("Update meeting request status");
+        groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateMeetingRequestResponse").WithSummary("Set admin response on meeting request");
     }
 
     public async Task<Results<Ok<MeetingRequestDto>, NotFound>> GetById(ISender sender, Guid id)
@@ -45,6 +47,13 @@ public class MeetingRequests : EndpointGroupBase
     }
 
     public async Task<Results<NoContent, BadRequest>> UpdateStatus(ISender sender, Guid id, UpdateMeetingRequestStatusCommand command)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        await sender.Send(command);
+        return TypedResults.NoContent();
+    }
+
+    public async Task<Results<NoContent, BadRequest>> UpdateResponse(ISender sender, Guid id, UpdateMeetingRequestResponseCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
         await sender.Send(command);

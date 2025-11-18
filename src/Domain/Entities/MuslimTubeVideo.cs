@@ -1,6 +1,3 @@
-using AskAMuslimBackend.Domain.Common;
-using System;
-
 namespace AskAMuslimBackend.Domain.Entities;
 
 public class MuslimTubeVideo : BaseAuditableEntity
