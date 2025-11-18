@@ -16,7 +16,6 @@ public record GetMuslimTubeHomeVideosQuery : IRequest<PaginatedList<MuslimTubeVi
     public bool Randomize { get; init; } = false;
     public DateTimeOffset? PublishedAfter { get; init; }
     public DateTimeOffset? PublishedBefore { get; init; }
-    public AskAMuslimBackend.Domain.Enums.MuslimTubeVideoType? Type { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
 }
@@ -55,10 +54,6 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
         if (request.PublishedBefore.HasValue)
         {
             query = query.Where(v => v.PublishedAt != null && v.PublishedAt <= request.PublishedBefore.Value);
-        }
-        if (request.Type.HasValue)
-        {
-            query = query.Where(v => v.Type == request.Type.Value);
         }
 
         IOrderedQueryable<Domain.Entities.MuslimTubeVideo> ordered;

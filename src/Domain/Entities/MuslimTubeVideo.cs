@@ -1,6 +1,5 @@
 using AskAMuslimBackend.Domain.Common;
 using System;
-using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Domain.Entities;
 
@@ -19,7 +18,4 @@ public class MuslimTubeVideo : BaseAuditableEntity
     public string? ThumbnailHighUrl { get; set; }
 
     public DateTimeOffset? PublishedAt { get; set; }
-
-    // Updated default: generic long-form video
-    public MuslimTubeVideoType Type { get; set; } = MuslimTubeVideoType.Video;
 }

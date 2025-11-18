@@ -48,7 +48,6 @@ public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMusli
                 ThumbnailMediumUrl = v.ThumbnailMediumUrl,
                 ThumbnailHighUrl = v.ThumbnailHighUrl,
                 PublishedAt = v.PublishedAt,
-                Type = AskAMuslimBackend.Domain.Enums.MuslimTubeVideoType.Video
             });
             added++;
         }

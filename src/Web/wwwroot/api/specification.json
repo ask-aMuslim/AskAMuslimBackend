@@ -2092,19 +2092,6 @@
             "x-position": 4
           },
           {
-            "name": "Type",
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/MuslimTubeVideoType"
-                }
-              ]
-            },
-            "x-position": 5
-          },
-          {
             "name": "PageNumber",
             "in": "query",
             "required": true,
@@ -2112,7 +2099,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 6
+            "x-position": 5
           },
           {
             "name": "PageSize",
@@ -2122,7 +2109,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 7
+            "x-position": 6
           }
         ],
         "responses": {
@@ -5513,18 +5500,6 @@
             "nullable": true
           }
         }
-      },
-      "MuslimTubeVideoType": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Video",
-          "Short"
-        ],
-        "enum": [
-          0,
-          1
-        ]
       },
       "AddMuslimTubeChannelCommand": {
         "type": "object",

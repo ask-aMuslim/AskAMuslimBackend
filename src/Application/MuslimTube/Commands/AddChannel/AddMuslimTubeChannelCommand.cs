@@ -118,9 +118,7 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
                     ThumbnailDefaultUrl = v.ThumbnailDefaultUrl,
                     ThumbnailMediumUrl = v.ThumbnailMediumUrl,
                     ThumbnailHighUrl = v.ThumbnailHighUrl,
-                    PublishedAt = v.PublishedAt,
-                    // Classify short by URL containing "/shorts/"
-                    Type = v.YouTubeVideoId.Contains("/") ? AskAMuslimBackend.Domain.Enums.MuslimTubeVideoType.Video : AskAMuslimBackend.Domain.Enums.MuslimTubeVideoType.Video
+                    PublishedAt = v.PublishedAt
                 });
             }
         }

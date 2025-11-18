@@ -17,10 +17,6 @@ public class MuslimTubeVideoConfiguration : IEntityTypeConfiguration<MuslimTubeV
                .HasForeignKey(v => v.MuslimTubeChannelId)
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(v => v.Type)
-               .HasConversion<int>()
-               .IsRequired();
-
         // Match channel soft-delete filter to avoid EF warning about required principal being filtered
         builder.HasQueryFilter(v => v.Channel != null && !v.Channel.IsDeleted);
     }
