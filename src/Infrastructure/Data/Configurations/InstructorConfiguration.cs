@@ -25,7 +25,7 @@ public class InstructorConfiguration : IEntityTypeConfiguration<Instructor>
 
         builder.Property(i => i.Bio).HasMaxLength(2000);
         builder.Property(i => i.Specialization).HasMaxLength(200);
-        builder.Property(i => i.PhoneNumber).HasMaxLength(50);
+        builder.Property(i => i.PhoneNumber).HasMaxLength(20);
         builder.Property(i => i.Website).HasMaxLength(500);
         builder.Property(i => i.LinkedInProfile).HasMaxLength(500);
     }

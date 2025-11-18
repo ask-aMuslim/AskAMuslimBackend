@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Quizzes.Queries.GetQuizzesWithPagination;
 
-public record GetQuizzesWithPaginationQuery : IRequest<PaginatedList<QuizBriefDto>>
+public record GetQuizzesWithPaginationQuery : IRequest<PaginatedList<QuizBriefDto>>, IPaginationQuery
 {
     public Guid? LevelId { get; init; }
     public Guid? CourseId { get; init; }

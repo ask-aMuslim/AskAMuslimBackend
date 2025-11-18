@@ -1,10 +1,11 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 
-public record GetCoursesWithPaginationQuery : IRequest<PaginatedList<CourseBriefDto>>
+public record GetCoursesWithPaginationQuery : IRequest<PaginatedList<CourseBriefDto>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;

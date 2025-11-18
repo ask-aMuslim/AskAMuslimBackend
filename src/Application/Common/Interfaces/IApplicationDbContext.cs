@@ -26,6 +26,10 @@ public interface IApplicationDbContext
     DbSet<QA> QAs { get; }
     DbSet<QATranslation> QATranslations { get; }
     DbSet<QATag> QATags { get; }
+    DbSet<MeetingRequest> MeetingRequests { get; }
+    DbSet<InquiryRequest> InquiryRequests { get; }
+    DbSet<Event> Events { get; }
+    DbSet<EventRegistration> EventRegistrations { get; }
 
     // User Management
     DbSet<Student> Students { get; }
@@ -35,6 +39,10 @@ public interface IApplicationDbContext
     DbSet<AdminNote> AdminNotes { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<UserPermission> UserPermissions { get; }
+
+    // MuslimTube
+    DbSet<MuslimTubeChannel> MuslimTubeChannels { get; }
+    DbSet<MuslimTubeVideo> MuslimTubeVideos { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

@@ -33,18 +33,18 @@ public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttempt
             throw new ValidationException(failures);
         }
 
-        // Determine next attempt number for this student/quiz
-        var attemptNumber = await _context.QuizAttempts
+        // Determine next attempt number for this student/quiz (robust across providers)
+        var lastAttemptNumber = await _context.QuizAttempts
             .Where(a => a.QuizId == request.QuizId && a.StudentId == request.StudentId)
-            .Select(a => a.AttemptNumber)
-            .DefaultIfEmpty(0)
-            .MaxAsync(cancellationToken) + 1;
+            .OrderByDescending(a => a.AttemptNumber)
+            .Select(a => (int?)a.AttemptNumber)
+            .FirstOrDefaultAsync(cancellationToken) ?? 0;
 
         var entity = new QuizAttempt
         {
             QuizId = request.QuizId,
             StudentId = request.StudentId,
-            AttemptNumber = attemptNumber,
+            AttemptNumber = lastAttemptNumber + 1,
             StartedAt = DateTime.UtcNow,
             IsPassed = false,
             Score = 0m

@@ -20,8 +20,29 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
             .NotEmpty().WithMessage("Level is required.")
             .MustAsync(LevelExists).WithMessage("Level does not exist.");
 
-        RuleForEach(x => x.TagIds)
-            .MustAsync(TagExists).WithMessage("One or more tags do not exist.");
+        // Batch validate TagIds; list each missing tag explicitly.
+        RuleFor(x => x.TagIds)
+            .NotNull().WithMessage("TagIds must be provided (empty list allowed).")
+            .CustomAsync(async (tagIds, context, ct) =>
+            {
+                if (tagIds == null || tagIds.Count == 0)
+                    return;
+
+                // Remove duplicates early for efficiency
+                var distinct = tagIds.Distinct().ToList();
+
+                var existing = await _context.Tags
+                    .AsNoTracking()
+                    .Where(t => distinct.Contains(t.Id))
+                    .Select(t => t.Id)
+                    .ToListAsync(ct);
+
+                var missing = distinct.Except(existing).ToList();
+                foreach (var id in missing)
+                {
+                    context.AddFailure("TagIds", $"Tag {id} does not exist.");
+                }
+            });
 
         RuleFor(x => x.Description)
             .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.")
@@ -35,9 +56,6 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");
     }
 
-    private async Task<bool> LevelExists(Guid levelId, CancellationToken ct)
-        => await _context.Levels.AnyAsync(l => l.Id == levelId, ct);
-
-    private async Task<bool> TagExists(Guid tagId, CancellationToken ct)
-        => await _context.Tags.AnyAsync(t => t.Id == tagId, ct);
+    private Task<bool> LevelExists(Guid levelId, CancellationToken ct)
+        => _context.Levels.AnyAsync(l => l.Id == levelId, ct);
 }

@@ -1,16 +1,16 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
-using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
-using AskAMuslimBackend.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+using AskAMuslimBackend.Application.Common.Pagination;
+using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
 
-public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>
+public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
     public bool? IsPublished { get; init; }
+    public Language Language { get; init; } = Language.English;
 }
 
 public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, PaginatedList<QABriefDto>>
@@ -26,27 +26,40 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
 
     public async Task<PaginatedList<QABriefDto>> Handle(GetQAsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.QAs
-            .AsNoTracking()
-            .AsQueryable();
+        var query = _context.QAs.AsNoTracking();
 
         if (request.IsPublished.HasValue)
         {
             query = query.Where(q => q.IsPublished == request.IsPublished.Value);
         }
 
-        return await query
+        var projected = query
             .OrderBy(q => q.Id)
-            .ProjectTo<QABriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .Select(q => new QABriefDto
+            {
+                Id = q.Id,
+                QuestionText = q.Translations
+                    .Where(t => t.Language == request.Language)
+                    .Select(t => t.QuestionText)
+                    .FirstOrDefault() ?? string.Empty,
+                AnswerText = q.Translations
+                    .Where(t => t.Language == request.Language)
+                    .Select(t => t.AnswerText)
+                    .FirstOrDefault() ?? string.Empty,
+                Tags = q.QATags
+                    .Select(ct => ct.Tag != null ? ct.Tag.Title : "")
+                    .Where(title => title != "")
+                    .ToList()
+            });
+
+        return await PaginatedList<QABriefDto>.CreateAsync(projected, request.PageNumber, request.PageSize, cancellationToken);
     }
 }
 
-public class GetQAsWithPaginationQueryValidator : AbstractValidator<GetQAsWithPaginationQuery>
+public class GetQAsWithPaginationQueryValidator : PaginationQueryValidator<GetQAsWithPaginationQuery>
 {
     public GetQAsWithPaginationQueryValidator()
     {
-        RuleFor(x => x.PageNumber).GreaterThanOrEqualTo(1);
-        RuleFor(x => x.PageSize).GreaterThanOrEqualTo(1);
+        RuleFor(x => x.Language).IsInEnum();
     }
 }

@@ -277,6 +277,7 @@ public class ApplicationDbContextInitialiser
         {
             var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
+            // Course quiz
             var quiz = new Quiz
             {
                 Title = "Introductory Quiz",
@@ -300,6 +301,45 @@ public class ApplicationDbContextInitialiser
 
             _context.Quizzes.Add(quiz);
             await _context.SaveChangesAsync();
+
+            // Level quiz
+            var levelId = course.LevelId;
+            _context.Quizzes.Add(new Quiz
+            {
+                Title = "Level Check",
+                LevelId = levelId,
+                TargetType = QuizTargetType.Level,
+                TotalMarks = 10
+            });
+
+            // Lesson quiz (for the first lesson)
+            var firstLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).FirstOrDefaultAsync();
+            if (firstLesson != null)
+            {
+                _context.Quizzes.Add(new Quiz
+                {
+                    Title = "Lesson Quick Quiz",
+                    LessonId = firstLesson.Id,
+                    TargetType = QuizTargetType.Lesson,
+                    TotalMarks = 10
+                });
+            }
+
+            // Lesson quiz (for the second lesson)
+            var secondLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).Skip(1).FirstOrDefaultAsync();
+            if (secondLesson != null)
+            {
+                _context.Quizzes.Add(new Quiz
+                {
+                    Title = "Lesson Quick Quiz 2",
+                    LessonId = secondLesson.Id,
+                    TargetType = QuizTargetType.Lesson,
+                    TotalMarks = 10
+                });
+
+            }
+
+             await _context.SaveChangesAsync();
         }
 
         // --- Enrollments & QuizAttempts ---
@@ -335,6 +375,30 @@ public class ApplicationDbContextInitialiser
             }
         }
 
+        // --- Student Notes ---
+        if (!await _context.StudentNotes.AsNoTracking().AnyAsync())
+        {
+            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+            _context.StudentNotes.AddRange(
+                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Key point about Shahada.", Timestamp = 12.5 },
+                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Clarify Five Pillars order.", Timestamp = 89.3 }
+            );
+            await _context.SaveChangesAsync();
+        }
+
+        // --- Student Questions ---
+        if (!await _context.StudentQuestions.AsNoTracking().AnyAsync())
+        {
+            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+            _context.StudentQuestions.AddRange(
+                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Can you expand on the meaning of Shahada?", Timestamp = 30, Answered = false },
+                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Is Zakat mandatory for everyone?", Timestamp = 145, Answered = true, AnswerText = "Zakat is mandatory once nisab is reached." }
+            );
+            await _context.SaveChangesAsync();
+        }
+
         // --- Certificates ---
         if (!await _context.Certificates.AsNoTracking().AnyAsync())
         {
@@ -364,8 +428,8 @@ public class ApplicationDbContextInitialiser
                 IsPublished = true,
                 Translations = new List<QATranslation>
                 {
-                    new QATranslation { Language = Language.En, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
-                    new QATranslation { Language = Language.Ar, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
+                    new QATranslation { Language = Language.English, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
+                    new QATranslation { Language = Language.Arabic, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
                 }
             };
 
@@ -376,8 +440,8 @@ public class ApplicationDbContextInitialiser
                 IsPublished = true,
                 Translations = new List<QATranslation>
                 {
-                    new QATranslation { Language = Language.En, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
-                    new QATranslation { Language = Language.Ar, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
+                    new QATranslation { Language = Language.English, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
+                    new QATranslation { Language = Language.Arabic, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
                 }
             };
 
@@ -394,6 +458,114 @@ public class ApplicationDbContextInitialiser
 
             _context.QAs.AddRange(qa1, qa2);
             await _context.SaveChangesAsync();
+        }
+
+        // --- Meeting Requests Seed ---
+        if (!await _context.MeetingRequests.AsNoTracking().AnyAsync())
+        {
+            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+            if (requesterUser != null && scholarUser != null)
+            {
+                _context.MeetingRequests.Add(new MeetingRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    // No ScholarId until accepted
+                    Topic = MeetingInquiryTopic.GeneralInquiry,
+                    Message = "I would like to learn more about the basics of Islam.",
+                    Languages = [Language.English],
+                    ScheduledAt = DateTime.UtcNow.AddDays(2),
+                    Status = MeetingInquiryRequestStatus.Pending,
+                });
+                _context.MeetingRequests.Add(new MeetingRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    ScholarId = scholarUser.Id,
+                    Topic = MeetingInquiryTopic.Quran,
+                    Message = "Questions about Quranic recitation rules.",
+                    Languages = [Language.Arabic, Language.English],
+                    ScheduledAt = DateTime.UtcNow.AddDays(5),
+                    Status = MeetingInquiryRequestStatus.Accepted,
+                    Response = "Looking forward to our meeting! here is the link https://meet.google.com/qwt-mxag-kyf"
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // --- Inquiry Requests Seed ---
+        if (!await _context.InquiryRequests.AsNoTracking().AnyAsync())
+        {
+            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+            if (requesterUser != null && scholarUser != null)
+            {
+                _context.InquiryRequests.Add(new InquiryRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    // No ScholarId until accepted
+                    Topic = MeetingInquiryTopic.GeneralInquiry,
+                    Message = "I would like to learn more about the basics of Islam.",
+                    Languages = [Language.English, Language.Arabic],
+                    Status = MeetingInquiryRequestStatus.Pending,
+                });
+                _context.InquiryRequests.Add(new InquiryRequest
+                {
+                    RequesterId = requesterUser.Id,
+                    ScholarId = scholarUser.Id,
+                    Topic = MeetingInquiryTopic.Quran,
+                    Message = "Questions about Quranic recitation rules.",
+                    Languages = [Language.Arabic],
+                    Status = MeetingInquiryRequestStatus.Accepted,
+                    Response = "Looking forward to our discussion!"
+                });
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // --- Events & EventRegistrations ---
+        if (!await _context.Events.AsNoTracking().AnyAsync())
+        {
+            var speaker = "Dr. Ahmed";
+            var now = DateTime.UtcNow;
+            var event1 = new Event
+            {
+                Title = "Understanding Ramadan",
+                Description = "A session on the spiritual dimensions of Ramadan.",
+                SpeakerName = speaker,
+                ImageUrl = null,
+                StartDateTime = now.AddDays(7),
+                EndDateTime = now.AddDays(7).AddHours(2),
+                MeetingLink = "https://meet.example.com/ramadan",
+                IsPublished = true
+            };
+            var event2 = new Event
+            {
+                Title = "Intro to Quranic Sciences",
+                Description = "Overview of 'Ulum al-Quran.",
+                SpeakerName = "Ustadh Bilal",
+                ImageUrl = null,
+                StartDateTime = now.AddDays(14),
+                EndDateTime = now.AddDays(14).AddHours(1),
+                MeetingLink = "https://meet.example.com/quranic-sciences",
+                IsPublished = true
+            };
+
+            _context.Events.AddRange(event1, event2);
+            await _context.SaveChangesAsync();
+
+            // Register the student user for event1
+            var eventStudentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+            if (eventStudentUser != null)
+            {
+                _context.EventRegistrations.Add(new EventRegistration
+                {
+                    EventId = event1.Id,
+                    UserId = eventStudentUser.Id,
+                    QuestionText = "Will there be a Q&A session?",
+                    Status = EventStatus.Approved
+                });
+                await _context.SaveChangesAsync();
+            }
         }
 
         await transaction.CommitAsync();

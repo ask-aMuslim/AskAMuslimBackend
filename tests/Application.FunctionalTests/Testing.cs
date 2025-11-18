@@ -65,40 +65,61 @@ public partial class Testing
         return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
     }
 
-    // Fixes for CS0103 (userName does not exist), CS0029 (Guid to string), CA1860 (Any() vs Length), IDE0305 (collection init), and related issues in RunAsUserAsync
-    public static async Task<string> RunAsUserAsync(string firstName, string password, string[] roles)
+    // Create a user directly via ApplicationDbContext (custom identity), and set test user context
+    public static async Task<string> RunAsUserAsync(string email, string password, string[] roles)
     {
         using var scope = _scopeFactory.CreateScope();
 
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        // Use firstName as Email and UserName for test user creation
-        var user = new User { FirstName = firstName, Email = firstName };
-
-        var result = await userManager.CreateAsync(user, password);
-
-        if (roles.Length > 0) // CA1860: Prefer Length over Any()
+        // Map provided roles (strings) to our single UserRole enum. Default to NonMuslim when none provided.
+        var roleEnum = Domain.Enums.UserRole.NonMuslim;
+        if (roles != null && roles.Length > 0)
         {
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            // Prefer Administrator when multiple are specified
+            if (roles.Contains(Roles.Administrator, StringComparer.OrdinalIgnoreCase))
+                roleEnum = Domain.Enums.UserRole.Admin;
+            else if (roles.Contains(Roles.Instructor, StringComparer.OrdinalIgnoreCase))
+                roleEnum = Domain.Enums.UserRole.Instructor;
+            else if (roles.Contains(Roles.Student, StringComparer.OrdinalIgnoreCase))
+                roleEnum = Domain.Enums.UserRole.Student;
+            else if (roles.Contains(Roles.NonMuslim, StringComparer.OrdinalIgnoreCase))
+                roleEnum = Domain.Enums.UserRole.NonMuslim;
+            else if (roles.Contains(Roles.Preacher, StringComparer.OrdinalIgnoreCase))
+                roleEnum = Domain.Enums.UserRole.Preacher;
+        }
 
-            foreach (var role in roles)
+        var existing = await userManager.FindByEmailAsync(email);
+        if (existing == null)
+        {
+            var user = new User
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                UserName = email,
+                Email = email,
+                FirstName = string.Empty,
+                LastName = string.Empty,
+                Role = roleEnum,
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user, roleEnum.ToString());
             }
 
-            await userManager.AddToRolesAsync(user, roles);
+            _userId = user.Id.ToString();
         }
-
-        if (result.Succeeded)
+        else
         {
-            _userId = user.Id.ToString(); // CS0029: Convert Guid to string
-            _roles = new List<string>(roles); // IDE0305: Use collection initializer if possible
-            return _userId;
+            _userId = existing.Id.ToString();
         }
 
-        var errors = string.Join(Environment.NewLine, result.ToApplicationResult().Errors);
-
-        throw new Exception($"Unable to create {firstName}.{Environment.NewLine}{errors}"); // Use firstName instead of userName
+        _roles = new List<string>(roles ?? Array.Empty<string>());
+        return _userId!;
     }
 
     public static async Task ResetState()

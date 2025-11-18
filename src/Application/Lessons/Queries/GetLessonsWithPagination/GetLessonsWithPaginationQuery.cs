@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
 
-public record GetLessonsWithPaginationQuery : IRequest<PaginatedList<LessonBriefDto>>
+public record GetLessonsWithPaginationQuery : IRequest<PaginatedList<LessonBriefDto>>, IPaginationQuery
 {
     public Guid? CourseId { get; init; }
     public int PageNumber { get; init; } = 1;
@@ -42,11 +43,7 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
     }
 }
 
-public class GetLessonsWithPaginationQueryValidator : FluentValidation.AbstractValidator<GetLessonsWithPaginationQuery>
+public class GetLessonsWithPaginationQueryValidator : PaginationQueryValidator<GetLessonsWithPaginationQuery>
 {
-    public GetLessonsWithPaginationQueryValidator()
-    {
-        RuleFor(x => x.PageNumber).GreaterThanOrEqualTo(1);
-        RuleFor(x => x.PageSize).GreaterThanOrEqualTo(1);
-    }
+    public GetLessonsWithPaginationQueryValidator() : base() { }
 }
