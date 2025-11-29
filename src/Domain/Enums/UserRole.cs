@@ -6,5 +6,6 @@ public enum UserRole
     Student = 2,
     Instructor = 3,
     NonMuslim = 4,
-    Preacher = 5
+    Preacher = 5,
+    BornMuslim = 6
 }

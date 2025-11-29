@@ -1,17 +1,16 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Google.Apis.Auth;
-using System.Text.Json;
 
 namespace AskAMuslimBackend.Infrastructure.Identity;
 
@@ -69,7 +68,7 @@ public class IdentityService : IIdentityService
         };
 
         var result = await _userManager.CreateAsync(user, password);
-        
+
         if (!result.Succeeded)
         {
             return (Result.Failure(result.Errors.Select(e => e.Description)), string.Empty);
@@ -81,10 +80,10 @@ public class IdentityService : IIdentityService
     }
 
     public async Task<Result<AuthenticationResponse>> RegisterUserAsync(
-        string email, 
-        string password, 
-        string firstName, 
-        string lastName, 
+        string email,
+        string password,
+        string firstName,
+        string lastName,
         UserRole role)
     {
         // Check if user already exists
@@ -107,7 +106,7 @@ public class IdentityService : IIdentityService
         };
 
         var result = await _userManager.CreateAsync(user, password);
-        
+
         if (!result.Succeeded)
         {
             return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
@@ -137,79 +136,90 @@ public class IdentityService : IIdentityService
         return Result<AuthenticationResponse>.Success(authResponse);
     }
 
+    #region Role Specific Entity Creation
+
+    private Student CreateStudent(Guid userId)
+    {
+        return new Student
+        {
+            UserId = userId,
+            EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
+            IsActive = true
+        };
+    }
+
+    private Instructor CreateInstructor(Guid userId)
+    {
+        return new Instructor
+        {
+            UserId = userId,
+            JoinedDate = DateTime.UtcNow,
+            IsActive = true,
+            IsVerified = false
+        };
+    }
+
+    private Admin CreateAdmin(Guid userId)
+    {
+        return new Admin
+        {
+            UserId = userId,
+            JoinedDate = DateTime.UtcNow,
+            IsActive = true,
+            IsSuperAdmin = false
+        };
+    }
+
+    private Preacher CreatePreacher(Guid userId)
+    {
+        return new Preacher
+        {
+            UserId = userId,
+            JoinedDate = DateTime.UtcNow,
+            IsActive = true,
+            IsVerified = false
+        };
+    }
+
     private async Task CreateRoleSpecificEntity(Guid userId, UserRole role)
     {
         switch (role)
         {
             case UserRole.Student:
-                var student = new Student
-                {
-                    UserId = userId,
-                    EnrollmentDate = DateTime.UtcNow,
-                    IsActive = true
-                };
-                _dbContext.Students.Add(student);
+            case UserRole.NonMuslim:
+            case UserRole.BornMuslim:
+                _dbContext.Students.Add(CreateStudent(userId));
                 break;
 
             case UserRole.Instructor:
-                var instructor = new Instructor
-                {
-                    UserId = userId,
-                    JoinedDate = DateTime.UtcNow,
-                    IsActive = true,
-                    IsVerified = false
-                };
-                _dbContext.Instructors.Add(instructor);
+                _dbContext.Instructors.Add(CreateInstructor(userId));
                 break;
 
             case UserRole.Admin:
-                var admin = new Admin
-                {
-                    UserId = userId,
-                    JoinedDate = DateTime.UtcNow,
-                    IsActive = true,
-                    IsSuperAdmin = false
-                };
-                _dbContext.Admins.Add(admin);
+                _dbContext.Admins.Add(CreateAdmin(userId));
                 break;
 
             case UserRole.Preacher:
-                var preacher = new Preacher
-                {
-                    UserId = userId,
-                    JoinedDate = DateTime.UtcNow,
-                    IsActive = true,
-                    IsVerified = false
-                };
-                _dbContext.Preachers.Add(preacher);
-                break;
-
-            case UserRole.NonMuslim:
-                // NonMuslim users are treated as students
-                var nonMuslimStudent = new Student
-                {
-                    UserId = userId,
-                    EnrollmentDate = DateTime.UtcNow,
-                    IsActive = true
-                };
-                _dbContext.Students.Add(nonMuslimStudent);
+                _dbContext.Preachers.Add(CreatePreacher(userId));
                 break;
         }
 
-        await _dbContext.SaveChangesAsync(default);
+        await _dbContext.SaveChangesAsync();
     }
+
+    #endregion
 
     public async Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        
+
         if (user == null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
-        
+
         if (!isPasswordValid)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
@@ -278,13 +288,13 @@ public class IdentityService : IIdentityService
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             var result = await _userManager.CreateAsync(user);
             if (!result.Succeeded)
             {
                 return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
             }
-            
+
             await _userManager.AddToRoleAsync(user, user.Role.ToString());
 
             // Create student entity for default role
@@ -381,13 +391,13 @@ public class IdentityService : IIdentityService
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
-            
+
             var result = await _userManager.CreateAsync(user);
             if (!result.Succeeded)
             {
                 return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
             }
-            
+
             await _userManager.AddToRoleAsync(user, user.Role.ToString());
 
             // Create student entity for default role
@@ -488,7 +498,7 @@ public class IdentityService : IIdentityService
     public async Task<Result> DeleteUserAsync(User user)
     {
         var result = await _userManager.DeleteAsync(user);
-        
+
         if (!result.Succeeded)
         {
             return Result.Failure(result.Errors.Select(e => e.Description));

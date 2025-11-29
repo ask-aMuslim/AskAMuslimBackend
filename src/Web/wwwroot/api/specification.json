@@ -5118,14 +5118,16 @@
           "Student",
           "Instructor",
           "NonMuslim",
-          "Preacher"
+          "Preacher",
+          "BornMuslim"
         ],
         "enum": [
           1,
           2,
           3,
           4,
-          5
+          5,
+          6
         ]
       },
       "RegisterCommand": {
@@ -7284,12 +7286,12 @@
           },
           "dateOfBirth": {
             "type": "string",
-            "format": "date-time",
+            "format": "date",
             "nullable": true
           },
           "enrollmentDate": {
             "type": "string",
-            "format": "date-time"
+            "format": "date"
           },
           "isActive": {
             "type": "boolean"
@@ -7413,9 +7415,22 @@
             "type": "string",
             "nullable": true
           },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
           "dateOfBirth": {
             "type": "string",
-            "format": "date-time",
+            "format": "date",
+            "nullable": true
+          },
+          "dateOfIslamConversion": {
+            "type": "string",
+            "format": "date",
             "nullable": true
           }
         }

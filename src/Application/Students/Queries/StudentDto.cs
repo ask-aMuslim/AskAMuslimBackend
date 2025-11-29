@@ -10,8 +10,8 @@ public class StudentDto
     public string? Bio { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
-    public DateTime? DateOfBirth { get; set; }
-    public DateTime EnrollmentDate { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
+    public DateOnly EnrollmentDate { get; set; }
     public bool IsActive { get; set; }
     public int TotalEnrollments { get; set; }
 }

@@ -1,5 +1,3 @@
-using FluentValidation;
-
 namespace AskAMuslimBackend.Application.Students.Commands.UpdateStudentProfile;
 
 public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStudentProfileCommand>
@@ -19,7 +17,7 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .When(x => !string.IsNullOrEmpty(x.Bio));
 
         RuleFor(x => x.DateOfBirth)
-            .LessThan(DateTime.UtcNow).WithMessage("Date of birth must be in the past.")
+            .LessThan(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Date of birth must be in the past.")
             .When(x => x.DateOfBirth.HasValue);
     }
 }

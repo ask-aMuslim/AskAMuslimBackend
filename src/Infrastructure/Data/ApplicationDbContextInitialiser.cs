@@ -1,5 +1,4 @@
-﻿using AskAMuslimBackend.Application.Common.Interfaces;
-using AskAMuslimBackend.Domain.Entities;
+﻿using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -339,7 +338,7 @@ public class ApplicationDbContextInitialiser
 
             }
 
-             await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
 
         // --- Enrollments & QuizAttempts ---
@@ -581,7 +580,7 @@ public class ApplicationDbContextInitialiser
                     _context.Students.Add(new Student
                     {
                         UserId = userId,
-                        EnrollmentDate = DateTime.UtcNow,
+                        EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
                         IsActive = true
                     });
                 }
@@ -632,7 +631,7 @@ public class ApplicationDbContextInitialiser
                     _context.Students.Add(new Student
                     {
                         UserId = userId,
-                        EnrollmentDate = DateTime.UtcNow,
+                        EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
                         IsActive = true
                     });
                 }

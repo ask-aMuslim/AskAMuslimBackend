@@ -8,7 +8,10 @@ public record UpdateStudentProfileCommand : IRequest<Guid>
     public string? Bio { get; init; }
     public string? PhoneNumber { get; init; }
     public string? Address { get; init; }
-    public DateTime? DateOfBirth { get; init; }
+    public string? Country { get; set; }
+    public string? CountryCode { get; set; }
+    public DateOnly? DateOfBirth { get; init; }
+    public DateOnly? DateOfIslamConversion { get; set; }
 }
 
 public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentProfileCommand, Guid>
@@ -39,6 +42,9 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
         student.PhoneNumber = request.PhoneNumber;
         student.Address = request.Address;
         student.DateOfBirth = request.DateOfBirth;
+        student.Country = request.Country;
+        student.CountryCode = request.CountryCode;
+        student.DateOfIslamConversion = request.DateOfIslamConversion;
 
         await _context.SaveChangesAsync(cancellationToken);
 
