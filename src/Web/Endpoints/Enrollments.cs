@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Enrollments.Queries;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentById;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByCourse;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByStudent;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -39,10 +40,10 @@ public class Enrollments : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Created<Guid>> CreateEnrollment(ISender sender, CreateEnrollmentCommand command)
+    public async Task<IResult> CreateEnrollment(ISender sender, CreateEnrollmentCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Enrollments)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Enrollments)}/{result.Data}");
     }
 
     public async Task<Results<NoContent, BadRequest>> UpdateEnrollmentStatus(ISender sender, Guid id, UpdateEnrollmentStatusCommand command)

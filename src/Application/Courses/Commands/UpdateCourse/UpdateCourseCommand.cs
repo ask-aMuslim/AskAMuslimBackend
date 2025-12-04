@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
 
-public record UpdateCourseCommand : IRequest
+public record UpdateCourseCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public Guid LevelId { get; init; }
@@ -16,7 +17,7 @@ public record UpdateCourseCommand : IRequest
     public List<Guid> TagIds { get; init; } = new();
 }
 
-public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand>
+public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -25,13 +26,16 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Courses
             .Include(c => c.CourseTags)
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
 
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null)
+        {
+            return Result.Failure(new[] { "Course not found" });
+        }
 
         entity.LevelId = request.LevelId;
         entity.Title = request.Title;
@@ -53,5 +57,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand>
             entity.CourseTags.Add(new CourseTag { TagId = tagId, CourseId = entity.Id });
 
         await _context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }

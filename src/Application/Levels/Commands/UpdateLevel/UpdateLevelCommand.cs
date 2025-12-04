@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Levels.Commands.UpdateLevel;
 
-public record UpdateLevelCommand : IRequest
+public record UpdateLevelCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
@@ -13,7 +14,7 @@ public record UpdateLevelCommand : IRequest
     public LevelDifficulty Difficulty { get; init; }
 }
 
-public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand>
+public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -22,10 +23,14 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateLevelCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateLevelCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Levels.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        
+        if (entity == null)
+        {
+            return Result.Failure(new[] { "Level not found" });
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -33,6 +38,8 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand>
         entity.Difficulty = request.Difficulty;
 
         await _context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }
 

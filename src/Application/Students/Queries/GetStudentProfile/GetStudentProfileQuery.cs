@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Students.Queries.GetStudentProfile;
 
-public record GetStudentProfileQuery : IRequest<StudentDto?>
+public record GetStudentProfileQuery : IRequest<Result<StudentDto?>>
 {
     public string? UserId { get; init; }
 }
 
-public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQuery, StudentDto?>
+public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQuery, Result<StudentDto?>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IIdentityService _identityService;
@@ -23,13 +24,13 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         _currentUser = currentUser;
     }
 
-    public async Task<StudentDto?> Handle(GetStudentProfileQuery request, CancellationToken cancellationToken)
+    public async Task<Result<StudentDto?>> Handle(GetStudentProfileQuery request, CancellationToken cancellationToken)
     {
         var userIdString = request.UserId ?? _currentUser.Id;
         
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
         {
-            return null;
+            return Result<StudentDto?>.Failure(new[] { "Invalid user ID" });
         }
 
         var student = await _context.Students
@@ -38,7 +39,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
 
         if (student == null)
         {
-            return null;
+            return Result<StudentDto?>.Failure(new[] { "Student profile not found" });
         }
 
         // Get user details from Users table
@@ -47,7 +48,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
 
-        return new StudentDto
+        return Result<StudentDto?>.Success(new StudentDto
         {
             Id = student.Id,
             UserId = student.UserId,
@@ -61,6 +62,6 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             EnrollmentDate = student.EnrollmentDate,
             IsActive = student.IsActive,
             TotalEnrollments = student.Enrollments.Count
-        };
+        });
     }
 }

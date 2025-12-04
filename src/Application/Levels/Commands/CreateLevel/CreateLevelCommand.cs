@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Levels.Commands.CreateLevel;
 
-public record CreateLevelCommand : IRequest<Guid>
+public record CreateLevelCommand : IRequest<Result<Guid>>
 {
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
@@ -13,7 +14,7 @@ public record CreateLevelCommand : IRequest<Guid>
     public LevelDifficulty Difficulty { get; init; }
 }
 
-public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Guid>
+public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -22,7 +23,7 @@ public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Gui
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateLevelCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateLevelCommand request, CancellationToken cancellationToken)
     {
         var level = new Level
         {
@@ -34,7 +35,7 @@ public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Gui
 
         _context.Levels.Add(level);
         await _context.SaveChangesAsync(cancellationToken);
-        return level.Id;
+        return Result<Guid>.Success(level.Id);
     }
 }
 

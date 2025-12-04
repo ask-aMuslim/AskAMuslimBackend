@@ -1,16 +1,17 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Tags.Commands.CreateTag;
 
-public record CreateTagCommand : IRequest<Guid>
+public record CreateTagCommand : IRequest<Result<Guid>>
 {
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
 }
 
-public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Guid>
+public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -19,7 +20,7 @@ public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Guid>
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateTagCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateTagCommand request, CancellationToken cancellationToken)
     {
         var tag = new Tag
         {
@@ -30,7 +31,7 @@ public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Guid>
         _context.Tags.Add(tag);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return tag.Id;
+        return Result<Guid>.Success(tag.Id);
     }
 }
 

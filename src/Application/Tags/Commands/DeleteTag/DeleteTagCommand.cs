@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Tags.Commands.DeleteTag;
 
-public record DeleteTagCommand(Guid Id) : IRequest;
+public record DeleteTagCommand(Guid Id) : IRequest<Result>;
 
-public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand>
+public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,13 +15,19 @@ public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand>
         _context = context;
     }
 
-    public async Task Handle(DeleteTagCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteTagCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Tags.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        
+        if (entity == null)
+        {
+            return Result.Failure(new[] { "Tag not found" });
+        }
 
         _context.Tags.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }
 

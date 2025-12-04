@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Preachers.Commands.UpdatePreacherProfile;
 using AskAMuslimBackend.Application.Preachers.Queries;
 using AskAMuslimBackend.Application.Preachers.Queries.GetPreacherProfile;
 using AskAMuslimBackend.Application.Preachers.Queries.GetAllPreachers;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -30,31 +31,27 @@ public class Preachers : EndpointGroupBase
             .WithSummary("Update current preacher's profile");
     }
 
-    public async Task<Results<Ok<PreacherDto>, NotFound>> GetMyProfile(ISender sender)
+    public async Task<IResult> GetMyProfile(ISender sender)
     {
         var result = await sender.Send(new GetPreacherProfileQuery());
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<PreacherDto>, NotFound>> GetPreacherProfile(ISender sender, string userId)
+    public async Task<IResult> GetPreacherProfile(ISender sender, string userId)
     {
         var result = await sender.Send(new GetPreacherProfileQuery { UserId = userId });
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<PreacherDto>>> GetAllPreachers(ISender sender)
+    public async Task<IResult> GetAllPreachers(ISender sender)
     {
         var result = await sender.Send(new GetAllPreachersQuery());
-        
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<Guid>> UpdatePreacherProfile(ISender sender, UpdatePreacherProfileCommand command)
+    public async Task<IResult> UpdatePreacherProfile(ISender sender, UpdatePreacherProfileCommand command)
     {
-        var id = await sender.Send(command);
-        
-        return TypedResults.Ok(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

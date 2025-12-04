@@ -4,6 +4,7 @@ using AskAMuslimBackend.Application.Courses.Commands.DeleteCourse;
 using AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
 using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using AskAMuslimBackend.Application.Courses.Queries;
 
@@ -20,38 +21,34 @@ public class Courses : EndpointGroupBase
         groupBuilder.MapDelete(DeleteCourse, "{id}").RequireAuthorization().WithName("DeleteCourse").WithSummary("Delete a course");
     }
 
-    public async Task<Ok<PaginatedList<CourseBriefDto>>> GetCoursesWithPagination(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
+    public async Task<IResult> GetCoursesWithPagination(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<CourseBriefDto>, NotFound>> GetCourseById(ISender sender, Guid id)
+    public async Task<IResult> GetCourseById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetCourseByIdQuery(id));
-
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateCourse(ISender sender, CreateCourseCommand command)
+    public async Task<IResult> CreateCourse(ISender sender, CreateCourseCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Courses)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Courses)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateCourse(ISender sender, Guid id, UpdateCourseCommand command)
+    public async Task<IResult> UpdateCourse(ISender sender, Guid id, UpdateCourseCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-
-        await sender.Send(command);
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteCourse(ISender sender, Guid id)
+    public async Task<IResult> DeleteCourse(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteCourseCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteCourseCommand(id));
+        return result.ToHttpResult();
     }
 }

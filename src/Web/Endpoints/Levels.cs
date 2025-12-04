@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Levels.Commands.UpdateLevel;
 using AskAMuslimBackend.Application.Levels.Queries.GetLevelsWithPagination;
 using AskAMuslimBackend.Application.Levels.Queries.GetLevelById;
 using AskAMuslimBackend.Application.Levels.Queries;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -20,34 +21,34 @@ public class Levels : EndpointGroupBase
         groupBuilder.MapDelete(DeleteLevel, "{id}").RequireAuthorization().WithName("DeleteLevel").WithSummary("Delete a level");
     }
 
-    public async Task<Ok<PaginatedList<LevelBriefDto>>> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query)
+    public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<LevelBriefDto>, NotFound>> GetLevelById(ISender sender, Guid id)
+    public async Task<IResult> GetLevelById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetLevelByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateLevel(ISender sender, CreateLevelCommand command)
+    public async Task<IResult> CreateLevel(ISender sender, CreateLevelCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Levels)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Levels)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateLevel(ISender sender, Guid id, UpdateLevelCommand command)
+    public async Task<IResult> UpdateLevel(ISender sender, Guid id, UpdateLevelCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteLevel(ISender sender, Guid id)
+    public async Task<IResult> DeleteLevel(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteLevelCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteLevelCommand(id));
+        return result.ToHttpResult();
     }
 }

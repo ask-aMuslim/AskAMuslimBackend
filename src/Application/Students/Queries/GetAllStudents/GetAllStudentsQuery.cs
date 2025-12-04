@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Students.Queries.GetAllStudents;
 
-public record GetAllStudentsQuery : IRequest<List<StudentDto>>;
+public record GetAllStudentsQuery : IRequest<Result<List<StudentDto>>>;
 
-public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, List<StudentDto>>
+public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, Result<List<StudentDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,9 +15,9 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, L
         _context = context;
     }
 
-    public async Task<List<StudentDto>> Handle(GetAllStudentsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<StudentDto>>> Handle(GetAllStudentsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Students
+        var students = await _context.Students
             .Include(s => s.Enrollments)
             .Select(s => new StudentDto
             {
@@ -34,5 +35,7 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, L
                 TotalEnrollments = s.Enrollments.Count
             })
             .ToListAsync(cancellationToken);
+            
+        return Result<List<StudentDto>>.Success(students);
     }
 }

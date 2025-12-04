@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Tags.Queries.GetTagById;
 
-public record GetTagByIdQuery(Guid Id) : IRequest<TagBriefDto?>;
+public record GetTagByIdQuery(Guid Id) : IRequest<Result<TagBriefDto?>>;
 
-public class GetTagByIdQueryHandler : IRequestHandler<GetTagByIdQuery, TagBriefDto?>
+public class GetTagByIdQueryHandler : IRequestHandler<GetTagByIdQuery, Result<TagBriefDto?>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -18,11 +19,13 @@ public class GetTagByIdQueryHandler : IRequestHandler<GetTagByIdQuery, TagBriefD
         _mapper = mapper;
     }
 
-    public async Task<TagBriefDto?> Handle(GetTagByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<TagBriefDto?>> Handle(GetTagByIdQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Tags
+        var tag = await _context.Tags
             .Where(c => c.Id == request.Id)
             .ProjectTo<TagBriefDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
+            
+        return Result<TagBriefDto?>.Success(tag);
     }
 }

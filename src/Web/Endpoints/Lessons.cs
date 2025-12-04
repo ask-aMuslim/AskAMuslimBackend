@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 using AskAMuslimBackend.Application.Lessons.Queries;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -32,10 +33,10 @@ public class Lessons : EndpointGroupBase
         return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
     }
 
-    public async Task<Created<Guid>> CreateLesson(ISender sender, CreateLessonCommand command)
+    public async Task<IResult> CreateLesson(ISender sender, CreateLessonCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Lessons)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Lessons)}/{result.Data}");
     }
 
     public async Task<Results<NoContent, BadRequest>> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)

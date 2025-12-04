@@ -1,9 +1,10 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.CreateCourse;
 
-public record CreateCourseCommand : IRequest<Guid>
+public record CreateCourseCommand : IRequest<Result<Guid>>
 {
     public Guid LevelId { get; init; }
     public string Title { get; init; } = string.Empty;
@@ -14,7 +15,7 @@ public record CreateCourseCommand : IRequest<Guid>
     public List<Guid> TagIds { get; init; } = new();
 }
 
-public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, Guid>
+public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -23,7 +24,7 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, G
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateCourseCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateCourseCommand request, CancellationToken cancellationToken)
     {
         // Assumes validator already ensured LevelId and TagIds exist.
         var course = new Course
@@ -46,6 +47,6 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, G
 
         _context.Courses.Add(course);
         await _context.SaveChangesAsync(cancellationToken);
-        return course.Id;
+        return Result<Guid>.Success(course.Id);
     }
 }

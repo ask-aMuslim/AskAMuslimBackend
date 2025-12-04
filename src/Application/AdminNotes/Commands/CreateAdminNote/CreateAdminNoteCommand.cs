@@ -1,16 +1,17 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.AdminNotes.Commands.CreateAdminNote;
 
-public record CreateAdminNoteCommand : IRequest<Guid>
+public record CreateAdminNoteCommand : IRequest<Result<Guid>>
 {
     public Guid StudentId { get; init; }
     public string Content { get; init; } = string.Empty;
     public bool IsPrivate { get; init; } = false;
 }
 
-public class CreateAdminNoteCommandHandler : IRequestHandler<CreateAdminNoteCommand, Guid>
+public class CreateAdminNoteCommandHandler : IRequestHandler<CreateAdminNoteCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -21,11 +22,11 @@ public class CreateAdminNoteCommandHandler : IRequestHandler<CreateAdminNoteComm
         _currentUser = currentUser;
     }
 
-    public async Task<Guid> Handle(CreateAdminNoteCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateAdminNoteCommand request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(_currentUser.Id, out var adminUserId))
         {
-            throw new UnauthorizedAccessException("Invalid user context");
+            return Result<Guid>.Failure(new[] { "Invalid user context" });
         }
 
         var adminNote = new AdminNote
@@ -39,6 +40,6 @@ public class CreateAdminNoteCommandHandler : IRequestHandler<CreateAdminNoteComm
         _context.AdminNotes.Add(adminNote);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return adminNote.Id;
+        return Result<Guid>.Success(adminNote.Id);
     }
 }

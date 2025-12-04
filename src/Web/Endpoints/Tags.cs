@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Tags.Commands.UpdateTag;
 using AskAMuslimBackend.Application.Tags.Queries;
 using AskAMuslimBackend.Application.Tags.Queries.GetTagsWithPagination;
 using AskAMuslimBackend.Application.Tags.Queries.GetTagById;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -20,34 +21,34 @@ public class Tags : EndpointGroupBase
         groupBuilder.MapDelete(DeleteTag, "{id}").RequireAuthorization().WithName("DeleteTag").WithSummary("Delete a tag");
     }
 
-    public async Task<Ok<PaginatedList<TagBriefDto>>> GetTagsWithPagination(ISender sender, [AsParameters] GetTagsWithPaginationQuery query)
+    public async Task<IResult> GetTagsWithPagination(ISender sender, [AsParameters] GetTagsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<TagBriefDto>, NotFound>> GetTagById(ISender sender, Guid id)
+    public async Task<IResult> GetTagById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetTagByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateTag(ISender sender, CreateTagCommand command)
+    public async Task<IResult> CreateTag(ISender sender, CreateTagCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Tags)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Tags)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTag(ISender sender, Guid id, UpdateTagCommand command)
+    public async Task<IResult> UpdateTag(ISender sender, Guid id, UpdateTagCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteTag(ISender sender, Guid id)
+    public async Task<IResult> DeleteTag(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteTagCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteTagCommand(id));
+        return result.ToHttpResult();
     }
 }

@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Quizzes.Commands.UpdateQuiz;
 using AskAMuslimBackend.Application.Quizzes.Queries;
 using AskAMuslimBackend.Application.Quizzes.Queries.GetQuizzesWithPagination;
 using AskAMuslimBackend.Application.Quizzes.Queries.GetQuizById;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -32,10 +33,10 @@ public class Quizzes : EndpointGroupBase
         return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
     }
 
-    public async Task<Created<Guid>> CreateQuiz(ISender sender, CreateQuizCommand command)
+    public async Task<IResult> CreateQuiz(ISender sender, CreateQuizCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Quizzes)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Quizzes)}/{result.Data}");
     }
 
     public async Task<Results<NoContent, BadRequest>> UpdateQuiz(ISender sender, Guid id, UpdateQuizCommand command)

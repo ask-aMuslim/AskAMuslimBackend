@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Students.Queries.GetAllStudents;
 using AskAMuslimBackend.Application.Students.Queries.GetStudentProfile;
 using AskAMuslimBackend.Application.Students.Queries.GetStudentDashboard;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -39,38 +40,33 @@ public class Students : EndpointGroupBase
             .WithSummary("Update current student's profile");
     }
 
-    public async Task<Results<Ok<StudentDto>, NotFound>> GetMyProfile(ISender sender)
+    public async Task<IResult> GetMyProfile(ISender sender)
     {
         var result = await sender.Send(new GetStudentProfileQuery());
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<StudentDto>, NotFound>> GetStudentProfile(ISender sender, string userId)
+    public async Task<IResult> GetStudentProfile(ISender sender, string userId)
     {
         var result = await sender.Send(new GetStudentProfileQuery { UserId = userId });
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<StudentDto>>> GetAllStudents(ISender sender)
+    public async Task<IResult> GetAllStudents(ISender sender)
     {
         var result = await sender.Send(new GetAllStudentsQuery());
-        
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<PaginatedList<StudentDashboardDto>>> GetStudentDashboard(ISender sender, [AsParameters] GetStudentDashboardQuery query)
+    public async Task<IResult> GetStudentDashboard(ISender sender, [AsParameters] GetStudentDashboardQuery query)
     {
         var result = await sender.Send(query);
-        
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<Guid>> UpdateStudentProfile(ISender sender, UpdateStudentProfileCommand command)
+    public async Task<IResult> UpdateStudentProfile(ISender sender, UpdateStudentProfileCommand command)
     {
-        var id = await sender.Send(command);
-        
-        return TypedResults.Ok(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

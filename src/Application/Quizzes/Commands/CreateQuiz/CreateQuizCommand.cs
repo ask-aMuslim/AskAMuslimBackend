@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Quizzes.Commands.CreateQuiz;
 
-public record CreateQuizCommand : IRequest<Guid>
+public record CreateQuizCommand : IRequest<Result<Guid>>
 {
     public Guid? LevelId { get; init; }
     public Guid? CourseId { get; init; }
@@ -15,7 +16,7 @@ public record CreateQuizCommand : IRequest<Guid>
     public double TotalMarks { get; init; }
 }
 
-public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Guid>
+public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -24,7 +25,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Guid>
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateQuizCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateQuizCommand request, CancellationToken cancellationToken)
     {
         // Determine target id based on type and validate existence
         var targetExists = request.TargetType switch
@@ -37,7 +38,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Guid>
 
         if (!targetExists)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Target", "Target does not exist or id not provided.") });
+            return Result<Guid>.Failure(new[] { "Target does not exist or id not provided." });
         }
 
         var quiz = new Quiz
@@ -52,7 +53,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Guid>
 
         _context.Quizzes.Add(quiz);
         await _context.SaveChangesAsync(cancellationToken);
-        return quiz.Id;
+        return Result<Guid>.Success(quiz.Id);
     }
 }
 

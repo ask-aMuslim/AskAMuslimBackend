@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -6,13 +7,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Enrollments.Commands.CreateEnrollment;
 
-public record CreateEnrollmentCommand : IRequest<Guid>
+public record CreateEnrollmentCommand : IRequest<Result<Guid>>
 {
     public Guid StudentId { get; init; }
     public Guid CourseId { get; init; }
 }
 
-public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCommand, Guid>
+public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -21,17 +22,17 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateEnrollmentCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateEnrollmentCommand request, CancellationToken cancellationToken)
     {
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
         var courseExists = await _context.Courses.AnyAsync(c => c.Id == request.CourseId, cancellationToken);
 
         if (!studentExists || !courseExists)
         {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
-            if (!studentExists) failures.Add(new("StudentId", "Student does not exist."));
-            if (!courseExists) failures.Add(new("CourseId", "Course does not exist."));
-            throw new ValidationException(failures);
+            var errors = new List<string>();
+            if (!studentExists) errors.Add("Student does not exist.");
+            if (!courseExists) errors.Add("Course does not exist.");
+            return Result<Guid>.Failure(errors.ToArray());
         }
 
         var alreadyEnrolled = await _context.Enrollments
@@ -40,7 +41,7 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
 
         if (alreadyEnrolled)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("CourseId", "Student is already enrolled in this course.") });
+            return Result<Guid>.Failure(new[] { "Student is already enrolled in this course." });
         }
 
         var entity = new Enrollment
@@ -55,7 +56,7 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
 
         _context.Enrollments.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

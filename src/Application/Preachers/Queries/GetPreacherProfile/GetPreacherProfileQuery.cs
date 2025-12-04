@@ -1,14 +1,15 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Preachers.Queries.GetPreacherProfile;
 
-public record GetPreacherProfileQuery : IRequest<PreacherDto?>
+public record GetPreacherProfileQuery : IRequest<Result<PreacherDto?>>
 {
     public string? UserId { get; init; }
 }
 
-public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfileQuery, PreacherDto?>
+public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfileQuery, Result<PreacherDto?>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -21,13 +22,13 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
         _currentUser = currentUser;
     }
 
-    public async Task<PreacherDto?> Handle(GetPreacherProfileQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PreacherDto?>> Handle(GetPreacherProfileQuery request, CancellationToken cancellationToken)
     {
         var userIdString = request.UserId ?? _currentUser.Id;
         
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
         {
-            return null;
+            return Result<PreacherDto?>.Failure(new[] { "Invalid user ID" });
         }
 
         var preacher = await _context.Preachers
@@ -35,7 +36,7 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
 
         if (preacher == null)
         {
-            return null;
+            return Result<PreacherDto?>.Failure(new[] { "Preacher profile not found" });
         }
 
         // Get user details from Users table
@@ -44,7 +45,7 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
 
-        return new PreacherDto
+        return Result<PreacherDto?>.Success(new PreacherDto
         {
             Id = preacher.Id,
             UserId = preacher.UserId,
@@ -64,6 +65,6 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
             TotalReviews = preacher.TotalReviews,
             Certifications = preacher.Certifications,
             Organization = preacher.Organization
-        };
+        });
     }
 }

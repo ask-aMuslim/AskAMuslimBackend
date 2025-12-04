@@ -26,17 +26,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/AdminNoteDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -66,15 +56,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -499,14 +481,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfCourseBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -528,16 +503,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -567,16 +534,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CourseBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -611,10 +568,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -642,7 +596,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -810,16 +764,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1782,16 +1728,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1937,14 +1875,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfLevelBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -1966,16 +1897,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2005,16 +1928,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LevelBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -2049,10 +1962,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -2080,7 +1990,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -2754,17 +2664,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NotificationDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2794,15 +2694,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2996,16 +2888,6 @@
         "operationId": "GetMyProfile3",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PreacherDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -3034,15 +2916,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -3071,16 +2945,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PreacherDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -3099,17 +2963,7 @@
         "operationId": "GetAllPreachers",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/PreacherDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -3604,16 +3458,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -3770,16 +3616,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -4255,16 +4093,6 @@
         "operationId": "GetMyProfile4",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StudentDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -4293,15 +4121,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -4330,16 +4150,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StudentDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -4358,17 +4168,7 @@
         "operationId": "GetAllStudents",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StudentDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -4426,14 +4226,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfStudentDashboardDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -4473,14 +4266,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfTagBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -4502,16 +4288,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -4541,16 +4319,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TagBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -4585,10 +4353,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -4616,7 +4381,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -4975,37 +4740,6 @@
   },
   "components": {
     "schemas": {
-      "AdminNoteDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "adminUserId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "adminName": {
-            "type": "string"
-          },
-          "content": {
-            "type": "string"
-          },
-          "isPrivate": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "CreateAdminNoteCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5220,60 +4954,6 @@
           },
           "url": {
             "type": "string"
-          }
-        }
-      },
-      "PaginatedListOfCourseBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CourseBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "CourseBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "isPublished": {
-            "type": "boolean"
-          },
-          "rating": {
-            "type": "number",
-            "format": "double"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -6045,80 +5725,6 @@
           }
         }
       },
-      "PaginatedListOfLevelBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LevelBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "LevelBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "difficulty": {
-            "$ref": "#/components/schemas/LevelDifficulty"
-          },
-          "totalCourses": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "LevelDifficulty": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Beginner",
-          "Intermediate",
-          "Advanced",
-          "Expert"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ]
-      },
       "CreateLevelCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6138,6 +5744,22 @@
             "$ref": "#/components/schemas/LevelDifficulty"
           }
         }
+      },
+      "LevelDifficulty": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Beginner",
+          "Intermediate",
+          "Advanced",
+          "Expert"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
       },
       "UpdateLevelCommand": {
         "type": "object",
@@ -6405,33 +6027,6 @@
           }
         }
       },
-      "NotificationDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "isRead": {
-            "type": "boolean"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
       "SendNotificationCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6493,79 +6088,6 @@
           },
           "isCorrect": {
             "type": "boolean"
-          }
-        }
-      },
-      "PreacherDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "specialization": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "website": {
-            "type": "string",
-            "nullable": true
-          },
-          "linkedInProfile": {
-            "type": "string",
-            "nullable": true
-          },
-          "yearsOfExperience": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isVerified": {
-            "type": "boolean"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "joinedDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "rating": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "totalReviews": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "certifications": {
-            "type": "string",
-            "nullable": true
-          },
-          "organization": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
@@ -7251,154 +6773,6 @@
           }
         }
       },
-      "StudentDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "address": {
-            "type": "string",
-            "nullable": true
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "enrollmentDate": {
-            "type": "string",
-            "format": "date"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "totalEnrollments": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "PaginatedListOfStudentDashboardDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/StudentDashboardDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "StudentDashboardDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string",
-            "nullable": true
-          },
-          "progress": {
-            "$ref": "#/components/schemas/StudentProgressDto"
-          },
-          "isActive": {
-            "type": "boolean"
-          }
-        }
-      },
-      "StudentProgressDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "currentLevel": {
-            "type": "string",
-            "nullable": true
-          },
-          "currentCourse": {
-            "type": "string",
-            "nullable": true
-          },
-          "currentLesson": {
-            "type": "string",
-            "nullable": true
-          },
-          "averageExamMarks": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "completedCourses": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalEnrollments": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "overallProgress": {
-            "type": "number",
-            "format": "decimal"
-          }
-        }
-      },
       "UpdateStudentProfileCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -7432,57 +6806,6 @@
             "type": "string",
             "format": "date",
             "nullable": true
-          }
-        }
-      },
-      "PaginatedListOfTagBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "TagBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "totalCourses": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },

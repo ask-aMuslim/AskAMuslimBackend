@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.AdminNotes.Commands.CreateAdminNote;
 using AskAMuslimBackend.Application.AdminNotes.Queries.GetAdminNotes;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -12,13 +13,15 @@ public class AdminNotes : EndpointGroupBase
         app.MapPost(CreateAdminNote).RequireAuthorization();
     }
 
-    public async Task<List<AdminNoteDto>> GetAdminNotes(ISender sender, Guid studentId)
+    public async Task<IResult> GetAdminNotes(ISender sender, Guid studentId)
     {
-        return await sender.Send(new GetAdminNotesQuery { StudentId = studentId });
+        var result = await sender.Send(new GetAdminNotesQuery { StudentId = studentId });
+        return result.ToHttpResult();
     }
 
-    public async Task<Guid> CreateAdminNote(ISender sender, CreateAdminNoteCommand command)
+    public async Task<IResult> CreateAdminNote(ISender sender, CreateAdminNoteCommand command)
     {
-        return await sender.Send(command);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/AdminNotes/{result.Data}");
     }
 }

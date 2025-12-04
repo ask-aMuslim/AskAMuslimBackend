@@ -1,16 +1,17 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Tags.Commands.UpdateTag;
 
-public record UpdateTagCommand : IRequest
+public record UpdateTagCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
 }
 
-public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand>
+public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -19,15 +20,21 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateTagCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateTagCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Tags.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        
+        if (entity == null)
+        {
+            return Result.Failure(new[] { "Tag not found" });
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
 
         await _context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }
 

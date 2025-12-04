@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.AdminNotes.Queries.GetAdminNotes;
 
-public record GetAdminNotesQuery : IRequest<List<AdminNoteDto>>
+public record GetAdminNotesQuery : IRequest<Result<List<AdminNoteDto>>>
 {
     public Guid StudentId { get; init; }
 }
 
-public class GetAdminNotesQueryHandler : IRequestHandler<GetAdminNotesQuery, List<AdminNoteDto>>
+public class GetAdminNotesQueryHandler : IRequestHandler<GetAdminNotesQuery, Result<List<AdminNoteDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,7 +17,7 @@ public class GetAdminNotesQueryHandler : IRequestHandler<GetAdminNotesQuery, Lis
         _context = context;
     }
 
-    public async Task<List<AdminNoteDto>> Handle(GetAdminNotesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<AdminNoteDto>>> Handle(GetAdminNotesQuery request, CancellationToken cancellationToken)
     {
         var notes = await _context.AdminNotes
             .Where(an => an.StudentId == request.StudentId)
@@ -41,6 +42,6 @@ public class GetAdminNotesQueryHandler : IRequestHandler<GetAdminNotesQuery, Lis
             });
         }
 
-        return result;
+        return Result<List<AdminNoteDto>>.Success(result);
     }
 }

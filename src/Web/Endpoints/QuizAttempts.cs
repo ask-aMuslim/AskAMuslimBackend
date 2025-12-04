@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.QuizAttempts.Commands.CreateQuizAttempt;
 using AskAMuslimBackend.Application.QuizAttempts.Queries;
 using AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptsByQuiz;
 using AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptsByStudent;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -29,10 +30,10 @@ public class QuizAttempts : EndpointGroupBase
         return TypedResults.Ok(result);
     }
 
-    public async Task<Created<Guid>> StartAttempt(ISender sender, CreateQuizAttemptCommand command)
+    public async Task<IResult> StartAttempt(ISender sender, CreateQuizAttemptCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(QuizAttempts)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(QuizAttempts)}/{result.Data}");
     }
 
     public async Task<Results<NoContent, BadRequest>> CompleteAttempt(ISender sender, Guid attemptId, CompleteQuizAttemptCommand command)

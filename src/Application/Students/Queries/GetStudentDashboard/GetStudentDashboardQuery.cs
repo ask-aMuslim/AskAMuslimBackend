@@ -3,7 +3,7 @@ using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Students.Queries.GetStudentDashboard;
 
-public record GetStudentDashboardQuery : IRequest<PaginatedList<StudentDashboardDto>>
+public record GetStudentDashboardQuery : IRequest<Result<PaginatedList<StudentDashboardDto>>>
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
@@ -11,7 +11,7 @@ public record GetStudentDashboardQuery : IRequest<PaginatedList<StudentDashboard
     public string? Country { get; init; }
 }
 
-public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboardQuery, PaginatedList<StudentDashboardDto>>
+public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboardQuery, Result<PaginatedList<StudentDashboardDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,7 +20,7 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
         _context = context;
     }
 
-    public async Task<PaginatedList<StudentDashboardDto>> Handle(GetStudentDashboardQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<StudentDashboardDto>>> Handle(GetStudentDashboardQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Students
             .Where(s => s.IsActive)
@@ -102,6 +102,7 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        return new PaginatedList<StudentDashboardDto>(studentDashboards, totalCount, request.PageNumber, request.PageSize);
+        return Result<PaginatedList<StudentDashboardDto>>.Success(
+            new PaginatedList<StudentDashboardDto>(studentDashboards, totalCount, request.PageNumber, request.PageSize));
     }
 }

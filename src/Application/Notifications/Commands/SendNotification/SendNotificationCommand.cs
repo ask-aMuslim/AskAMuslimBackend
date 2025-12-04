@@ -1,16 +1,17 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Notifications.Commands.SendNotification;
 
-public record SendNotificationCommand : IRequest<Guid>
+public record SendNotificationCommand : IRequest<Result<Guid>>
 {
     public Guid UserId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Message { get; init; } = string.Empty;
 }
 
-public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCommand, Guid>
+public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -19,7 +20,7 @@ public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCo
         _context = context;
     }
 
-    public async Task<Guid> Handle(SendNotificationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(SendNotificationCommand request, CancellationToken cancellationToken)
     {
         var notification = new Notification
         {
@@ -34,6 +35,6 @@ public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCo
 
         // TODO: Integrate with push notification service (Firebase, OneSignal, etc.)
 
-        return notification.Id;
+        return Result<Guid>.Success(notification.Id);
     }
 }

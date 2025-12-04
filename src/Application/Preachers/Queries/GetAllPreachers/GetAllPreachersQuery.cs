@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Preachers.Queries.GetAllPreachers;
 
-public record GetAllPreachersQuery : IRequest<List<PreacherDto>>;
+public record GetAllPreachersQuery : IRequest<Result<List<PreacherDto>>>;
 
-public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, List<PreacherDto>>
+public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<List<PreacherDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,7 +16,7 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
         _context = context;
     }
 
-    public async Task<List<PreacherDto>> Handle(GetAllPreachersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<PreacherDto>>> Handle(GetAllPreachersQuery request, CancellationToken cancellationToken)
     {
         var preachers = await _context.Preachers
             .Where(p => p.IsActive)
@@ -50,6 +51,6 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
             });
         }
 
-        return result;
+        return Result<List<PreacherDto>>.Success(result);
     }
 }

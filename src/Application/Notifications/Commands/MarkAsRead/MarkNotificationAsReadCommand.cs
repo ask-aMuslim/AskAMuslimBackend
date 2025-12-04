@@ -1,15 +1,16 @@
 using AskAMuslimBackend.Application.Common.Exceptions;
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Notifications.Commands.MarkAsRead;
 
-public record MarkNotificationAsReadCommand : IRequest
+public record MarkNotificationAsReadCommand : IRequest<Result>
 {
     public Guid NotificationId { get; init; }
 }
 
-public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotificationAsReadCommand>
+public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotificationAsReadCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -18,17 +19,19 @@ public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotifica
         _context = context;
     }
 
-    public async Task Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
     {
         var notification = await _context.Notifications
             .FindAsync(new object[] { request.NotificationId }, cancellationToken);
 
         if (notification == null)
         {
-            throw new NotFoundException(nameof(Notification), request.NotificationId.ToString());
+            return Result.Failure(new[] { $"Notification with ID {request.NotificationId} not found" });
         }
 
         notification.IsRead = true;
         await _context.SaveChangesAsync(cancellationToken);
+        
+        return Result.Success();
     }
 }

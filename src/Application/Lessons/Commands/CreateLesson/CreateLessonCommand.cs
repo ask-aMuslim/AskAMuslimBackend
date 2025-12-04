@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Lessons.Commands.CreateLesson;
 
-public record CreateLessonCommand : IRequest<Guid>
+public record CreateLessonCommand : IRequest<Result<Guid>>
 {
     public Guid CourseId { get; init; }
     public string Title { get; init; } = string.Empty;
@@ -18,7 +19,7 @@ public record CreateLessonCommand : IRequest<Guid>
     public int Order { get; init; }
 }
 
-public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Guid>
+public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -27,13 +28,13 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, G
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
     {
         // Defensive existence checks (in addition to FluentValidation) to avoid FK violation surfacing as DbUpdateException.
         var courseExists = await _context.Courses.AsNoTracking().AnyAsync(c => c.Id == request.CourseId, cancellationToken);
         if (!courseExists)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("CourseId", "Course does not exist.") });
+            return Result<Guid>.Failure(new[] { "Course does not exist." });
         }
 
         var lesson = new Lesson
@@ -50,7 +51,7 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, G
 
         _context.Lessons.Add(lesson);
         await _context.SaveChangesAsync(cancellationToken);
-        return lesson.Id;
+        return Result<Guid>.Success(lesson.Id);
     }
 }
 

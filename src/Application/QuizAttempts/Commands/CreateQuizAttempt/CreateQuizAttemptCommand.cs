@@ -1,17 +1,18 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Commands.CreateQuizAttempt;
 
-public record CreateQuizAttemptCommand : IRequest<Guid>
+public record CreateQuizAttemptCommand : IRequest<Result<Guid>>
 {
     public Guid QuizId { get; init; }
     public Guid StudentId { get; init; }
 }
 
-public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttemptCommand, Guid>
+public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttemptCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,17 +21,17 @@ public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttempt
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateQuizAttemptCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateQuizAttemptCommand request, CancellationToken cancellationToken)
     {
         var quizExists = await _context.Quizzes.AnyAsync(q => q.Id == request.QuizId, cancellationToken);
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
 
         if (!quizExists || !studentExists)
         {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
-            if (!quizExists) failures.Add(new("QuizId", "Quiz does not exist."));
-            if (!studentExists) failures.Add(new("StudentId", "Student does not exist."));
-            throw new ValidationException(failures);
+            var errors = new List<string>();
+            if (!quizExists) errors.Add("Quiz does not exist.");
+            if (!studentExists) errors.Add("Student does not exist.");
+            return Result<Guid>.Failure(errors.ToArray());
         }
 
         // Determine next attempt number for this student/quiz (robust across providers)
@@ -52,7 +53,7 @@ public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttempt
 
         _context.QuizAttempts.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

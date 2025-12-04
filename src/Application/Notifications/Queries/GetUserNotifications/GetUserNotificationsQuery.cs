@@ -1,14 +1,15 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Notifications.Queries.GetUserNotifications;
 
-public record GetUserNotificationsQuery : IRequest<List<NotificationDto>>
+public record GetUserNotificationsQuery : IRequest<Result<List<NotificationDto>>>
 {
     public Guid UserId { get; init; }
     public bool UnreadOnly { get; init; } = false;
 }
 
-public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificationsQuery, List<NotificationDto>>
+public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificationsQuery, Result<List<NotificationDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -17,7 +18,7 @@ public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificat
         _context = context;
     }
 
-    public async Task<List<NotificationDto>> Handle(GetUserNotificationsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<NotificationDto>>> Handle(GetUserNotificationsQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Notifications
             .Where(n => n.UserId == request.UserId);
@@ -40,6 +41,6 @@ public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificat
             })
             .ToListAsync(cancellationToken);
 
-        return notifications;
+        return Result<List<NotificationDto>>.Success(notifications);
     }
 }

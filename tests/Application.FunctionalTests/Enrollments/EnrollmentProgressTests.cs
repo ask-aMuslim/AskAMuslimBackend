@@ -23,15 +23,16 @@ public class EnrollmentProgressTests : BaseTestFixture
 
     private async Task<(Guid levelId, Guid courseId, Guid lesson1Id, Guid lesson2Id)> CreateContentGraphAsync()
     {
-        var levelId = await SendAsync(new CreateLevelCommand
+        var levelResult = await SendAsync(new CreateLevelCommand
         {
             Title = "Level 1",
             Description = "Level description",
             Difficulty = LevelDifficulty.Beginner,
             Order = 1
         });
+        var levelId = levelResult.Data;
 
-        var courseId = await SendAsync(new CreateCourseCommand
+        var courseResult = await SendAsync(new CreateCourseCommand
         {
             LevelId = levelId,
             Title = "Course 1",
@@ -40,27 +41,30 @@ public class EnrollmentProgressTests : BaseTestFixture
             Order = 1,
             TagIds = new()
         });
+        var courseId = courseResult.Data;
 
-        var lesson1Id = await SendAsync(new CreateLessonCommand
+        var lesson1Result = await SendAsync(new CreateLessonCommand
         {
             CourseId = courseId,
             Title = "Lesson 1",
             Order = 1
         });
+        var lesson1Id = lesson1Result.Data;
 
-        var lesson2Id = await SendAsync(new CreateLessonCommand
+        var lesson2Result = await SendAsync(new CreateLessonCommand
         {
             CourseId = courseId,
             Title = "Lesson 2",
             Order = 2
         });
+        var lesson2Id = lesson2Result.Data;
 
         return (levelId, courseId, lesson1Id, lesson2Id);
     }
 
     private async Task<Guid> CreateQuizAsync(QuizTargetType targetType, Guid? levelId = null, Guid? courseId = null, Guid? lessonId = null)
     {
-        return await SendAsync(new CreateQuizCommand
+        var result = await SendAsync(new CreateQuizCommand
         {
             TargetType = targetType,
             LevelId = levelId,
@@ -69,24 +73,27 @@ public class EnrollmentProgressTests : BaseTestFixture
             Title = $"Quiz - {targetType}",
             TotalMarks = 100
         });
+        return result.Data;
     }
 
     private async Task<Guid> EnrollAsync(Guid studentId, Guid courseId)
     {
-        return await SendAsync(new CreateEnrollmentCommand
+        var result = await SendAsync(new CreateEnrollmentCommand
         {
             StudentId = studentId,
             CourseId = courseId
         });
+        return result.Data;
     }
 
     private async Task<Guid> StartAttemptAsync(Guid quizId, Guid studentId)
     {
-        return await SendAsync(new CreateQuizAttemptCommand
+        var result = await SendAsync(new CreateQuizAttemptCommand
         {
             QuizId = quizId,
             StudentId = studentId
         });
+        return result.Data;
     }
 
     private async Task CompleteAttemptAsync(Guid attemptId, bool pass, decimal score = 100m)
@@ -154,7 +161,7 @@ public class EnrollmentProgressTests : BaseTestFixture
         var (levelId, courseId, lesson1Id, lesson2Id) = await CreateContentGraphAsync();
 
         // Add another course in same level (not completed) to observe level progress
-        var otherCourseId = await SendAsync(new CreateCourseCommand
+        var otherCourseResult = await SendAsync(new CreateCourseCommand
         {
             LevelId = levelId,
             Title = "Course 2",
@@ -162,6 +169,7 @@ public class EnrollmentProgressTests : BaseTestFixture
             Order = 2,
             TagIds = new()
         });
+        var otherCourseId = otherCourseResult.Data;
 
         var otherEnrollmentId = await EnrollAsync(studentId, otherCourseId);
 
@@ -196,12 +204,13 @@ public class EnrollmentProgressTests : BaseTestFixture
         enrollment!.LevelProgress.ShouldBe(50);
 
         // Complete other course as well (with zero quizzes it stays 0, so add a quiz to other course)
-        var otherLessonId = await SendAsync(new CreateLessonCommand
+        var otherLessonResult = await SendAsync(new CreateLessonCommand
         {
             CourseId = otherCourseId,
             Title = "Other Lesson",
             Order = 1
         });
+        var otherLessonId = otherLessonResult.Data;
         var otherLessonQuizId = await CreateQuizAsync(QuizTargetType.Lesson, lessonId: otherLessonId);
         var otherCourseQuizAttempt = await StartAttemptAsync(otherLessonQuizId, studentId);
         await CompleteAttemptAsync(otherCourseQuizAttempt, true);
