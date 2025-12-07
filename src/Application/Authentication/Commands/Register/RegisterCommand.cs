@@ -4,7 +4,7 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Authentication.Commands.Register;
 
-public record RegisterCommand : IRequest<AuthenticationResponse>
+public record RegisterCommand : IRequest<Result<AuthenticationResponse>>
 {
     public string Email { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;
@@ -13,7 +13,7 @@ public record RegisterCommand : IRequest<AuthenticationResponse>
     public UserRole Role { get; init; }
 }
 
-public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthenticationResponse>
+public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<AuthenticationResponse>>
 {
     private readonly IIdentityService _identityService;
 
@@ -22,7 +22,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
         _identityService = identityService;
     }
 
-    public async Task<AuthenticationResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthenticationResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var result = await _identityService.RegisterUserAsync(
             request.Email,
@@ -31,11 +31,6 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Authentic
             request.LastName,
             request.Role);
 
-        if (!result.Succeeded)
-        {
-            throw new InvalidOperationException(string.Join(", ", result.Errors));
-        }
-
-        return result.Data!;
+        return result;
     }
 }

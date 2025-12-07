@@ -3,9 +3,9 @@ using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
 
-public record LoginWithGoogleCommand(string IdToken) : IRequest<AuthenticationResponse>;
+public record LoginWithGoogleCommand(string IdToken) : IRequest<Result<AuthenticationResponse>>;
 
-public class LoginWithGoogleCommandHandler : IRequestHandler<LoginWithGoogleCommand, AuthenticationResponse>
+public class LoginWithGoogleCommandHandler : IRequestHandler<LoginWithGoogleCommand, Result<AuthenticationResponse>>
 {
     private readonly IIdentityService _identityService;
 
@@ -14,13 +14,9 @@ public class LoginWithGoogleCommandHandler : IRequestHandler<LoginWithGoogleComm
         _identityService = identityService;
     }
 
-    public async Task<AuthenticationResponse> Handle(LoginWithGoogleCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthenticationResponse>> Handle(LoginWithGoogleCommand request, CancellationToken cancellationToken)
     {
         var result = await _identityService.LoginWithGoogleAsync(request.IdToken);
-        if (!result.Succeeded)
-        {
-            throw new UnauthorizedAccessException(string.Join(", ", result.Errors));
-        }
-        return result.Data!;
+        return result;
     }
 }

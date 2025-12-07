@@ -189,27 +189,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthenticationResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -234,14 +214,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthenticationResponse"
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -266,14 +239,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthenticationResponse"
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -298,14 +264,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthenticationResponse"
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -4816,14 +4775,14 @@
           }
         }
       },
-      "AuthenticationResponse": {
+      "RegisterCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "userId": {
+          "email": {
             "type": "string"
           },
-          "email": {
+          "password": {
             "type": "string"
           },
           "firstName": {
@@ -4834,13 +4793,6 @@
           },
           "role": {
             "$ref": "#/components/schemas/UserRole"
-          },
-          "token": {
-            "type": "string"
-          },
-          "expiresAt": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -4863,27 +4815,6 @@
           5,
           6
         ]
-      },
-      "RegisterCommand": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "email": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "role": {
-            "$ref": "#/components/schemas/UserRole"
-          }
-        }
       },
       "LoginCommand": {
         "type": "object",

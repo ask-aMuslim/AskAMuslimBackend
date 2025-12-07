@@ -3,7 +3,7 @@ using AskAMuslimBackend.Application.Authentication.Commands.Register;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 using AskAMuslimBackend.Application.Common.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
+using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -36,63 +36,35 @@ public class Authentication : EndpointGroupBase
             .WithDescription("Accepts a Facebook access token, verifies it and returns a JWT token");
     }
 
-    public async Task<Results<Ok<AuthenticationResponse>, BadRequest<string[]>>> Register(
+    public async Task<IResult> Register(
         ISender sender, 
         RegisterCommand command)
     {
-        try
-        {
-            var result = await sender.Send(command);
-            return TypedResults.Ok(result);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return TypedResults.BadRequest(new[] { ex.Message });
-        }
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<AuthenticationResponse>, UnauthorizedHttpResult>> Login(
+    public async Task<IResult> Login(
         ISender sender, 
         LoginCommand command)
     {
-        try
-        {
-            var result = await sender.Send(command);
-            return TypedResults.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return TypedResults.Unauthorized();
-        }
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<AuthenticationResponse>, UnauthorizedHttpResult>> LoginWithGoogle(
+    public async Task<IResult> LoginWithGoogle(
         ISender sender,
         LoginWithGoogleCommand command)
     {
-        try
-        {
-            var result = await sender.Send(command);
-            return TypedResults.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return TypedResults.Unauthorized();
-        }
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<AuthenticationResponse>, UnauthorizedHttpResult>> LoginWithFacebook(
+    public async Task<IResult> LoginWithFacebook(
         ISender sender,
         LoginWithFacebookCommand command)
     {
-        try
-        {
-            var result = await sender.Send(command);
-            return TypedResults.Ok(result);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return TypedResults.Unauthorized();
-        }
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

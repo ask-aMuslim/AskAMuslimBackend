@@ -3,9 +3,9 @@ using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 
-public record LoginWithFacebookCommand(string AccessToken) : IRequest<AuthenticationResponse>;
+public record LoginWithFacebookCommand(string AccessToken) : IRequest<Result<AuthenticationResponse>>;
 
-public class LoginWithFacebookCommandHandler : IRequestHandler<LoginWithFacebookCommand, AuthenticationResponse>
+public class LoginWithFacebookCommandHandler : IRequestHandler<LoginWithFacebookCommand, Result<AuthenticationResponse>>
 {
     private readonly IIdentityService _identityService;
 
@@ -14,13 +14,9 @@ public class LoginWithFacebookCommandHandler : IRequestHandler<LoginWithFacebook
         _identityService = identityService;
     }
 
-    public async Task<AuthenticationResponse> Handle(LoginWithFacebookCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthenticationResponse>> Handle(LoginWithFacebookCommand request, CancellationToken cancellationToken)
     {
         var result = await _identityService.LoginWithFacebookAsync(request.AccessToken);
-        if (!result.Succeeded)
-        {
-            throw new UnauthorizedAccessException(string.Join(", ", result.Errors));
-        }
-        return result.Data!;
+        return result;
     }
 }
