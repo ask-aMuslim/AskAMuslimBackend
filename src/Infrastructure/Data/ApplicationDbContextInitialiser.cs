@@ -48,6 +48,14 @@ public class ApplicationDbContextInitialiser
     {
         try
         {
+            // Check if database can be connected
+            var canConnect = await _context.Database.CanConnectAsync();
+            if (!canConnect)
+            {
+                _logger.LogWarning("Cannot connect to database. Skipping initialization.");
+                return;
+            }
+
             if (_env.IsDevelopment())
             {
                 await _context.Database.EnsureDeletedAsync();
@@ -69,6 +77,14 @@ public class ApplicationDbContextInitialiser
     {
         try
         {
+            // Check if database can be connected before seeding
+            var canConnect = await _context.Database.CanConnectAsync();
+            if (!canConnect)
+            {
+                _logger.LogWarning("Cannot connect to database. Skipping seeding.");
+                return;
+            }
+
             await TrySeedAsync();
         }
         catch (Exception ex)
