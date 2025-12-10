@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Instructors.Queries.GetInstructorProfile;
 
-public record GetInstructorProfileQuery : IRequest<InstructorDto?>
+public record GetInstructorProfileQuery : IRequest<Result<InstructorDto>>
 {
     public string? UserId { get; init; }
 }
 
-public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorProfileQuery, InstructorDto?>
+public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorProfileQuery, Result<InstructorDto>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -20,13 +21,13 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
         _currentUser = currentUser;
     }
 
-    public async Task<InstructorDto?> Handle(GetInstructorProfileQuery request, CancellationToken cancellationToken)
+    public async Task<Result<InstructorDto>> Handle(GetInstructorProfileQuery request, CancellationToken cancellationToken)
     {
         var userId = request.UserId ?? _currentUser.Id;
 
         if (string.IsNullOrEmpty(userId))
         {
-            return null;
+            return Result<InstructorDto>.Failure(new[] { "Invalid user ID" });
         }
 
         var instructor = await _context.Instructors
@@ -35,10 +36,10 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
 
         if (instructor == null)
         {
-            return null;
+            return Result<InstructorDto>.Failure(new[] { "Instructor not found" });
         }
 
-        return new InstructorDto
+        return Result<InstructorDto>.Success(new InstructorDto
         {
             Id = instructor.Id,
             UserId = instructor.UserId,
@@ -57,6 +58,6 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
             Rating = instructor.Rating,
             TotalReviews = instructor.TotalReviews,
             TotalCourses = instructor.Courses.Count
-        };
+        });
     }
 }

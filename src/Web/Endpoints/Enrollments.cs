@@ -22,22 +22,22 @@ public class Enrollments : EndpointGroupBase
         groupBuilder.MapDelete(DeleteEnrollment, "{id}").RequireAuthorization().WithName("DeleteEnrollment").WithSummary("Delete an enrollment");
     }
 
-    public async Task<Results<Ok<EnrollmentDto>, NotFound>> GetEnrollment(ISender sender, Guid id)
+    public async Task<IResult> GetEnrollment(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetEnrollmentByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<EnrollmentDto>>> GetByCourse(ISender sender, Guid courseId)
+    public async Task<IResult> GetByCourse(ISender sender, Guid courseId)
     {
         var result = await sender.Send(new GetEnrollmentsByCourseQuery(courseId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<EnrollmentDto>>> GetByStudent(ISender sender, Guid studentId)
+    public async Task<IResult> GetByStudent(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetEnrollmentsByStudentQuery(studentId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> CreateEnrollment(ISender sender, CreateEnrollmentCommand command)
@@ -46,16 +46,20 @@ public class Enrollments : EndpointGroupBase
         return result.ToCreatedResult($"/{nameof(Enrollments)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateEnrollmentStatus(ISender sender, Guid id, UpdateEnrollmentStatusCommand command)
+    public async Task<IResult> UpdateEnrollmentStatus(ISender sender, Guid id, UpdateEnrollmentStatusCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        if (id != command.Id) 
+        {
+            return Results.BadRequest(new { errors = new[] { "ID mismatch" } });
+        }
+        
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteEnrollment(ISender sender, Guid id)
+    public async Task<IResult> DeleteEnrollment(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteEnrollmentCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteEnrollmentCommand(id));
+        return result.ToHttpResult();
     }
 }

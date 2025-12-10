@@ -5,7 +5,7 @@ using AskAMuslimBackend.Application.Common.Pagination;
 
 namespace AskAMuslimBackend.Application.Events.Queries.GetEventsWithPagination;
 
-public record GetEventsWithPaginationQuery : IRequest<PaginatedList<EventDto>>, IPaginationQuery
+public record GetEventsWithPaginationQuery : IRequest<Result<PaginatedList<EventDto>>>, IPaginationQuery
 {
     public bool? IsPublished { get; init; }
     public DateTime? From { get; init; }
@@ -14,7 +14,7 @@ public record GetEventsWithPaginationQuery : IRequest<PaginatedList<EventDto>>, 
     public int PageSize { get; init; } = 10;
 }
 
-public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWithPaginationQuery, PaginatedList<EventDto>>
+public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWithPaginationQuery, Result<PaginatedList<EventDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -25,7 +25,7 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
         _mapper = mapper;
     }
 
-    public async Task<PaginatedList<EventDto>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<EventDto>>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Events.AsNoTracking().AsQueryable();
 
@@ -36,9 +36,11 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
         if (request.To.HasValue)
             query = query.Where(e => e.EndDateTime <= request.To.Value);
 
-        return await query
+        var events = await query
             .OrderBy(e => e.StartDateTime)
             .ProjectTo<EventDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            
+        return Result<PaginatedList<EventDto>>.Success(events);
     }
 }

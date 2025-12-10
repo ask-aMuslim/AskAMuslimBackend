@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.Admins.Queries.GetAdminProfile;
 
-public record GetAdminProfileQuery : IRequest<AdminDto?>
+public record GetAdminProfileQuery : IRequest<Result<AdminDto>>
 {
     public string? UserId { get; init; }
 }
 
-public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery, AdminDto?>
+public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery, Result<AdminDto>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
@@ -20,13 +21,13 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
         _currentUser = currentUser;
     }
 
-    public async Task<AdminDto?> Handle(GetAdminProfileQuery request, CancellationToken cancellationToken)
+    public async Task<Result<AdminDto>> Handle(GetAdminProfileQuery request, CancellationToken cancellationToken)
     {
         var userIdString = request.UserId ?? _currentUser.Id;
         
         if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
         {
-            return null;
+            return Result<AdminDto>.Failure(new[] { "Invalid user ID" });
         }
 
         var admin = await _context.Admins
@@ -34,7 +35,7 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
 
         if (admin == null)
         {
-            return null;
+            return Result<AdminDto>.Failure(new[] { "Admin not found" });
         }
 
         // Get user details from Users table
@@ -43,7 +44,7 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
 
-        return new AdminDto
+        return Result<AdminDto>.Success(new AdminDto
         {
             Id = admin.Id,
             UserId = admin.UserId,
@@ -56,6 +57,6 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
             IsActive = admin.IsActive,
             JoinedDate = admin.JoinedDate,
             LastLoginDate = admin.LastLoginDate
-        };
+        });
     }
 }

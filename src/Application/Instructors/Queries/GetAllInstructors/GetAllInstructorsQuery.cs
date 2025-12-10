@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Instructors.Queries.GetAllInstructors;
 
-public record GetAllInstructorsQuery : IRequest<List<InstructorDto>>;
+public record GetAllInstructorsQuery : IRequest<Result<List<InstructorDto>>>;
 
-public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQuery, List<InstructorDto>>
+public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQuery, Result<List<InstructorDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,9 +15,9 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
         _context = context;
     }
 
-    public async Task<List<InstructorDto>> Handle(GetAllInstructorsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<InstructorDto>>> Handle(GetAllInstructorsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Instructors
+        var instructors = await _context.Instructors
             .Include(i => i.Courses)
             .Where(i => i.IsActive)
             .Select(i => new InstructorDto
@@ -40,5 +41,7 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
                 TotalCourses = i.Courses.Count
             })
             .ToListAsync(cancellationToken);
+            
+        return Result<List<InstructorDto>>.Success(instructors);
     }
 }

@@ -31,7 +31,7 @@ public class UpdateTodoListTests : BaseTestFixture
 
         var command = new UpdateTodoListCommand
         {
-            Id = listId,
+            Id = listId.Data,
             Title = "Other List"
         };
 
@@ -46,10 +46,10 @@ public class UpdateTodoListTests : BaseTestFixture
     {
         var userId = await RunAsDefaultUserAsync();
 
-        var listId = await SendAsync(new CreateTodoListCommand
+        var listId = (await SendAsync(new CreateTodoListCommand
         {
             Title = "New List"
-        });
+        })).Data;
 
         var command = new UpdateTodoListCommand
         {

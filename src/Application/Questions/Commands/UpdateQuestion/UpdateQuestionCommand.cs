@@ -1,15 +1,16 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Questions.Commands.UpdateQuestion;
 
-public record UpdateQuestionCommand : IRequest
+public record UpdateQuestionCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
 }
 
-public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionCommand>
+public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -18,13 +19,14 @@ public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionComman
         _context = context;
     }
 
-    public async Task Handle(UpdateQuestionCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateQuestionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Questions.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null) return Result.Failure(new[] { "Question not found" });
 
         entity.Text = request.Text;
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

@@ -1,18 +1,19 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Certificates.Commands.CreateCertificate;
 
-public record CreateCertificateCommand : IRequest<Guid>
+public record CreateCertificateCommand : IRequest<Result<Guid>>
 {
     public Guid StudentId { get; init; }
     public Guid LevelId { get; init; }
     public string Url { get; init; } = string.Empty;
 }
 
-public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificateCommand, Guid>
+public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificateCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -21,23 +22,23 @@ public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificate
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateCertificateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateCertificateCommand request, CancellationToken cancellationToken)
     {
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
         var levelExists = await _context.Levels.AnyAsync(l => l.Id == request.LevelId, cancellationToken);
 
         if (!studentExists || !levelExists)
         {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
-            if (!studentExists) failures.Add(new("StudentId", "Student does not exist."));
-            if (!levelExists) failures.Add(new("LevelId", "Level does not exist."));
-            throw new ValidationException(failures);
+            var errors = new List<string>();
+            if (!studentExists) errors.Add("Student does not exist.");
+            if (!levelExists) errors.Add("Level does not exist.");
+            return Result<Guid>.Failure(errors);
         }
 
         var alreadyIssued = await _context.Certificates.AnyAsync(c => c.StudentId == request.StudentId && c.LevelId == request.LevelId, cancellationToken);
         if (alreadyIssued)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("LevelId", "Certificate already issued for this level to the student.") });
+            return Result<Guid>.Failure(new[] { "Certificate already issued for this level to the student." });
         }
 
         var entity = new Certificate
@@ -50,7 +51,7 @@ public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificate
 
         _context.Certificates.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

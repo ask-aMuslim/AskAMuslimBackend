@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Events.Commands.UpdateEvent;
 using AskAMuslimBackend.Application.Events.Queries;
 using AskAMuslimBackend.Application.Events.Queries.GetEventById;
 using AskAMuslimBackend.Application.Events.Queries.GetEventsWithPagination;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -20,34 +21,34 @@ public class Events : EndpointGroupBase
         groupBuilder.MapDelete(DeleteEvent, "{id}").RequireAuthorization().WithName("DeleteEvent").WithSummary("Delete event");
     }
 
-    public async Task<Ok<PaginatedList<EventDto>>> GetEventsWithPagination(ISender sender, [AsParameters] GetEventsWithPaginationQuery query)
+    public async Task<IResult> GetEventsWithPagination(ISender sender, [AsParameters] GetEventsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<EventDto>, NotFound>> GetEventById(ISender sender, Guid id)
+    public async Task<IResult> GetEventById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetEventByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateEvent(ISender sender, CreateEventCommand command)
+    public async Task<IResult> CreateEvent(ISender sender, CreateEventCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Events)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Events)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateEvent(ISender sender, Guid id, UpdateEventCommand command)
+    public async Task<IResult> UpdateEvent(ISender sender, Guid id, UpdateEventCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteEvent(ISender sender, Guid id)
+    public async Task<IResult> DeleteEvent(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteEventCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteEventCommand(id));
+        return result.ToHttpResult();
     }
 }

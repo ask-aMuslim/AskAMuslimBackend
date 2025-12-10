@@ -74,16 +74,6 @@
         "operationId": "GetMyProfile",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -112,15 +102,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -149,16 +131,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AdminDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -289,16 +261,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CertificateDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -321,7 +283,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -352,17 +314,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/CertificateDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -391,16 +343,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -586,16 +530,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EnrollmentDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -618,7 +552,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -649,17 +583,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EnrollmentDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -684,17 +608,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EnrollmentDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -765,10 +679,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -799,16 +710,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventRegistrationDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -836,7 +737,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -867,17 +768,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventRegistrationDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -907,17 +798,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventRegistrationDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -946,16 +827,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -996,10 +869,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -1069,14 +939,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfEventDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -1098,16 +961,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1137,16 +992,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EventDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -1181,10 +1026,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -1212,7 +1054,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -1243,16 +1085,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InquiryRequestDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -1291,17 +1123,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InquiryRequestDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -1344,17 +1166,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InquiryRequestDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -1383,16 +1195,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -1433,10 +1237,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -1478,10 +1279,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -1500,16 +1298,6 @@
         "operationId": "GetMyProfile2",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InstructorDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -1538,15 +1326,7 @@
         },
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -1575,16 +1355,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/InstructorDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -1603,17 +1373,7 @@
         "operationId": "GetAllInstructors",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/InstructorDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -1980,16 +1740,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MeetingRequestDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -2028,17 +1778,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MeetingRequestDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2081,17 +1821,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MeetingRequestDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2120,16 +1850,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2170,10 +1892,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -2215,10 +1934,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -2713,17 +2429,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OptionBriefDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -2747,16 +2453,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2797,10 +2495,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -2828,7 +2523,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -2975,14 +2670,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfQABriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -3004,16 +2692,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -3043,16 +2723,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QADetailDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -3087,10 +2757,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -3118,7 +2785,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -3169,14 +2836,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfQuestionBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -3198,16 +2858,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -3237,16 +2889,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuestionBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -3281,10 +2923,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -3312,7 +2951,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -3712,16 +3351,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StudentNoteDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -3744,7 +3373,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -3775,17 +3404,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StudentNoteDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -3809,16 +3428,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -3848,16 +3459,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/StudentQuestionDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -3880,7 +3481,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -3911,17 +3512,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StudentQuestionDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -3946,17 +3537,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/StudentQuestionDto2"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -3980,16 +3561,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -4030,10 +3603,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -4391,14 +3961,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfTodoItemBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -4425,16 +3988,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -4475,10 +4030,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -4506,7 +4058,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -4548,10 +4100,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -4570,14 +4119,7 @@
         "operationId": "GetTodoLists",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TodosVm"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -4604,16 +4146,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -4654,10 +4188,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -4685,7 +4216,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -4712,52 +4243,6 @@
           },
           "isPrivate": {
             "type": "boolean"
-          }
-        }
-      },
-      "AdminDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "department": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "isSuperAdmin": {
-            "type": "boolean"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "joinedDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "lastLoginDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
           }
         }
       },
@@ -4843,31 +4328,6 @@
         "properties": {
           "accessToken": {
             "type": "string"
-          }
-        }
-      },
-      "CertificateDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "levelId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "url": {
-            "type": "string"
-          },
-          "issuedAt": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -4962,55 +4422,6 @@
           }
         }
       },
-      "EnrollmentDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "courseId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "enrolledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "$ref": "#/components/schemas/EnrollmentStatus"
-          },
-          "levelProgress": {
-            "type": "number",
-            "format": "double"
-          },
-          "courseProgress": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
-      "EnrollmentStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Active",
-          "Completed",
-          "Cancelled",
-          "Paused"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ]
-      },
       "CreateEnrollmentCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5038,39 +4449,14 @@
           }
         }
       },
-      "EventRegistrationDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "eventId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "questionText": {
-            "type": "string",
-            "nullable": true
-          },
-          "status": {
-            "$ref": "#/components/schemas/EventStatus"
-          }
-        }
-      },
-      "EventStatus": {
+      "EnrollmentStatus": {
         "type": "integer",
         "description": "",
         "x-enumNames": [
-          "Pending",
-          "Approved",
-          "Rejected",
-          "Cancelled"
+          "Active",
+          "Completed",
+          "Cancelled",
+          "Paused"
         ],
         "enum": [
           1,
@@ -5110,75 +4496,21 @@
           }
         }
       },
-      "PaginatedListOfEventDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "EventDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "speakerName": {
-            "type": "string",
-            "nullable": true
-          },
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "startDateTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDateTime": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "meetingLink": {
-            "type": "string",
-            "nullable": true
-          },
-          "isPublished": {
-            "type": "boolean"
-          }
-        }
+      "EventStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
       },
       "CreateEventCommand": {
         "type": "object",
@@ -5256,23 +4588,28 @@
           }
         }
       },
-      "InquiryRequestDto": {
+      "MeetingInquiryRequestStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "Accepted",
+          "Rejected",
+          "Cancelled",
+          "Completed"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "CreateInquiryRequestCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "requesterId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "scholarId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
           "topic": {
             "$ref": "#/components/schemas/MeetingInquiryTopic"
           },
@@ -5284,17 +4621,6 @@
             "items": {
               "$ref": "#/components/schemas/Language"
             }
-          },
-          "status": {
-            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
-          },
-          "response": {
-            "type": "string",
-            "nullable": true
-          },
-          "created": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -5340,42 +4666,6 @@
           5
         ]
       },
-      "MeetingInquiryRequestStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Pending",
-          "Accepted",
-          "Rejected",
-          "Cancelled",
-          "Completed"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
-      },
-      "CreateInquiryRequestCommand": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "topic": {
-            "$ref": "#/components/schemas/MeetingInquiryTopic"
-          },
-          "message": {
-            "type": "string"
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Language"
-            }
-          }
-        }
-      },
       "UpdateInquiryRequestStatusCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5399,75 +4689,6 @@
           },
           "response": {
             "type": "string"
-          }
-        }
-      },
-      "InstructorDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "email": {
-            "type": "string"
-          },
-          "firstName": {
-            "type": "string"
-          },
-          "lastName": {
-            "type": "string"
-          },
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "specialization": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "website": {
-            "type": "string",
-            "nullable": true
-          },
-          "linkedInProfile": {
-            "type": "string",
-            "nullable": true
-          },
-          "yearsOfExperience": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "isVerified": {
-            "type": "boolean"
-          },
-          "isActive": {
-            "type": "boolean"
-          },
-          "joinedDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "rating": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "totalReviews": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCourses": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -5716,48 +4937,6 @@
           }
         }
       },
-      "MeetingRequestDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "requesterId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "scholarId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "topic": {
-            "$ref": "#/components/schemas/MeetingInquiryTopic"
-          },
-          "message": {
-            "type": "string"
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Language"
-            }
-          },
-          "scheduledAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
-          },
-          "response": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "CreateMeetingRequestCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5974,22 +5153,6 @@
           }
         }
       },
-      "OptionBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "text": {
-            "type": "string"
-          },
-          "isCorrect": {
-            "type": "boolean"
-          }
-        }
-      },
       "CreateOptionCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6058,111 +5221,6 @@
           "organization": {
             "type": "string",
             "nullable": true
-          }
-        }
-      },
-      "PaginatedListOfQABriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QABriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "QABriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "questionText": {
-            "type": "string"
-          },
-          "answerText": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "QADetailDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "videoUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "isPublished": {
-            "type": "boolean"
-          },
-          "translations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QATranslationDto"
-            }
-          },
-          "tagIds": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "guid"
-            }
-          }
-        }
-      },
-      "QATranslationDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "language": {
-            "$ref": "#/components/schemas/Language"
-          },
-          "questionText": {
-            "type": "string"
-          },
-          "answerText": {
-            "type": "string"
           }
         }
       },
@@ -6265,53 +5323,6 @@
           },
           "isDeleted": {
             "type": "boolean"
-          }
-        }
-      },
-      "PaginatedListOfQuestionBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QuestionBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "QuestionBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "text": {
-            "type": "string"
-          },
-          "optionsCount": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -6559,31 +5570,6 @@
           }
         }
       },
-      "StudentNoteDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "lessonId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "text": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
       "CreateStudentNoteCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6602,71 +5588,6 @@
           "timestamp": {
             "type": "number",
             "format": "double"
-          }
-        }
-      },
-      "StudentQuestionDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "lessonId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "questionText": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "number",
-            "format": "double"
-          },
-          "answered": {
-            "type": "boolean"
-          },
-          "answerText": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "StudentQuestionDto2": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "questionText": {
-            "type": "string"
-          },
-          "answerText": {
-            "type": "string",
-            "nullable": true
-          },
-          "isAnswered": {
-            "type": "boolean"
-          },
-          "answeredAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
@@ -6770,57 +5691,6 @@
           }
         }
       },
-      "PaginatedListOfTodoItemBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TodoItemBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "TodoItemBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "listId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          },
-          "done": {
-            "type": "boolean"
-          }
-        }
-      },
       "CreateTodoItemCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6888,91 +5758,6 @@
           2,
           3
         ]
-      },
-      "TodosVm": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "priorityLevels": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LookupDto"
-            }
-          },
-          "lists": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TodoListDto"
-            }
-          }
-        }
-      },
-      "LookupDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "TodoListDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          },
-          "colour": {
-            "type": "string",
-            "nullable": true
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TodoItemDto"
-            }
-          }
-        }
-      },
-      "TodoItemDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "listId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string",
-            "nullable": true
-          },
-          "done": {
-            "type": "boolean"
-          },
-          "priority": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "note": {
-            "type": "string",
-            "nullable": true
-          }
-        }
       },
       "CreateTodoListCommand": {
         "type": "object",

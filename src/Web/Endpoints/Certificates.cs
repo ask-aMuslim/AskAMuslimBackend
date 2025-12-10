@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Certificates.Commands.DeleteCertificate;
 using AskAMuslimBackend.Application.Certificates.Queries;
 using AskAMuslimBackend.Application.Certificates.Queries.GetCertificateById;
 using AskAMuslimBackend.Application.Certificates.Queries.GetCertificatesByStudent;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -17,27 +18,27 @@ public class Certificates : EndpointGroupBase
         groupBuilder.MapDelete(DeleteCertificate, "{id}").RequireAuthorization().WithName("DeleteCertificate").WithSummary("Delete a certificate");
     }
 
-    public async Task<Results<Ok<CertificateDto>, NotFound>> GetCertificate(ISender sender, Guid id)
+    public async Task<IResult> GetCertificate(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetCertificateByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<CertificateDto>>> GetByStudent(ISender sender, Guid studentId)
+    public async Task<IResult> GetByStudent(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetCertificatesByStudentQuery(studentId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateCertificate(ISender sender, CreateCertificateCommand command)
+    public async Task<IResult> CreateCertificate(ISender sender, CreateCertificateCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Certificates)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Certificates)}/{result.Data}");
     }
 
-    public async Task<NoContent> DeleteCertificate(ISender sender, Guid id)
+    public async Task<IResult> DeleteCertificate(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteCertificateCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteCertificateCommand(id));
+        return result.ToHttpResult();
     }
 }

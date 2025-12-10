@@ -1,16 +1,17 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Questions.Commands.CreateQuestion;
 
-public record CreateQuestionCommand : IRequest<Guid>
+public record CreateQuestionCommand : IRequest<Result<Guid>>
 {
     public Guid QuizId { get; init; }
     public string Text { get; init; } = string.Empty;
 }
 
-public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionCommand, Guid>
+public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -19,12 +20,12 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateQuestionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateQuestionCommand request, CancellationToken cancellationToken)
     {
         var exists = await _context.Quizzes.AnyAsync(q => q.Id == request.QuizId, cancellationToken);
         if (!exists)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("QuizId", "Quiz does not exist.") });
+            return Result<Guid>.Failure(new[] { "Quiz does not exist." });
         }
 
         var entity = new Question
@@ -35,7 +36,7 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
 
         _context.Questions.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

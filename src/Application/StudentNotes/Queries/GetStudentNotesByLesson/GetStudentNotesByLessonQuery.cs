@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.StudentNotes.Queries.GetStudentNotesByLesson;
 
-public record GetStudentNotesByLessonQuery(Guid LessonId) : IRequest<List<StudentNoteDto>>;
+public record GetStudentNotesByLessonQuery(Guid LessonId) : IRequest<Result<List<StudentNoteDto>>>;
 
-public class GetStudentNotesByLessonQueryHandler : IRequestHandler<GetStudentNotesByLessonQuery, List<StudentNoteDto>>
+public class GetStudentNotesByLessonQueryHandler : IRequestHandler<GetStudentNotesByLessonQuery, Result<List<StudentNoteDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -18,12 +19,14 @@ public class GetStudentNotesByLessonQueryHandler : IRequestHandler<GetStudentNot
         _mapper = mapper;
     }
 
-    public async Task<List<StudentNoteDto>> Handle(GetStudentNotesByLessonQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<StudentNoteDto>>> Handle(GetStudentNotesByLessonQuery request, CancellationToken cancellationToken)
     {
-        return await _context.StudentNotes
+        var notes = await _context.StudentNotes
             .Where(n => n.LessonId == request.LessonId)
             .OrderBy(n => n.Timestamp)
             .ProjectTo<StudentNoteDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        
+        return Result<List<StudentNoteDto>>.Success(notes);
     }
 }

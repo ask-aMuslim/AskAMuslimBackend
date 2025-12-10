@@ -2,6 +2,7 @@
 using AskAMuslimBackend.Application.TodoLists.Commands.DeleteTodoList;
 using AskAMuslimBackend.Application.TodoLists.Commands.UpdateTodoList;
 using AskAMuslimBackend.Application.TodoLists.Queries.GetTodos;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -16,33 +17,28 @@ public class TodoLists : EndpointGroupBase
         groupBuilder.MapDelete(DeleteTodoList, "{id}").RequireAuthorization();
     }
 
-    public async Task<Ok<TodosVm>> GetTodoLists(ISender sender)
+    public async Task<IResult> GetTodoLists(ISender sender)
     {
-        var vm = await sender.Send(new GetTodosQuery());
-
-        return TypedResults.Ok(vm);
+        var result = await sender.Send(new GetTodosQuery());
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateTodoList(ISender sender, CreateTodoListCommand command)
+    public async Task<IResult> CreateTodoList(ISender sender, CreateTodoListCommand command)
     {
-        var id = await sender.Send(command);
-
-        return TypedResults.Created($"/{nameof(TodoLists)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(TodoLists)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTodoList(ISender sender, Guid id, UpdateTodoListCommand command)
+    public async Task<IResult> UpdateTodoList(ISender sender, Guid id, UpdateTodoListCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-
-        await sender.Send(command);
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteTodoList(ISender sender, Guid id)
+    public async Task<IResult> DeleteTodoList(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteTodoListCommand(id));
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteTodoListCommand(id));
+        return result.ToHttpResult();
     }
 }

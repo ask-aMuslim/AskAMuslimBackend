@@ -4,6 +4,7 @@ using AskAMuslimBackend.Application.StudentQuestions.Commands.AnswerStudentQuest
 using AskAMuslimBackend.Application.StudentQuestions.Queries;
 using AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestionById;
 using AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestionsByLesson;
+using AskAMuslimBackend.Web.Infrastructure;
 using GetStudentQuestionsNS = AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -22,40 +23,40 @@ public class StudentQuestions : EndpointGroupBase
         groupBuilder.MapDelete(DeleteQuestion, "{id}").RequireAuthorization().WithName("DeleteStudentQuestion").WithSummary("Delete a student question");
     }
 
-    public async Task<Results<Ok<StudentQuestionDto>, NotFound>> GetById(ISender sender, Guid id)
+    public async Task<IResult> GetById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetStudentQuestionByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<StudentQuestionDto>>> GetByLesson(ISender sender, Guid lessonId)
+    public async Task<IResult> GetByLesson(ISender sender, Guid lessonId)
     {
         var result = await sender.Send(new GetStudentQuestionsByLessonQuery(lessonId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<GetStudentQuestionsNS.StudentQuestionDto>>> GetByStudent(ISender sender, Guid studentId)
+    public async Task<IResult> GetByStudent(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetStudentQuestionsNS.GetStudentQuestionsQuery { StudentId = studentId });
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateQuestion(ISender sender, CreateStudentQuestionCommand command)
+    public async Task<IResult> CreateQuestion(ISender sender, CreateStudentQuestionCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(StudentQuestions)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(StudentQuestions)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> AnswerQuestion(ISender sender, Guid id, [FromBody] AnswerStudentQuestionCommand command)
+    public async Task<IResult> AnswerQuestion(ISender sender, Guid id, [FromBody] AnswerStudentQuestionCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteQuestion(ISender sender, Guid id)
+    public async Task<IResult> DeleteQuestion(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteStudentQuestionCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteStudentQuestionCommand(id));
+        return result.ToHttpResult();
     }
 }

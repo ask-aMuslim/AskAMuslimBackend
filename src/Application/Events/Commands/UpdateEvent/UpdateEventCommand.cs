@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Events.Commands.UpdateEvent;
 
-public record UpdateEventCommand : IRequest
+public record UpdateEventCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
@@ -17,7 +18,7 @@ public record UpdateEventCommand : IRequest
     public bool IsPublished { get; init; }
 }
 
-public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand>
+public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -26,12 +27,12 @@ public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateEventCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Events.FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken);
         if (entity is null)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Id", "Event not found.") });
+            return Result.Failure(new[] { "Event not found" });
         }
 
         entity.Title = request.Title;
@@ -44,6 +45,7 @@ public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand>
         entity.IsPublished = request.IsPublished;
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

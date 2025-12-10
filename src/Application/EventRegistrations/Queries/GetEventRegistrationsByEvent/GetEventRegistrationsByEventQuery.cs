@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByEvent;
 
-public record GetEventRegistrationsByEventQuery(Guid EventId) : IRequest<List<EventRegistrationDto>>;
+public record GetEventRegistrationsByEventQuery(Guid EventId) : IRequest<Result<List<EventRegistrationDto>>>;
 
-public class GetEventRegistrationsByEventQueryHandler : IRequestHandler<GetEventRegistrationsByEventQuery, List<EventRegistrationDto>>
+public class GetEventRegistrationsByEventQueryHandler : IRequestHandler<GetEventRegistrationsByEventQuery, Result<List<EventRegistrationDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -16,11 +17,13 @@ public class GetEventRegistrationsByEventQueryHandler : IRequestHandler<GetEvent
         _mapper = mapper;
     }
 
-    public async Task<List<EventRegistrationDto>> Handle(GetEventRegistrationsByEventQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<EventRegistrationDto>>> Handle(GetEventRegistrationsByEventQuery request, CancellationToken cancellationToken)
     {
-        return await _context.EventRegistrations
+        var registrations = await _context.EventRegistrations
             .Where(r => r.EventId == request.EventId)
             .ProjectTo<EventRegistrationDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+            
+        return Result<List<EventRegistrationDto>>.Success(registrations);
     }
 }

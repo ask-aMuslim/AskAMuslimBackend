@@ -6,9 +6,9 @@ using AskAMuslimBackend.Domain.Enums;
 namespace AskAMuslimBackend.Application.TodoLists.Queries.GetTodos;
 
 [Authorize]
-public record GetTodosQuery : IRequest<TodosVm>;
+public record GetTodosQuery : IRequest<Result<TodosVm>>;
 
-public class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, TodosVm>
+public class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, Result<TodosVm>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -19,9 +19,9 @@ public class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, TodosVm>
         _mapper = mapper;
     }
 
-    public async Task<TodosVm> Handle(GetTodosQuery request, CancellationToken cancellationToken)
+    public async Task<Result<TodosVm>> Handle(GetTodosQuery request, CancellationToken cancellationToken)
     {
-        return new TodosVm
+        var data = new TodosVm
         {
             PriorityLevels = Enum.GetValues(typeof(PriorityLevel))
                 .Cast<PriorityLevel>()
@@ -34,5 +34,6 @@ public class GetTodosQueryHandler : IRequestHandler<GetTodosQuery, TodosVm>
                 .OrderBy(t => t.Title)
                 .ToListAsync(cancellationToken)
         };
+        return Result<TodosVm>.Success(data);
     }
 }

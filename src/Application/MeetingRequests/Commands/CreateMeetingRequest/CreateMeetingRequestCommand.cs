@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.MeetingRequests.Commands.CreateMeetingRequest;
 
-public record CreateMeetingRequestCommand : IRequest<Guid>
+public record CreateMeetingRequestCommand : IRequest<Result<Guid>>
 {
     public MeetingInquiryTopic Topic { get; init; }
     public string Message { get; init; } = string.Empty;
@@ -14,7 +15,7 @@ public record CreateMeetingRequestCommand : IRequest<Guid>
     public DateTime ScheduledAt { get; init; }
 }
 
-public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingRequestCommand, Guid>
+public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingRequestCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
@@ -25,11 +26,11 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
         _user = user;
     }
 
-    public async Task<Guid> Handle(CreateMeetingRequestCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateMeetingRequestCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(_user.Id))
         {
-            throw new UnauthorizedAccessException();
+            return Result<Guid>.Failure(new[] { "Unauthorized" });
         }
 
         var requesterGuid = Guid.Parse(_user.Id);
@@ -46,7 +47,7 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
 
         _context.MeetingRequests.Add(mr);
         await _context.SaveChangesAsync(cancellationToken);
-        return mr.Id;
+        return Result<Guid>.Success(mr.Id);
     }
 }
 

@@ -4,6 +4,7 @@ using AskAMuslimBackend.Application.TodoItems.Commands.DeleteTodoItem;
 using AskAMuslimBackend.Application.TodoItems.Commands.UpdateTodoItem;
 using AskAMuslimBackend.Application.TodoItems.Commands.UpdateTodoItemDetail;
 using AskAMuslimBackend.Application.TodoItems.Queries.GetTodoItemsWithPagination;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -19,42 +20,35 @@ public class TodoItems : EndpointGroupBase
         groupBuilder.MapDelete(DeleteTodoItem, "{id}").RequireAuthorization();
     }
 
-    public async Task<Ok<PaginatedList<TodoItemBriefDto>>> GetTodoItemsWithPagination(ISender sender, [AsParameters] GetTodoItemsWithPaginationQuery query)
+    public async Task<IResult> GetTodoItemsWithPagination(ISender sender, [AsParameters] GetTodoItemsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
+    public async Task<IResult> CreateTodoItem(ISender sender, CreateTodoItemCommand command)
     {
-        var id = await sender.Send(command);
-
-        return TypedResults.Created($"/{nameof(TodoItems)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(TodoItems)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTodoItem(ISender sender, Guid id, UpdateTodoItemCommand command)
+    public async Task<IResult> UpdateTodoItem(ISender sender, Guid id, UpdateTodoItemCommand command)
     {
         if (id != Guid.Empty && id != new Guid(command.Id.ToString())) return TypedResults.BadRequest();
-
-        await sender.Send(command);
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateTodoItemDetail(ISender sender, Guid id, UpdateTodoItemDetailCommand command)
+    public async Task<IResult> UpdateTodoItemDetail(ISender sender, Guid id, UpdateTodoItemDetailCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-
-        await sender.Send(command);
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteTodoItem(ISender sender, Guid id)
+    public async Task<IResult> DeleteTodoItem(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteTodoItemCommand(id));
-
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteTodoItemCommand(id));
+        return result.ToHttpResult();
     }
 }

@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestById;
 
-public record GetMeetingRequestByIdQuery(Guid Id) : IRequest<MeetingRequestDto?>;
+public record GetMeetingRequestByIdQuery(Guid Id) : IRequest<Result<MeetingRequestDto?>>;
 
-public class GetMeetingRequestByIdQueryHandler : IRequestHandler<GetMeetingRequestByIdQuery, MeetingRequestDto?>
+public class GetMeetingRequestByIdQueryHandler : IRequestHandler<GetMeetingRequestByIdQuery, Result<MeetingRequestDto?>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -16,11 +17,12 @@ public class GetMeetingRequestByIdQueryHandler : IRequestHandler<GetMeetingReque
         _mapper = mapper;
     }
 
-    public async Task<MeetingRequestDto?> Handle(GetMeetingRequestByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<MeetingRequestDto?>> Handle(GetMeetingRequestByIdQuery request, CancellationToken cancellationToken)
     {
-        return await _context.MeetingRequests
+        var data = await _context.MeetingRequests
             .Where(m => m.Id == request.Id)
             .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
+        return Result<MeetingRequestDto?>.Success(data);
     }
 }

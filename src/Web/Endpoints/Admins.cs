@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Admins.Commands.UpdateAdminProfile;
 using AskAMuslimBackend.Application.Admins.Queries;
 using AskAMuslimBackend.Application.Admins.Queries.GetAdminProfile;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -25,24 +26,21 @@ public class Admins : EndpointGroupBase
             .WithSummary("Update current admin's profile");
     }
 
-    public async Task<Results<Ok<AdminDto>, NotFound>> GetMyProfile(ISender sender)
+    public async Task<IResult> GetMyProfile(ISender sender)
     {
         var result = await sender.Send(new GetAdminProfileQuery());
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<AdminDto>, NotFound>> GetAdminProfile(ISender sender, string userId)
+    public async Task<IResult> GetAdminProfile(ISender sender, string userId)
     {
         var result = await sender.Send(new GetAdminProfileQuery { UserId = userId });
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<Guid>> UpdateAdminProfile(ISender sender, UpdateAdminProfileCommand command)
+    public async Task<IResult> UpdateAdminProfile(ISender sender, UpdateAdminProfileCommand command)
     {
-        var id = await sender.Send(command);
-        
-        return TypedResults.Ok(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

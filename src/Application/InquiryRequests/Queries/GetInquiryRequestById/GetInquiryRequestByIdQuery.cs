@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestById;
 
-public record GetInquiryRequestByIdQuery(Guid Id) : IRequest<InquiryRequestDto?>;
+public record GetInquiryRequestByIdQuery(Guid Id) : IRequest<Result<InquiryRequestDto?>>;
 
-public class GetInquiryRequestByIdQueryHandler : IRequestHandler<GetInquiryRequestByIdQuery, InquiryRequestDto?>
+public class GetInquiryRequestByIdQueryHandler : IRequestHandler<GetInquiryRequestByIdQuery, Result<InquiryRequestDto?>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -16,11 +17,12 @@ public class GetInquiryRequestByIdQueryHandler : IRequestHandler<GetInquiryReque
         _mapper = mapper;
     }
 
-    public async Task<InquiryRequestDto?> Handle(GetInquiryRequestByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<InquiryRequestDto?>> Handle(GetInquiryRequestByIdQuery request, CancellationToken cancellationToken)
     {
-        return await _context.InquiryRequests
+        var data = await _context.InquiryRequests
             .Where(i => i.Id == request.Id)
             .ProjectTo<InquiryRequestDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);
+        return Result<InquiryRequestDto?>.Success(data);
     }
 }

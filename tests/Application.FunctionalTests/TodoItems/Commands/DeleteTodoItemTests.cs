@@ -20,16 +20,16 @@ public class DeleteTodoItemTests : BaseTestFixture
     [Test]
     public async Task ShouldDeleteTodoItem()
     {
-        var listId = await SendAsync(new CreateTodoListCommand
+        var listId = (await SendAsync(new CreateTodoListCommand
         {
             Title = "New List"
-        });
+        })).Data;
 
-        var itemId = await SendAsync(new CreateTodoItemCommand
+        var itemId = (await SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
             Title = "New Item"
-        });
+        })).Data;
 
         await SendAsync(new DeleteTodoItemCommand(itemId));
 

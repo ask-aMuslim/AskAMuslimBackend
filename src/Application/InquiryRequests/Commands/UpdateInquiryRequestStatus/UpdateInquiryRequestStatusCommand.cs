@@ -1,17 +1,18 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.InquiryRequests.Commands.UpdateInquiryRequestStatus;
 
-public record UpdateInquiryRequestStatusCommand : IRequest
+public record UpdateInquiryRequestStatusCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public MeetingInquiryRequestStatus Status { get; init; }
 }
 
-public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateInquiryRequestStatusCommand>
+public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateInquiryRequestStatusCommand, Result>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
@@ -22,13 +23,13 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
         _user = user;
     }
 
-    public async Task Handle(UpdateInquiryRequestStatusCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateInquiryRequestStatusCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.InquiryRequests.FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
-        if (entity == null) return;
+        if (entity == null) return Result.Failure(new[] { "Inquiry request not found" });
 
         var currentUserId = _user.Id;
-        if (currentUserId == null) throw new UnauthorizedAccessException();
+        if (currentUserId == null) return Result.Failure(new[] { "Unauthorized" });
 
         var guidUser = Guid.Parse(currentUserId);
         var isRequester = guidUser == entity.RequesterId;
@@ -41,12 +42,12 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
             var isScholarRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
             if (!isScholarRole)
             {
-                throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Status", "Only scholars can accept unassigned inquiry requests.") });
+                return Result.Failure(new[] { "Only scholars can accept unassigned inquiry requests." });
             }
             entity.ScholarId = guidUser;
             entity.Status = MeetingInquiryRequestStatus.Accepted;
             await _context.SaveChangesAsync(cancellationToken);
-            return;
+            return Result.Success();
         }
 
         var allowed = request.Status switch
@@ -58,10 +59,11 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
             MeetingInquiryRequestStatus.Pending => false,
             _ => false
         };
-        if (!allowed) throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Status", "Not authorised to set this status.") });
+        if (!allowed) return Result.Failure(new[] { "Not authorised to set this status." });
 
         entity.Status = request.Status;
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

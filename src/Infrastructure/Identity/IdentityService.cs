@@ -47,37 +47,37 @@ public class IdentityService : IIdentityService
         return user?.Email;
     }
 
-    public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
-    {
-        var existingUser = await _userManager.FindByEmailAsync(userName);
-        if (existingUser != null)
-        {
-            return (Result.Failure(new[] { "User with this email already exists." }), string.Empty);
-        }
+    //public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string password)
+    //{
+    //    var existingUser = await _userManager.FindByEmailAsync(userName);
+    //    if (existingUser != null)
+    //    {
+    //        return (Result.Failure(new[] { "User with this email already exists." }), string.Empty);
+    //    }
 
-        var user = new User
-        {
-            UserName = userName,
-            Email = userName,
-            FirstName = string.Empty,
-            LastName = string.Empty,
-            Role = UserRole.NonMuslim,
-            EmailConfirmed = true,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
+    //    var user = new User
+    //    {
+    //        UserName = userName,
+    //        Email = userName,
+    //        FirstName = string.Empty,
+    //        LastName = string.Empty,
+    //        Role = UserRole.NonMuslim,
+    //        EmailConfirmed = true,
+    //        IsActive = true,
+    //        CreatedAt = DateTime.UtcNow
+    //    };
 
-        var result = await _userManager.CreateAsync(user, password);
+    //    var result = await _userManager.CreateAsync(user, password);
 
-        if (!result.Succeeded)
-        {
-            return (Result.Failure(result.Errors.Select(e => e.Description)), string.Empty);
-        }
+    //    if (!result.Succeeded)
+    //    {
+    //        return (Result.Failure(result.Errors.Select(e => e.Description)), string.Empty);
+    //    }
 
-        await _userManager.AddToRoleAsync(user, UserRole.NonMuslim.ToString());
+    //    await _userManager.AddToRoleAsync(user, UserRole.NonMuslim.ToString());
 
-        return (Result.Success(), user.Id.ToString());
-    }
+    //    return (Result.Success(), user.Id.ToString());
+    //}
 
     public async Task<Result<AuthenticationResponse>> RegisterUserAsync(
         string email,
@@ -207,7 +207,7 @@ public class IdentityService : IIdentityService
         await _dbContext.SaveChangesAsync();
     }
 
-    #endregion
+    #endregion Role Specific Entity Creation
 
     public async Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password)
     {

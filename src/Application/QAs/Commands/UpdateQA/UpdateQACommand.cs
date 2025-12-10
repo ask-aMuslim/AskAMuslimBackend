@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.QAs.Commands.UpdateQA;
 
-public record UpdateQACommand : IRequest
+public record UpdateQACommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public string? ImageUrl { get; init; }
@@ -23,7 +24,7 @@ public record UpdateQATranslationInput
     public bool IsDeleted { get; init; } // mark existing for deletion
 }
 
-public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand>
+public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -32,16 +33,17 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateQACommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateQACommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.QAs
             .Include(q => q.Translations)
             .Include(q => q.QATags)
             .FirstOrDefaultAsync(q => q.Id == request.Id, cancellationToken);
 
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null)
+            return Result.Failure(new[] { "QA not found." });
 
-        entity!.ImageUrl = request.ImageUrl;
+        entity.ImageUrl = request.ImageUrl;
         entity.VideoUrl = request.VideoUrl;
         entity.IsPublished = request.IsPublished;
 
@@ -86,6 +88,7 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand>
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

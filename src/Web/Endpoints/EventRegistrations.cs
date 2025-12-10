@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.EventRegistrations.Queries;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationById;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByEvent;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByUser;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -21,40 +22,44 @@ public class EventRegistrations : EndpointGroupBase
         groupBuilder.MapDelete(DeleteRegistration, "{id}").RequireAuthorization().WithName("DeleteEventRegistration").WithSummary("Delete an event registration");
     }
 
-    public async Task<Results<Ok<EventRegistrationDto>, NotFound>> GetRegistration(ISender sender, Guid id)
+    public async Task<IResult> GetRegistration(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetEventRegistrationByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<EventRegistrationDto>>> GetByEvent(ISender sender, Guid eventId)
+    public async Task<IResult> GetByEvent(ISender sender, Guid eventId)
     {
         var result = await sender.Send(new GetEventRegistrationsByEventQuery(eventId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<EventRegistrationDto>>> GetByUser(ISender sender, Guid userId)
+    public async Task<IResult> GetByUser(ISender sender, Guid userId)
     {
         var result = await sender.Send(new GetEventRegistrationsByUserQuery(userId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateRegistration(ISender sender, CreateEventRegistrationCommand command)
+    public async Task<IResult> CreateRegistration(ISender sender, CreateEventRegistrationCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(EventRegistrations)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(EventRegistrations)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateRegistrationStatus(ISender sender, Guid id, UpdateEventRegistrationStatusCommand command)
+    public async Task<IResult> UpdateRegistrationStatus(ISender sender, Guid id, UpdateEventRegistrationStatusCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        if (id != command.Id) 
+        {
+            return Results.BadRequest(new { errors = new[] { "ID mismatch" } });
+        }
+        
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteRegistration(ISender sender, Guid id)
+    public async Task<IResult> DeleteRegistration(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteEventRegistrationCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteEventRegistrationCommand(id));
+        return result.ToHttpResult();
     }
 }

@@ -5,7 +5,7 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
 
-public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>, IPaginationQuery
+public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefDto>>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
@@ -13,7 +13,7 @@ public record GetQAsWithPaginationQuery : IRequest<PaginatedList<QABriefDto>>, I
     public Language Language { get; init; } = Language.English;
 }
 
-public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, PaginatedList<QABriefDto>>
+public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, Result<PaginatedList<QABriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -24,7 +24,7 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
         _mapper = mapper;
     }
 
-    public async Task<PaginatedList<QABriefDto>> Handle(GetQAsWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<QABriefDto>>> Handle(GetQAsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.QAs.AsNoTracking();
 
@@ -52,7 +52,8 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
                     .ToList()
             });
 
-        return await PaginatedList<QABriefDto>.CreateAsync(projected, request.PageNumber, request.PageSize, cancellationToken);
+        var paginatedList = await PaginatedList<QABriefDto>.CreateAsync(projected, request.PageNumber, request.PageSize, cancellationToken);
+        return Result<PaginatedList<QABriefDto>>.Success(paginatedList);
     }
 }
 

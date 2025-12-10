@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Commands.CreateStudentQuestion;
 
-public record CreateStudentQuestionCommand : IRequest<Guid>
+public record CreateStudentQuestionCommand : IRequest<Result<Guid>>
 {
     public Guid StudentId { get; init; }
     public Guid LessonId { get; init; }
@@ -13,7 +14,7 @@ public record CreateStudentQuestionCommand : IRequest<Guid>
     public double Timestamp { get; init; }
 }
 
-public class CreateStudentQuestionCommandHandler : IRequestHandler<CreateStudentQuestionCommand, Guid>
+public class CreateStudentQuestionCommandHandler : IRequestHandler<CreateStudentQuestionCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -22,17 +23,17 @@ public class CreateStudentQuestionCommandHandler : IRequestHandler<CreateStudent
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateStudentQuestionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateStudentQuestionCommand request, CancellationToken cancellationToken)
     {
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
         var lessonExists = await _context.Lessons.AnyAsync(l => l.Id == request.LessonId, cancellationToken);
 
         if (!studentExists || !lessonExists)
         {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
-            if (!studentExists) failures.Add(new("StudentId", "Student does not exist."));
-            if (!lessonExists) failures.Add(new("LessonId", "Lesson does not exist."));
-            throw new ValidationException(failures);
+            var errors = new List<string>();
+            if (!studentExists) errors.Add("Student does not exist.");
+            if (!lessonExists) errors.Add("Lesson does not exist.");
+            return Result<Guid>.Failure(errors.ToArray());
         }
 
         var entity = new StudentQuestion
@@ -46,7 +47,7 @@ public class CreateStudentQuestionCommandHandler : IRequestHandler<CreateStudent
 
         _context.StudentQuestions.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

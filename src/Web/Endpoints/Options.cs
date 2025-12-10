@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Options.Commands.DeleteOption;
 using AskAMuslimBackend.Application.Options.Commands.UpdateOption;
 using AskAMuslimBackend.Application.Options.Queries;
 using AskAMuslimBackend.Application.Options.Queries.GetOptionsByQuestion;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -17,28 +18,28 @@ public class Options : EndpointGroupBase
         groupBuilder.MapDelete(DeleteOption, "{id}").RequireAuthorization().WithName("DeleteOption").WithSummary("Delete an option");
     }
 
-    public async Task<Ok<List<OptionBriefDto>>> GetOptionsByQuestion(ISender sender, Guid questionId)
+    public async Task<IResult> GetOptionsByQuestion(ISender sender, Guid questionId)
     {
         var result = await sender.Send(new GetOptionsByQuestionQuery(questionId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateOption(ISender sender, CreateOptionCommand command)
+    public async Task<IResult> CreateOption(ISender sender, CreateOptionCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(Options)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(Options)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateOption(ISender sender, Guid id, UpdateOptionCommand command)
+    public async Task<IResult> UpdateOption(ISender sender, Guid id, UpdateOptionCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteOption(ISender sender, Guid id)
+    public async Task<IResult> DeleteOption(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteOptionCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteOptionCommand(id));
+        return result.ToHttpResult();
     }
 }

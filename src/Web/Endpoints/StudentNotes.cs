@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.StudentNotes.Commands.DeleteStudentNote;
 using AskAMuslimBackend.Application.StudentNotes.Queries;
 using AskAMuslimBackend.Application.StudentNotes.Queries.GetStudentNoteById;
 using AskAMuslimBackend.Application.StudentNotes.Queries.GetStudentNotesByLesson;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -17,27 +18,27 @@ public class StudentNotes : EndpointGroupBase
         groupBuilder.MapDelete(DeleteNote, "{id}").RequireAuthorization().WithName("DeleteStudentNote").WithSummary("Delete a student note");
     }
 
-    public async Task<Results<Ok<StudentNoteDto>, NotFound>> GetById(ISender sender, Guid id)
+    public async Task<IResult> GetById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetStudentNoteByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<StudentNoteDto>>> GetByLesson(ISender sender, Guid lessonId)
+    public async Task<IResult> GetByLesson(ISender sender, Guid lessonId)
     {
         var result = await sender.Send(new GetStudentNotesByLessonQuery(lessonId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> CreateNote(ISender sender, CreateStudentNoteCommand command)
+    public async Task<IResult> CreateNote(ISender sender, CreateStudentNoteCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(StudentNotes)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(StudentNotes)}/{result.Data}");
     }
 
-    public async Task<NoContent> DeleteNote(ISender sender, Guid id)
+    public async Task<IResult> DeleteNote(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteStudentNoteCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteStudentNoteCommand(id));
+        return result.ToHttpResult();
     }
 }

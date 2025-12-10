@@ -1,10 +1,11 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.TodoLists.Commands.DeleteTodoList;
 
-public record DeleteTodoListCommand(Guid Id) : IRequest;
+public record DeleteTodoListCommand(Guid Id) : IRequest<Result>;
 
-public class DeleteTodoListCommandHandler : IRequestHandler<DeleteTodoListCommand>
+public class DeleteTodoListCommandHandler : IRequestHandler<DeleteTodoListCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -13,16 +14,17 @@ public class DeleteTodoListCommandHandler : IRequestHandler<DeleteTodoListComman
         _context = context;
     }
 
-    public async Task Handle(DeleteTodoListCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteTodoListCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.TodoLists
             .Where(l => l.Id == request.Id)
             .SingleOrDefaultAsync(cancellationToken);
 
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null) return Result.Failure(new[] { "TodoList not found" });
 
         _context.TodoLists.Remove(entity);
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

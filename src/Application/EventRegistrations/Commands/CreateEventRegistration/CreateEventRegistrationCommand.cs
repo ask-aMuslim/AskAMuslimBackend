@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -6,14 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.EventRegistrations.Commands.CreateEventRegistration;
 
-public record CreateEventRegistrationCommand : IRequest<Guid>
+public record CreateEventRegistrationCommand : IRequest<Result<Guid>>
 {
     public Guid EventId { get; init; }
     public Guid UserId { get; init; }
     public string? QuestionText { get; init; }
 }
 
-public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEventRegistrationCommand, Guid>
+public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEventRegistrationCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -22,24 +23,22 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateEventRegistrationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateEventRegistrationCommand request, CancellationToken cancellationToken)
     {
         var eventExists = await _context.Events.AnyAsync(e => e.Id == request.EventId, cancellationToken);
         var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
-        if (!eventExists || !userExists)
-        {
-            var failures = new List<FluentValidation.Results.ValidationFailure>();
-            if (!eventExists) failures.Add(new("EventId", "Event does not exist."));
-            if (!userExists) failures.Add(new("UserId", "User does not exist."));
-            throw new ValidationException(failures);
-        }
+        
+        var errors = new List<string>();
+        if (!eventExists) errors.Add("Event does not exist.");
+        if (!userExists) errors.Add("User does not exist.");
+        if (errors.Any()) return Result<Guid>.Failure(errors);
 
         var alreadyRegistered = await _context.EventRegistrations
             .AsNoTracking()
             .AnyAsync(r => r.EventId == request.EventId && r.UserId == request.UserId, cancellationToken);
         if (alreadyRegistered)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("UserId", "User is already registered for this event.") });
+            return Result<Guid>.Failure(new[] { "User is already registered for this event." });
         }
 
         var entity = new EventRegistration
@@ -51,7 +50,7 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
         };
         _context.EventRegistrations.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

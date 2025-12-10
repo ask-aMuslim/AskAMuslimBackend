@@ -21,16 +21,16 @@ public class UpdateTodoItemTests : BaseTestFixture
     {
         var userId = await RunAsDefaultUserAsync();
 
-        var listId = await SendAsync(new CreateTodoListCommand
+        var listId = (await SendAsync(new CreateTodoListCommand
         {
             Title = "New List"
-        });
+        })).Data;
 
-        var itemId = await SendAsync(new CreateTodoItemCommand
+        var itemId = (await SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
             Title = "New Item"
-        });
+        })).Data;
 
         var command = new UpdateTodoItemCommand
         {

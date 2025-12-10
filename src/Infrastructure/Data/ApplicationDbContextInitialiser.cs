@@ -56,15 +56,8 @@ public class ApplicationDbContextInitialiser
                 return;
             }
 
-            if (_env.IsDevelopment())
-            {
-                await _context.Database.EnsureDeletedAsync();
-                await _context.Database.EnsureCreatedAsync();
-            }
-            else
-            {
-                await _context.Database.MigrateAsync();
-            }
+            // Use migrations for all environments since we don't have CREATE DATABASE permissions
+            await _context.Database.MigrateAsync();
         }
         catch (Exception ex)
         {
@@ -96,17 +89,21 @@ public class ApplicationDbContextInitialiser
 
     public async Task TrySeedAsync()
     {
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
-        // --- Seed Identity Roles ---
-        var roles = new[] { "Admin", "Student", "Instructor", "NonMuslim", "Preacher" };
-        foreach (var roleName in roles)
+        // Use execution strategy to wrap transaction for retry compatibility
+        var strategy = _context.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            if (!await _roleManager.RoleExistsAsync(roleName))
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            // --- Seed Identity Roles ---
+            var roles = new[] { "Admin", "Student", "Instructor", "NonMuslim", "Preacher" };
+            foreach (var roleName in roles)
             {
-                await _roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+                }
             }
-        }
 
         // --- Default Users ---
         var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole)>
@@ -583,7 +580,8 @@ public class ApplicationDbContextInitialiser
             }
         }
 
-        await transaction.CommitAsync();
+            await transaction.CommitAsync();
+        });
     }
 
     private Task CreateRoleSpecificEntity(Guid userId, UserRole role)

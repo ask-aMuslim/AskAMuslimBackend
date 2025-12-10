@@ -1,8 +1,9 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.TodoItems.Commands.UpdateTodoItem;
 
-public record UpdateTodoItemCommand : IRequest
+public record UpdateTodoItemCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
 
@@ -11,7 +12,7 @@ public record UpdateTodoItemCommand : IRequest
     public bool Done { get; init; }
 }
 
-public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemCommand>
+public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,16 +21,17 @@ public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemComman
         _context = context;
     }
 
-    public async Task Handle(UpdateTodoItemCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateTodoItemCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.TodoItems
             .FindAsync(new object[] { request.Id }, cancellationToken);
 
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null) return Result.Failure(new[] { "TodoItem not found" });
 
         entity.Title = request.Title;
         entity.Done = request.Done;
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }

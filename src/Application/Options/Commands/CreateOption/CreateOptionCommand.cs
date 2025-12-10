@@ -1,17 +1,18 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Options.Commands.CreateOption;
 
-public record CreateOptionCommand : IRequest<Guid>
+public record CreateOptionCommand : IRequest<Result<Guid>>
 {
     public Guid QuestionId { get; init; }
     public string Text { get; init; } = string.Empty;
     public bool IsCorrect { get; init; }
 }
 
-public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, Guid>
+public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,12 +21,12 @@ public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, G
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateOptionCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateOptionCommand request, CancellationToken cancellationToken)
     {
         var exists = await _context.Questions.AnyAsync(q => q.Id == request.QuestionId, cancellationToken);
         if (!exists)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("QuestionId", "Question does not exist.") });
+            return Result<Guid>.Failure(new[] { "Question does not exist." });
         }
 
         var entity = new Option
@@ -37,7 +38,7 @@ public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, G
 
         _context.Options.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

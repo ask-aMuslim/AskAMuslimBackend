@@ -17,7 +17,7 @@ public class GetTodosTests : BaseTestFixture
 
         var result = await SendAsync(query);
 
-        result.PriorityLevels.ShouldNotBeEmpty();
+        result.Data!.PriorityLevels.ShouldNotBeEmpty();
     }
 
     [Test]
@@ -45,8 +45,8 @@ public class GetTodosTests : BaseTestFixture
 
         var result = await SendAsync(query);
 
-        result.Lists.Count.ShouldBe(1);
-        result.Lists.First().Items.Count.ShouldBe(7);
+        result.Data!.Lists.Count.ShouldBe(1);
+        result.Data.Lists.First().Items.Count.ShouldBe(7);
     }
 
     [Test]

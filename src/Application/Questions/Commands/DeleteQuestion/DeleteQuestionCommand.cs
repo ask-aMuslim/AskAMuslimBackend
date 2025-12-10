@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Questions.Commands.DeleteQuestion;
 
-public record DeleteQuestionCommand(Guid Id) : IRequest;
+public record DeleteQuestionCommand(Guid Id) : IRequest<Result>;
 
-public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionCommand>
+public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,13 +15,14 @@ public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionComman
         _context = context;
     }
 
-    public async Task Handle(DeleteQuestionCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(DeleteQuestionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Questions.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null) return Result.Failure(new[] { "Question not found" });
 
         _context.Questions.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

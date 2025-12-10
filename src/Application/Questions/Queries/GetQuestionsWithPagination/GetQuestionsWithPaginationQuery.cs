@@ -5,14 +5,14 @@ using AskAMuslimBackend.Application.Common.Pagination;
 
 namespace AskAMuslimBackend.Application.Questions.Queries.GetQuestionsWithPagination;
 
-public record GetQuestionsWithPaginationQuery : IRequest<PaginatedList<QuestionBriefDto>>, IPaginationQuery
+public record GetQuestionsWithPaginationQuery : IRequest<Result<PaginatedList<QuestionBriefDto>>>, IPaginationQuery
 {
     public Guid QuizId { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
 }
 
-public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestionsWithPaginationQuery, PaginatedList<QuestionBriefDto>>
+public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestionsWithPaginationQuery, Result<PaginatedList<QuestionBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -23,12 +23,14 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
         _mapper = mapper;
     }
 
-    public async Task<PaginatedList<QuestionBriefDto>> Handle(GetQuestionsWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<QuestionBriefDto>>> Handle(GetQuestionsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Questions
+        var paginatedList = await _context.Questions
             .Where(q => q.QuizId == request.QuizId)
             .OrderBy(q => q.Text)
             .ProjectTo<QuestionBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+        
+        return Result<PaginatedList<QuestionBriefDto>>.Success(paginatedList);
     }
 }

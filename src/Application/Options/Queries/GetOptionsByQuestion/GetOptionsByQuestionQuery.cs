@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Options.Queries.GetOptionsByQuestion;
 
-public record GetOptionsByQuestionQuery(Guid QuestionId) : IRequest<List<OptionBriefDto>>;
+public record GetOptionsByQuestionQuery(Guid QuestionId) : IRequest<Result<List<OptionBriefDto>>>;
 
-public class GetOptionsByQuestionQueryHandler : IRequestHandler<GetOptionsByQuestionQuery, List<OptionBriefDto>>
+public class GetOptionsByQuestionQueryHandler : IRequestHandler<GetOptionsByQuestionQuery, Result<List<OptionBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -18,11 +19,12 @@ public class GetOptionsByQuestionQueryHandler : IRequestHandler<GetOptionsByQues
         _mapper = mapper;
     }
 
-    public async Task<List<OptionBriefDto>> Handle(GetOptionsByQuestionQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<OptionBriefDto>>> Handle(GetOptionsByQuestionQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Options
+        var data = await _context.Options
             .Where(o => o.QuestionId == request.QuestionId)
             .ProjectTo<OptionBriefDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return Result<List<OptionBriefDto>>.Success(data);
     }
 }

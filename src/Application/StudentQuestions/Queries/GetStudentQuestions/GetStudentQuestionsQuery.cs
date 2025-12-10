@@ -1,13 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestions;
 
-public record GetStudentQuestionsQuery : IRequest<List<StudentQuestionDto>>
+public record GetStudentQuestionsQuery : IRequest<Result<List<StudentQuestionDto>>>
 {
     public Guid StudentId { get; init; }
 }
 
-public class GetStudentQuestionsQueryHandler : IRequestHandler<GetStudentQuestionsQuery, List<StudentQuestionDto>>
+public class GetStudentQuestionsQueryHandler : IRequestHandler<GetStudentQuestionsQuery, Result<List<StudentQuestionDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,7 +17,7 @@ public class GetStudentQuestionsQueryHandler : IRequestHandler<GetStudentQuestio
         _context = context;
     }
 
-    public async Task<List<StudentQuestionDto>> Handle(GetStudentQuestionsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<StudentQuestionDto>>> Handle(GetStudentQuestionsQuery request, CancellationToken cancellationToken)
     {
         var questions = await _context.StudentQuestions
             .Where(q => q.StudentId == request.StudentId)
@@ -33,6 +34,6 @@ public class GetStudentQuestionsQueryHandler : IRequestHandler<GetStudentQuestio
             })
             .ToListAsync(cancellationToken);
 
-        return questions;
+        return Result<List<StudentQuestionDto>>.Success(questions);
     }
 }

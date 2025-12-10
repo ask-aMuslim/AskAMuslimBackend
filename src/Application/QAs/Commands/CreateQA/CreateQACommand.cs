@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -13,7 +14,7 @@ public record QATranslationInput
     public string AnswerText { get; init; } = string.Empty;
 }
 
-public record CreateQACommand : IRequest<Guid>
+public record CreateQACommand : IRequest<Result<Guid>>
 {
     public string? ImageUrl { get; init; }
     public string? VideoUrl { get; init; }
@@ -22,7 +23,7 @@ public record CreateQACommand : IRequest<Guid>
     public List<Guid> TagIds { get; init; } = new();
 }
 
-public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Guid>
+public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -31,7 +32,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Guid>
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateQACommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateQACommand request, CancellationToken cancellationToken)
     {
         // Validate Tag existence defensively (in addition to validator MustAsync) to surface all missing tags
         if (request.TagIds.Any())
@@ -40,7 +41,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Guid>
             var missing = request.TagIds.Distinct().Except(existingTagIds).ToList();
             if (missing.Any())
             {
-                throw new ValidationException(missing.Select(id => new FluentValidation.Results.ValidationFailure("TagIds", $"Tag {id} does not exist.")).ToList());
+                return Result<Guid>.Failure(missing.Select(id => $"Tag {id} does not exist.").ToArray());
             }
         }
 
@@ -48,7 +49,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Guid>
         var duplicateLangs = request.Translations.GroupBy(t => t.Language).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         if (duplicateLangs.Any())
         {
-            throw new ValidationException(duplicateLangs.Select(l => new FluentValidation.Results.ValidationFailure("Translations", $"Duplicate language {l}.")).ToList());
+            return Result<Guid>.Failure(duplicateLangs.Select(l => $"Duplicate language {l}.").ToArray());
         }
 
         var entity = new QA
@@ -75,7 +76,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Guid>
 
         _context.QAs.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

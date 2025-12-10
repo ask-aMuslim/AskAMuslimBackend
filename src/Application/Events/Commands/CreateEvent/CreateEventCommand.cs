@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Events.Commands.CreateEvent;
 
-public record CreateEventCommand : IRequest<Guid>
+public record CreateEventCommand : IRequest<Result<Guid>>
 {
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
@@ -16,7 +17,7 @@ public record CreateEventCommand : IRequest<Guid>
     public bool IsPublished { get; init; }
 }
 
-public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Guid>
+public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -25,7 +26,7 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Gui
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateEventCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateEventCommand request, CancellationToken cancellationToken)
     {
         var entity = new Event
         {
@@ -41,7 +42,7 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Gui
 
         _context.Events.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }
 

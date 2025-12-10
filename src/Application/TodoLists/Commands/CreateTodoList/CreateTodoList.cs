@@ -1,14 +1,15 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.TodoLists.Commands.CreateTodoList;
 
-public record CreateTodoListCommand : IRequest<Guid>
+public record CreateTodoListCommand : IRequest<Result<Guid>>
 {
     public string? Title { get; init; }
 }
 
-public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListCommand, Guid>
+public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -17,7 +18,7 @@ public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListComman
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
     {
         var entity = new TodoList();
 
@@ -27,6 +28,6 @@ public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListComman
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return entity.Id;
+        return Result<Guid>.Success(entity.Id);
     }
 }

@@ -6,6 +6,7 @@ using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestByI
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByScholar;
 using AskAMuslimBackend.Domain.Enums;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -22,41 +23,41 @@ public class MeetingRequests : EndpointGroupBase
         groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateMeetingRequestResponse").WithSummary("Set admin response on meeting request");
     }
 
-    public async Task<Results<Ok<MeetingRequestDto>, NotFound>> GetById(ISender sender, Guid id)
+    public async Task<IResult> GetById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetMeetingRequestByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<MeetingRequestDto>>> GetByRequester(ISender sender, Guid requesterId, MeetingInquiryRequestStatus? status)
+    public async Task<IResult> GetByRequester(ISender sender, Guid requesterId, MeetingInquiryRequestStatus? status)
     {
         var result = await sender.Send(new GetMeetingRequestsByRequesterQuery(requesterId, status));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<MeetingRequestDto>>> GetByScholar(ISender sender, Guid scholarId, MeetingInquiryRequestStatus? status)
+    public async Task<IResult> GetByScholar(ISender sender, Guid scholarId, MeetingInquiryRequestStatus? status)
     {
         var result = await sender.Send(new GetMeetingRequestsByScholarQuery(scholarId, status));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Created<Guid>> Create(ISender sender, CreateMeetingRequestCommand command)
+    public async Task<IResult> Create(ISender sender, CreateMeetingRequestCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/{nameof(MeetingRequests)}/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/{nameof(MeetingRequests)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateStatus(ISender sender, Guid id, UpdateMeetingRequestStatusCommand command)
-    {
-        if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
-    }
-
-    public async Task<Results<NoContent, BadRequest>> UpdateResponse(ISender sender, Guid id, UpdateMeetingRequestResponseCommand command)
+    public async Task<IResult> UpdateStatus(ISender sender, Guid id, UpdateMeetingRequestStatusCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> UpdateResponse(ISender sender, Guid id, UpdateMeetingRequestResponseCommand command)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

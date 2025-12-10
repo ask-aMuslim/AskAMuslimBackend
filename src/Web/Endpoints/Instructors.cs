@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Instructors.Commands.UpdateInstructorProfile
 using AskAMuslimBackend.Application.Instructors.Queries;
 using AskAMuslimBackend.Application.Instructors.Queries.GetAllInstructors;
 using AskAMuslimBackend.Application.Instructors.Queries.GetInstructorProfile;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -30,31 +31,27 @@ public class Instructors : EndpointGroupBase
             .WithSummary("Update current instructor's profile");
     }
 
-    public async Task<Results<Ok<InstructorDto>, NotFound>> GetMyProfile(ISender sender)
+    public async Task<IResult> GetMyProfile(ISender sender)
     {
         var result = await sender.Send(new GetInstructorProfileQuery());
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<InstructorDto>, NotFound>> GetInstructorProfile(ISender sender, string userId)
+    public async Task<IResult> GetInstructorProfile(ISender sender, string userId)
     {
         var result = await sender.Send(new GetInstructorProfileQuery { UserId = userId });
-        
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<InstructorDto>>> GetAllInstructors(ISender sender)
+    public async Task<IResult> GetAllInstructors(ISender sender)
     {
         var result = await sender.Send(new GetAllInstructorsQuery());
-        
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<Guid>> UpdateInstructorProfile(ISender sender, UpdateInstructorProfileCommand command)
+    public async Task<IResult> UpdateInstructorProfile(ISender sender, UpdateInstructorProfileCommand command)
     {
-        var id = await sender.Send(command);
-        
-        return TypedResults.Ok(id);
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

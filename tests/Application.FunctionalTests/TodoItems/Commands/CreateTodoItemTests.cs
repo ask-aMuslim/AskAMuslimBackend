@@ -22,10 +22,10 @@ public class CreateTodoItemTests : BaseTestFixture
     {
         var userId = await RunAsDefaultUserAsync();
 
-        var listId = await SendAsync(new CreateTodoListCommand
+        var listId = (await SendAsync(new CreateTodoListCommand
         {
             Title = "New List"
-        });
+        })).Data;
 
         var command = new CreateTodoItemCommand
         {
@@ -33,7 +33,8 @@ public class CreateTodoItemTests : BaseTestFixture
             Title = "Tasks"
         };
 
-        var itemId = await SendAsync(command);
+        var result = await SendAsync(command);
+        var itemId = result.Data;
 
         var item = await FindAsync<TodoItem>(itemId);
 

@@ -1,12 +1,13 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
 
-public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingInquiryRequestStatus? Status = null) : IRequest<List<MeetingRequestDto>>;
+public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingInquiryRequestStatus? Status = null) : IRequest<Result<List<MeetingRequestDto>>>;
 
-public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeetingRequestsByRequesterQuery, List<MeetingRequestDto>>
+public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeetingRequestsByRequesterQuery, Result<List<MeetingRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -17,15 +18,16 @@ public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeet
         _mapper = mapper;
     }
 
-    public async Task<List<MeetingRequestDto>> Handle(GetMeetingRequestsByRequesterQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByRequesterQuery request, CancellationToken cancellationToken)
     {
         var query = _context.MeetingRequests.AsQueryable().Where(m => m.RequesterId == request.RequesterId);
         if (request.Status.HasValue)
         {
             query = query.Where(m => m.Status == request.Status.Value);
         }
-        return await query
+        var data = await query
             .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
+        return Result<List<MeetingRequestDto>>.Success(data);
     }
 }
