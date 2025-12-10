@@ -18,16 +18,16 @@ public class QuizAttempts : EndpointGroupBase
         groupBuilder.MapPut(CompleteAttempt, "complete/{attemptId}").RequireAuthorization().WithName("CompleteQuizAttempt").WithSummary("Complete a quiz attempt");
     }
 
-    public async Task<Ok<List<QuizAttemptDto>>> GetForQuiz(ISender sender, Guid quizId)
+    public async Task<IResult> GetForQuiz(ISender sender, Guid quizId)
     {
         var result = await sender.Send(new GetQuizAttemptsByQuizQuery(quizId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Ok<List<QuizAttemptDto>>> GetForStudent(ISender sender, Guid studentId)
+    public async Task<IResult> GetForStudent(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetQuizAttemptsByStudentQuery(studentId));
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> StartAttempt(ISender sender, CreateQuizAttemptCommand command)
@@ -36,10 +36,10 @@ public class QuizAttempts : EndpointGroupBase
         return result.ToCreatedResult($"/{nameof(QuizAttempts)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> CompleteAttempt(ISender sender, Guid attemptId, CompleteQuizAttemptCommand command)
+    public async Task<IResult> CompleteAttempt(ISender sender, Guid attemptId, CompleteQuizAttemptCommand command)
     {
         if (attemptId != command.AttemptId) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 }

@@ -21,16 +21,16 @@ public class Quizzes : EndpointGroupBase
         groupBuilder.MapDelete(DeleteQuiz, "{id}").RequireAuthorization().WithName("DeleteQuiz").WithSummary("Delete a quiz");
     }
 
-    public async Task<Ok<PaginatedList<QuizBriefDto>>> GetQuizzesWithPagination(ISender sender, [AsParameters] GetQuizzesWithPaginationQuery query)
+    public async Task<IResult> GetQuizzesWithPagination(ISender sender, [AsParameters] GetQuizzesWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<QuizBriefDto>, NotFound>> GetQuizById(ISender sender, Guid id)
+    public async Task<IResult> GetQuizById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetQuizByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> CreateQuiz(ISender sender, CreateQuizCommand command)
@@ -39,16 +39,16 @@ public class Quizzes : EndpointGroupBase
         return result.ToCreatedResult($"/{nameof(Quizzes)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateQuiz(ISender sender, Guid id, UpdateQuizCommand command)
+    public async Task<IResult> UpdateQuiz(ISender sender, Guid id, UpdateQuizCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteQuiz(ISender sender, Guid id)
+    public async Task<IResult> DeleteQuiz(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteQuizCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteQuizCommand(id));
+        return result.ToHttpResult();
     }
 }

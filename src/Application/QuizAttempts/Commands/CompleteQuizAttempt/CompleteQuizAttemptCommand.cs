@@ -1,17 +1,18 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Commands.CompleteQuizAttempt;
 
-public record CompleteQuizAttemptCommand : IRequest
+public record CompleteQuizAttemptCommand : IRequest<Result>
 {
     public Guid AttemptId { get; init; }
     public decimal Score { get; init; }
     public bool IsPassed { get; init; }
 }
 
-public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAttemptCommand>
+public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAttemptCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -20,12 +21,15 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
         _context = context;
     }
 
-    public async Task Handle(CompleteQuizAttemptCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(CompleteQuizAttemptCommand request, CancellationToken cancellationToken)
     {
         var attempt = await _context.QuizAttempts
             .Include(a => a.Quiz)
             .FirstOrDefaultAsync(a => a.Id == request.AttemptId, cancellationToken);
-        Guard.Against.NotFound(request.AttemptId, attempt);
+        if (attempt == null)
+        {
+            return Result.Failure(new[] { "Quiz attempt not found." });
+        }
 
         attempt.Score = request.Score;
         attempt.IsPassed = request.IsPassed;
@@ -169,6 +173,7 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

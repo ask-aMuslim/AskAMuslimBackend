@@ -1418,14 +1418,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfLessonBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -1478,16 +1471,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LessonBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -1522,10 +1505,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -1553,7 +1533,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -1975,14 +1955,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfMuslimTubeChannelBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -2004,16 +1977,8 @@
           "x-position": 1
         },
         "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "format": "guid"
-                }
-              }
-            }
+          "200": {
+            "description": ""
           }
         },
         "security": [
@@ -2091,14 +2056,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfMuslimTubeVideoBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -2123,16 +2081,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MuslimTubeVideoBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -2207,14 +2155,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfMuslimTubeVideoBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -2249,15 +2190,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "integer",
-                  "format": "int32"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -2287,9 +2220,6 @@
         ],
         "responses": {
           "200": {
-            "description": ""
-          },
-          "404": {
             "description": ""
           }
         },
@@ -2982,17 +2912,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/QuizAttemptDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         }
       }
@@ -3017,17 +2937,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/QuizAttemptDto"
-                  }
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -3098,10 +3008,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -3185,14 +3092,7 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginatedListOfQuizBriefDto"
-                }
-              }
-            }
+            "description": ""
           }
         }
       },
@@ -3245,16 +3145,6 @@
         ],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QuizBriefDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         }
@@ -3289,10 +3179,7 @@
           "x-position": 2
         },
         "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
+          "200": {
             "description": ""
           }
         },
@@ -3320,7 +3207,7 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
             "description": ""
           }
         },
@@ -4723,84 +4610,6 @@
           }
         }
       },
-      "PaginatedListOfLessonBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LessonBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "LessonBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "courseId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/LessonType"
-          },
-          "order": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "thumbnailUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "contentUrl": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "LessonType": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Video",
-          "Article",
-          "Document",
-          "Audio"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ]
-      },
       "CreateLessonCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -4836,6 +4645,22 @@
             "format": "int32"
           }
         }
+      },
+      "LessonType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Video",
+          "Article",
+          "Document",
+          "Audio"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
       },
       "UpdateLessonCommand": {
         "type": "object",
@@ -4981,142 +4806,6 @@
             "format": "guid"
           },
           "response": {
-            "type": "string"
-          }
-        }
-      },
-      "PaginatedListOfMuslimTubeChannelBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MuslimTubeChannelBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "MuslimTubeChannelBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "youTubeChannelId": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailDefaultUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailMediumUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailHighUrl": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "PaginatedListOfMuslimTubeVideoBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MuslimTubeVideoBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "MuslimTubeVideoBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "youTubeVideoId": {
-            "type": "string"
-          },
-          "muslimTubeChannelId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailDefaultUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailMediumUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "thumbnailHighUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "publishedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "videoUrl": {
             "type": "string"
           }
         }
@@ -5352,44 +5041,6 @@
           }
         }
       },
-      "QuizAttemptDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "quizId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "studentId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "score": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "isPassed": {
-            "type": "boolean"
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "attemptNumber": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "CreateQuizAttemptCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5418,75 +5069,6 @@
           },
           "isPassed": {
             "type": "boolean"
-          }
-        }
-      },
-      "PaginatedListOfQuizBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/QuizBriefDto"
-            }
-          },
-          "pageNumber": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "hasPreviousPage": {
-            "type": "boolean"
-          },
-          "hasNextPage": {
-            "type": "boolean"
-          }
-        }
-      },
-      "QuizBriefDto": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
-          "levelId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "courseId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "lessonId": {
-            "type": "string",
-            "format": "guid",
-            "nullable": true
-          },
-          "targetType": {
-            "$ref": "#/components/schemas/QuizTargetType"
-          },
-          "title": {
-            "type": "string"
-          },
-          "totalMarks": {
-            "type": "number",
-            "format": "double"
-          },
-          "questionsCount": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },

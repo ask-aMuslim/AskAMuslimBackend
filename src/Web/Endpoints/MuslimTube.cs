@@ -7,6 +7,7 @@ using AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagination
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideosByChannel;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetHomeVideos;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideoById;
+using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -25,51 +26,51 @@ public class MuslimTube : EndpointGroupBase
     }
 
     // GET /MuslimTube/channels
-    public async Task<Ok<PaginatedList<MuslimTubeChannelBriefDto>>> GetChannels(ISender sender, [AsParameters] GetMuslimTubeChannelsWithPaginationQuery query)
+    public async Task<IResult> GetChannels(ISender sender, [AsParameters] GetMuslimTubeChannelsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
     // GET /MuslimTube/videos (home)
-    public async Task<Ok<PaginatedList<MuslimTubeVideoBriefDto>>> GetHomeVideos(ISender sender, [AsParameters] GetMuslimTubeHomeVideosQuery query)
+    public async Task<IResult> GetHomeVideos(ISender sender, [AsParameters] GetMuslimTubeHomeVideosQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
     // GET /MuslimTube/videos/{id}
-    public async Task<Results<Ok<MuslimTubeVideoBriefDto>, NotFound>> GetVideoById(ISender sender, Guid id)
+    public async Task<IResult> GetVideoById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetMuslimTubeVideoByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
     // GET /MuslimTube/channels/{id}/videos
-    public async Task<Ok<PaginatedList<MuslimTubeVideoBriefDto>>> GetVideosByChannel(ISender sender, [AsParameters] GetMuslimTubeVideosByChannelQuery query)
+    public async Task<IResult> GetVideosByChannel(ISender sender, [AsParameters] GetMuslimTubeVideosByChannelQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
     // POST /MuslimTube/channels
-    public async Task<Created<Guid>> AddChannel(ISender sender, AddMuslimTubeChannelCommand command)
+    public async Task<IResult> AddChannel(ISender sender, AddMuslimTubeChannelCommand command)
     {
-        var id = await sender.Send(command);
-        return TypedResults.Created($"/MuslimTube/channels/{id}", id);
+        var result = await sender.Send(command);
+        return result.ToCreatedResult($"/MuslimTube/channels/{result.Data}");
     }
 
     // POST /MuslimTube/channels/{id}/resync
-    public async Task<Ok<int>> ResyncChannel(ISender sender, Guid channelId, int maxVideos = 20)
+    public async Task<IResult> ResyncChannel(ISender sender, Guid channelId, int maxVideos = 20)
     {
-        var added = await sender.Send(new ResyncMuslimTubeChannelCommand(channelId, maxVideos));
-        return TypedResults.Ok(added);
+        var result = await sender.Send(new ResyncMuslimTubeChannelCommand(channelId, maxVideos));
+        return result.ToHttpResult();
     }
 
     // DELETE /MuslimTube/channels/{id}
-    public async Task<Results<Ok, NotFound>> DeleteChannel(ISender sender, Guid channelId)
+    public async Task<IResult> DeleteChannel(ISender sender, Guid channelId)
     {
-        var success = await sender.Send(new DeleteMuslimTubeChannelCommand(channelId));
-        return success ? TypedResults.Ok() : TypedResults.NotFound();
+        var result = await sender.Send(new DeleteMuslimTubeChannelCommand(channelId));
+        return result.ToHttpResult();
     }
 }

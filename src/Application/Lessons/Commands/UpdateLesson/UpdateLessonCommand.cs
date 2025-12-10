@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 
-public record UpdateLessonCommand : IRequest
+public record UpdateLessonCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public Guid CourseId { get; init; }
@@ -18,7 +19,7 @@ public record UpdateLessonCommand : IRequest
     public int Order { get; init; }
 }
 
-public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand>
+public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -27,17 +28,20 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Lessons.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        
+        if (entity == null)
+            return Result.Failure(new[] { "Lesson not found." });
 
         // Optional: ensure course relation not broken
-        if (entity!.CourseId != request.CourseId)
+        if (entity.CourseId != request.CourseId)
         {
             // Ensure target course exists
             var course = await _context.Courses.FindAsync(new object[] { request.CourseId }, cancellationToken);
-            Guard.Against.NotFound(request.CourseId, course);
+            if (course == null)
+                return Result.Failure(new[] { "Course not found." });
             entity.CourseId = request.CourseId;
         }
 
@@ -50,6 +54,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand>
         entity.Order = request.Order;
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

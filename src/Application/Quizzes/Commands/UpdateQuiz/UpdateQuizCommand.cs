@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Quizzes.Commands.UpdateQuiz;
 
-public record UpdateQuizCommand : IRequest
+public record UpdateQuizCommand : IRequest<Result>
 {
     public Guid Id { get; init; }
     public Guid? LevelId { get; init; }
@@ -15,7 +16,7 @@ public record UpdateQuizCommand : IRequest
     public double TotalMarks { get; init; }
 }
 
-public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
+public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Result>
 {
     private readonly IApplicationDbContext _context;
 
@@ -24,10 +25,13 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
         _context = context;
     }
 
-    public async Task Handle(UpdateQuizCommand request, CancellationToken cancellationToken)
+    public async Task<Result> Handle(UpdateQuizCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Quizzes.FindAsync(new object[] { request.Id }, cancellationToken);
-        Guard.Against.NotFound(request.Id, entity);
+        if (entity == null)
+        {
+            return Result.Failure(new[] { "Quiz not found." });
+        }
 
         // Validate target exists if changed
         var targetExists = request.TargetType switch
@@ -39,7 +43,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
         };
         if (!targetExists)
         {
-            throw new ValidationException(new[] { new FluentValidation.Results.ValidationFailure("Target", "Target does not exist or id not provided.") });
+            return Result.Failure(new[] { "Target does not exist or id not provided." });
         }
 
         entity.LevelId = request.LevelId;
@@ -50,6 +54,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand>
         entity.TotalMarks = request.TotalMarks;
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 }
 

@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Commands.DeleteChannel;
 
-public record DeleteMuslimTubeChannelCommand(Guid ChannelId) : IRequest<bool>;
+public record DeleteMuslimTubeChannelCommand(Guid ChannelId) : IRequest<Result<bool>>;
 
-public class DeleteMuslimTubeChannelCommandHandler : IRequestHandler<DeleteMuslimTubeChannelCommand, bool>
+public class DeleteMuslimTubeChannelCommandHandler : IRequestHandler<DeleteMuslimTubeChannelCommand, Result<bool>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -13,12 +14,14 @@ public class DeleteMuslimTubeChannelCommandHandler : IRequestHandler<DeleteMusli
         _context = context;
     }
 
-    public async Task<bool> Handle(DeleteMuslimTubeChannelCommand request, CancellationToken cancellationToken)
+    public async Task<Result<bool>> Handle(DeleteMuslimTubeChannelCommand request, CancellationToken cancellationToken)
     {
         var channel = await _context.MuslimTubeChannels.FindAsync(new object[] { request.ChannelId }, cancellationToken);
-        if (channel == null || channel.IsDeleted) return false;
+        if (channel == null || channel.IsDeleted) 
+            return Result<bool>.Success(false);
+        
         channel.IsDeleted = true; // soft delete
         await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        return Result<bool>.Success(true);
     }
 }

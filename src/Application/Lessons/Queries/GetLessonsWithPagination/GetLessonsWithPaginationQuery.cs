@@ -8,14 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
 
-public record GetLessonsWithPaginationQuery : IRequest<PaginatedList<LessonBriefDto>>, IPaginationQuery
+public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<LessonBriefDto>>>, IPaginationQuery
 {
     public Guid? CourseId { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
 }
 
-public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, PaginatedList<LessonBriefDto>>
+public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -26,7 +26,7 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
         _mapper = mapper;
     }
 
-    public async Task<PaginatedList<LessonBriefDto>> Handle(GetLessonsWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<LessonBriefDto>>> Handle(GetLessonsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Lessons.AsNoTracking();
         if (request.CourseId.HasValue)
@@ -34,12 +34,14 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
             query = query.Where(l => l.CourseId == request.CourseId.Value);
         }
 
-        return await query
+        var paginatedList = await query
             .OrderBy(l => l.CourseId)
             .ThenBy(l => l.Order)
             .ThenBy(l => l.Title)
             .ProjectTo<LessonBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+        
+        return Result<PaginatedList<LessonBriefDto>>.Success(paginatedList);
     }
 }
 

@@ -21,16 +21,16 @@ public class Lessons : EndpointGroupBase
         groupBuilder.MapDelete(DeleteLesson, "{id}").RequireAuthorization().WithName("DeleteLesson").WithSummary("Delete a lesson");
     }
 
-    public async Task<Ok<PaginatedList<LessonBriefDto>>> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query)
+    public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query)
     {
         var result = await sender.Send(query);
-        return TypedResults.Ok(result);
+        return result.ToHttpResult();
     }
 
-    public async Task<Results<Ok<LessonBriefDto>, NotFound>> GetLessonById(ISender sender, Guid id)
+    public async Task<IResult> GetLessonById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetLessonByIdQuery(id));
-        return result != null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> CreateLesson(ISender sender, CreateLessonCommand command)
@@ -39,16 +39,16 @@ public class Lessons : EndpointGroupBase
         return result.ToCreatedResult($"/{nameof(Lessons)}/{result.Data}");
     }
 
-    public async Task<Results<NoContent, BadRequest>> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)
+    public async Task<IResult> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
-        await sender.Send(command);
-        return TypedResults.NoContent();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
-    public async Task<NoContent> DeleteLesson(ISender sender, Guid id)
+    public async Task<IResult> DeleteLesson(ISender sender, Guid id)
     {
-        await sender.Send(new DeleteLessonCommand(id));
-        return TypedResults.NoContent();
+        var result = await sender.Send(new DeleteLessonCommand(id));
+        return result.ToHttpResult();
     }
 }

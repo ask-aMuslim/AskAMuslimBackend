@@ -6,7 +6,7 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Quizzes.Queries.GetQuizzesWithPagination;
 
-public record GetQuizzesWithPaginationQuery : IRequest<PaginatedList<QuizBriefDto>>, IPaginationQuery
+public record GetQuizzesWithPaginationQuery : IRequest<Result<PaginatedList<QuizBriefDto>>>, IPaginationQuery
 {
     public Guid? LevelId { get; init; }
     public Guid? CourseId { get; init; }
@@ -16,7 +16,7 @@ public record GetQuizzesWithPaginationQuery : IRequest<PaginatedList<QuizBriefDt
     public int PageSize { get; init; } = 10;
 }
 
-public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWithPaginationQuery, PaginatedList<QuizBriefDto>>
+public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWithPaginationQuery, Result<PaginatedList<QuizBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -27,7 +27,7 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
         _mapper = mapper;
     }
 
-    public async Task<PaginatedList<QuizBriefDto>> Handle(GetQuizzesWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<QuizBriefDto>>> Handle(GetQuizzesWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Quizzes.AsQueryable();
 
@@ -48,9 +48,10 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
             query = query.Where(q => q.TargetType == request.TargetType.Value);
         }
 
-        return await query
+        var result = await query
             .OrderBy(q => q.Title)
             .ProjectTo<QuizBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+        return Result<PaginatedList<QuizBriefDto>>.Success(result);
     }
 }

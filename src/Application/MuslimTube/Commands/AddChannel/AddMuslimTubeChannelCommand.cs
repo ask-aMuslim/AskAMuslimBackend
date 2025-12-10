@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Application.MuslimTube.Queries.Caching; // Added
 
@@ -8,7 +9,7 @@ namespace AskAMuslimBackend.Application.MuslimTube.Commands.AddChannel;
 /// Adds a YouTube channel to MuslimTube by URL or channel ID (e.g. https://youtube.com/@handle or UCxxxxxxxxxxxxxxxxxxxxxx).
 /// Optionally fetches an initial page of videos on success.
 /// </summary>
-public record AddMuslimTubeChannelCommand : IRequest<Guid>
+public record AddMuslimTubeChannelCommand : IRequest<Result<Guid>>
 {
     /// <summary>
     /// Full channel URL, handle, or raw channel ID (UC*).
@@ -36,7 +37,7 @@ public class AddMuslimTubeChannelCommandValidator : AbstractValidator<AddMuslimT
     }
 }
 
-public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeChannelCommand, Guid>
+public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeChannelCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IYouTubeService _youTube;
@@ -49,7 +50,7 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
         _cache = cache; // Added
     }
 
-    public async Task<Guid> Handle(AddMuslimTubeChannelCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(AddMuslimTubeChannelCommand request, CancellationToken cancellationToken)
     {
         // 1) Fast-path: caller already provided the raw channel ID; try to find it directly
         var existing = _context.MuslimTubeChannels.FirstOrDefault(c => c.YouTubeChannelId == request.ChannelUrlOrId);
@@ -63,7 +64,7 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
                 // Invalidate cached channel lists so revived channel appears immediately
                 await _cache.InvalidateChannelAsync(existing.Id, cancellationToken);
             }
-            return existing.Id;
+            return Result<Guid>.Success(existing.Id);
         }
 
         // 2) Resolve input to a canonical YouTube channel ID using the API (works for handles/URLs)
@@ -71,7 +72,7 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
         if (channelResult == null)
         {
             // The given input could not be resolved to a valid channel
-            throw new ValidationException("Unable to resolve YouTube channel.");
+            return Result<Guid>.Failure(new[] { "Unable to resolve YouTube channel." });
         }
 
         // 3) Prevent duplicates even after resolution (handles/URLs may map to an existing channel)
@@ -84,7 +85,7 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
                 await _context.SaveChangesAsync(cancellationToken);
                 await _cache.InvalidateChannelAsync(existing.Id, cancellationToken); // ensure cache refresh
             }
-            return existing.Id;
+            return Result<Guid>.Success(existing.Id);
         }
 
         // 4) Create the channel entity from API results
@@ -129,6 +130,6 @@ public class AddMuslimTubeChannelCommandHandler : IRequestHandler<AddMuslimTubeC
         // Invalidate cached channel lists so the newly added channel appears immediately
         await _cache.InvalidateChannelAsync(channel.Id, cancellationToken);
 
-        return channel.Id;
+        return Result<Guid>.Success(channel.Id);
     }
 }

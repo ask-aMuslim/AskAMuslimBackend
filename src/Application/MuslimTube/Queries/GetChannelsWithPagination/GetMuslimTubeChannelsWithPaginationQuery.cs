@@ -9,13 +9,13 @@ using AutoMapper.QueryableExtensions;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagination;
 
-public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<PaginatedList<MuslimTubeChannelBriefDto>>, IPaginationQuery
+public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<Result<PaginatedList<MuslimTubeChannelBriefDto>>>, IPaginationQuery
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
 }
 
-public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<GetMuslimTubeChannelsWithPaginationQuery, PaginatedList<MuslimTubeChannelBriefDto>>
+public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<GetMuslimTubeChannelsWithPaginationQuery, Result<PaginatedList<MuslimTubeChannelBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -28,11 +28,12 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
         _cache = cache;
     }
 
-    public async Task<PaginatedList<MuslimTubeChannelBriefDto>> Handle(GetMuslimTubeChannelsWithPaginationQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<MuslimTubeChannelBriefDto>>> Handle(GetMuslimTubeChannelsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var key = MuslimTubeCacheKeys.Channels(request.PageNumber, request.PageSize);
         var cached = await _cache.GetChannelsAsync(key, cancellationToken);
-        if (cached != null) return cached;
+        if (cached != null) 
+            return Result<PaginatedList<MuslimTubeChannelBriefDto>>.Success(cached);
 
         var result = await _context.MuslimTubeChannels
             .Where(c => !c.IsDeleted)
@@ -41,6 +42,6 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
 
         await _cache.SetChannelsAsync(key, result, cancellationToken);
-        return result;
+        return Result<PaginatedList<MuslimTubeChannelBriefDto>>.Success(result);
     }
 }

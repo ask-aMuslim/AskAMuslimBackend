@@ -1,8 +1,9 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Models;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Commands.ResyncChannel;
 
-public record ResyncMuslimTubeChannelCommand(Guid ChannelId, int MaxVideos = 20) : IRequest<int>;
+public record ResyncMuslimTubeChannelCommand(Guid ChannelId, int MaxVideos = 20) : IRequest<Result<int>>;
 
 public class ResyncMuslimTubeChannelCommandValidator : AbstractValidator<ResyncMuslimTubeChannelCommand>
 {
@@ -13,7 +14,7 @@ public class ResyncMuslimTubeChannelCommandValidator : AbstractValidator<ResyncM
     }
 }
 
-public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMuslimTubeChannelCommand, int>
+public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMuslimTubeChannelCommand, Result<int>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IYouTubeService _youTube;
@@ -24,12 +25,12 @@ public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMusli
         _youTube = youTube;
     }
 
-    public async Task<int> Handle(ResyncMuslimTubeChannelCommand request, CancellationToken cancellationToken)
+    public async Task<Result<int>> Handle(ResyncMuslimTubeChannelCommand request, CancellationToken cancellationToken)
     {
         var channel = await _context.MuslimTubeChannels.FindAsync(new object[] { request.ChannelId }, cancellationToken);
         if (channel == null || channel.IsDeleted)
         {
-            return 0;
+            return Result<int>.Success(0);
         }
 
         var videos = await _youTube.FetchChannelVideosAsync(channel.YouTubeChannelId, request.MaxVideos, cancellationToken);
@@ -54,6 +55,6 @@ public class ResyncMuslimTubeChannelCommandHandler : IRequestHandler<ResyncMusli
         }
         channel.LastSyncedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
-        return added;
+        return Result<int>.Success(added);
     }
 }

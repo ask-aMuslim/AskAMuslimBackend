@@ -9,7 +9,7 @@ using AutoMapper.QueryableExtensions;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetVideosByChannel;
 
-public record GetMuslimTubeVideosByChannelQuery : IRequest<PaginatedList<MuslimTubeVideoBriefDto>>, IPaginationQuery
+public record GetMuslimTubeVideosByChannelQuery : IRequest<Result<PaginatedList<MuslimTubeVideoBriefDto>>>, IPaginationQuery
 {
     public Guid ChannelId { get; init; }
     public string? Search { get; init; } // title/description contains
@@ -19,7 +19,7 @@ public record GetMuslimTubeVideosByChannelQuery : IRequest<PaginatedList<MuslimT
     public int PageSize { get; init; } = 10;
 }
 
-public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMuslimTubeVideosByChannelQuery, PaginatedList<MuslimTubeVideoBriefDto>>
+public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMuslimTubeVideosByChannelQuery, Result<PaginatedList<MuslimTubeVideoBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
@@ -32,11 +32,12 @@ public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMusli
         _cache = cache;
     }
 
-    public async Task<PaginatedList<MuslimTubeVideoBriefDto>> Handle(GetMuslimTubeVideosByChannelQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<MuslimTubeVideoBriefDto>>> Handle(GetMuslimTubeVideosByChannelQuery request, CancellationToken cancellationToken)
     {
         var key = MuslimTubeCacheKeys.Videos(request.ChannelId, request.PageNumber, request.PageSize, request.Search, request.PublishedAfter, request.PublishedBefore);
         var cached = await _cache.GetVideosAsync(key, cancellationToken);
-        if (cached != null) return cached;
+        if (cached != null) 
+            return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(cached);
 
         var query = _context.MuslimTubeVideos.Where(v => v.MuslimTubeChannelId == request.ChannelId);
 
@@ -60,6 +61,6 @@ public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMusli
             .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
 
         await _cache.SetVideosAsync(key, result, cancellationToken);
-        return result;
+        return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(result);
     }
 }
