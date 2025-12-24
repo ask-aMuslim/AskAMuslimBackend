@@ -4165,6 +4165,9 @@
           },
           "role": {
             "$ref": "#/components/schemas/UserRole"
+          },
+          "religion": {
+            "$ref": "#/components/schemas/ReligiousStatus"
           }
         }
       },
@@ -4184,6 +4187,20 @@
           3,
           4,
           5
+        ]
+      },
+      "ReligiousStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "NonMuslim",
+          "BornMuslim",
+          "RevertedMuslim"
+        ],
+        "enum": [
+          1,
+          2,
+          3
         ]
       },
       "LoginCommand": {

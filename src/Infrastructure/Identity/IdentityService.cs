@@ -85,7 +85,7 @@ public class IdentityService : IIdentityService
         string firstName,
         string lastName,
         UserRole role,
-        ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim)
+        ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim)
     {
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -122,6 +122,8 @@ public class IdentityService : IIdentityService
 
         // Generate token
         var token = GenerateJwtToken(user);
+
+        // Handle it using appsettings.json for maintainability
         var expiresAt = DateTime.UtcNow.AddHours(24);
 
         var authResponse = new AuthenticationResponse

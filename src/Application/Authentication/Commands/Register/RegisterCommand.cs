@@ -10,7 +10,9 @@ public record RegisterCommand : IRequest<Result<AuthenticationResponse>>
     public string Password { get; init; } = string.Empty;
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
-    public UserRole Role { get; init; }
+    public UserRole Role { get; init; } = UserRole.Student;
+
+    public ReligiousStatus Religion { get; init; }
 }
 
 public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<AuthenticationResponse>>
@@ -29,7 +31,8 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             request.Password,
             request.FirstName,
             request.LastName,
-            request.Role);
+            request.Role,
+            request.Religion);
 
         return result;
     }
