@@ -1,5 +1,6 @@
 ﻿using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Infrastructure.Identity;
 using MediatR;
@@ -17,6 +18,7 @@ public partial class Testing
     private static IServiceScopeFactory _scopeFactory = null!;
     private static string? _userId;
     private static List<string>? _roles;
+
     [OneTimeSetUp]
     public async Task RunBeforeAnyTests()
     {
@@ -73,23 +75,6 @@ public partial class Testing
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        // Map provided roles (strings) to our single UserRole enum. Default to NonMuslim when none provided.
-        var roleEnum = Domain.Enums.UserRole.NonMuslim;
-        if (roles != null && roles.Length > 0)
-        {
-            // Prefer Administrator when multiple are specified
-            if (roles.Contains(Roles.Administrator, StringComparer.OrdinalIgnoreCase))
-                roleEnum = Domain.Enums.UserRole.Admin;
-            else if (roles.Contains(Roles.Instructor, StringComparer.OrdinalIgnoreCase))
-                roleEnum = Domain.Enums.UserRole.Instructor;
-            else if (roles.Contains(Roles.Student, StringComparer.OrdinalIgnoreCase))
-                roleEnum = Domain.Enums.UserRole.Student;
-            else if (roles.Contains(Roles.NonMuslim, StringComparer.OrdinalIgnoreCase))
-                roleEnum = Domain.Enums.UserRole.NonMuslim;
-            else if (roles.Contains(Roles.Preacher, StringComparer.OrdinalIgnoreCase))
-                roleEnum = Domain.Enums.UserRole.Preacher;
-        }
-
         var existing = await userManager.FindByEmailAsync(email);
         if (existing == null)
         {
@@ -100,6 +85,7 @@ public partial class Testing
                 FirstName = string.Empty,
                 LastName = string.Empty,
                 Role = roleEnum,
+                ReligionStatus = religiousStatus,
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow

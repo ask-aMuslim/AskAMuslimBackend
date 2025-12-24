@@ -20,7 +20,8 @@ public interface IIdentityService
         string password,
         string firstName,
         string lastName,
-        UserRole role);
+        UserRole role,
+        ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim);
 
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
 

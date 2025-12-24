@@ -9,6 +9,7 @@ public class AuthenticationResponse
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public UserRole Role { get; set; }
+    public ReligiousStatus? ReligiousStatus { get; set; }
     public string Token { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
 }

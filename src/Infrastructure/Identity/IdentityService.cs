@@ -84,7 +84,8 @@ public class IdentityService : IIdentityService
         string password,
         string firstName,
         string lastName,
-        UserRole role)
+        UserRole role,
+        ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim)
     {
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
@@ -100,6 +101,7 @@ public class IdentityService : IIdentityService
             FirstName = firstName,
             LastName = lastName,
             Role = role,
+            ReligionStatus = religiousStatus,
             EmailConfirmed = true,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -129,6 +131,7 @@ public class IdentityService : IIdentityService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
             Token = token,
             ExpiresAt = expiresAt
         };
@@ -187,7 +190,6 @@ public class IdentityService : IIdentityService
         {
             case UserRole.Student:
             case UserRole.NonMuslim:
-            case UserRole.BornMuslim:
                 _dbContext.Students.Add(CreateStudent(userId));
                 break;
 
@@ -240,6 +242,7 @@ public class IdentityService : IIdentityService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
             Token = token,
             ExpiresAt = expiresAt
         };
@@ -284,6 +287,7 @@ public class IdentityService : IIdentityService
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student, // default role, adjust as needed
+                ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -311,6 +315,7 @@ public class IdentityService : IIdentityService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
             Token = token,
             ExpiresAt = expiresAt
         };
@@ -387,6 +392,7 @@ public class IdentityService : IIdentityService
                 FirstName = firstName,
                 LastName = lastName,
                 Role = UserRole.Student,
+                ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -414,6 +420,7 @@ public class IdentityService : IIdentityService
             FirstName = user.FirstName,
             LastName = user.LastName,
             Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
             Token = token,
             ExpiresAt = expiresAt
         };

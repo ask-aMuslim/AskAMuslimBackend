@@ -11,7 +11,7 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() && !Program.IsRunningUnderNSwag())
 {
     await app.InitialiseDatabaseAsync();
 }
@@ -42,4 +42,18 @@ app.MapEndpoints();
 
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{
+    public static bool IsRunningUnderNSwag()
+    {
+        try
+        {
+            var args = Environment.GetCommandLineArgs();
+            return args.Any(a => a.Contains("dotnet-nswag", StringComparison.OrdinalIgnoreCase) || a.Contains("nswag", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}

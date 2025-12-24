@@ -82,8 +82,9 @@ public class ApplicationDbContextInitialiser
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while seeding the database.");
-            throw;
+            _logger.LogWarning(ex, "Seeding skipped due to an error. Proceeding without seed to avoid build-time failures.");
+            // Do not rethrow here to avoid failing build tooling (e.g., NSwag) which executes the app during generation.
+            // In a normal run, seeding issues should be investigated and resolved.
         }
     }
 
@@ -105,198 +106,200 @@ public class ApplicationDbContextInitialiser
                 }
             }
 
-        // --- Default Users ---
-        var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole)>
+            // --- Default Users ---
+            var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole, ReligiousStatus religion)>
         {
-            ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin),
-            ("student@localhost", "Student1!", "John", "Student", UserRole.Student),
-            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim),
-            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor),
-            ("preacher@localhost", "Preacher1!", "Ahmed", "Preacher", UserRole.Preacher)
+            ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin, ReligiousStatus.BornMuslim),
+            ("student@localhost", "Student1!", "John", "Student", UserRole.Student, ReligiousStatus.RevertedMuslim),
+            ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim, ReligiousStatus.NonMuslim),
+            ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor, ReligiousStatus.BornMuslim),
+            ("preacher@localhost", "Preacher1!", "Ahmed", "Preacher", UserRole.Preacher, ReligiousStatus.BornMuslim)
         };
 
-        var newUsers = new List<User>();
-        foreach (var (email, password, firstName, lastName, userRole) in userSeeds)
-        {
-            var existingUser = await _userManager.FindByEmailAsync(email);
-            if (existingUser != null) continue;
-
-            var user = new User
+            var newUsers = new List<User>();
+            foreach (var (email, password, firstName, lastName, userRole, religousStatus) in userSeeds)
             {
-                UserName = email,
-                Email = email,
-                FirstName = firstName,
-                LastName = lastName,
-                Role = userRole,
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
+                var existingUser = await _userManager.FindByEmailAsync(email);
+                if (existingUser != null) continue;
 
-            var result = await _userManager.CreateAsync(user, password);
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, userRole.ToString());
-                newUsers.Add(user);
+                var user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = userRole,
+                    ReligionStatus = religousStatus,
+                    EmailConfirmed = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                // ReligionStatus is just a flag here
+                var result = await _userManager.CreateAsync(user, password);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, userRole.ToString());
+                    newUsers.Add(user);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to create user {Email}: {Errors}", email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
             }
-            else
+
+            if (newUsers.Count > 0)
             {
-                _logger.LogWarning("Failed to create user {Email}: {Errors}", email, string.Join(", ", result.Errors.Select(e => e.Description)));
+                // Create role-specific entities without saving each time; save once after.
+                foreach (var user in newUsers)
+                {
+                    await CreateRoleSpecificEntity(user.Id, user.Role);
+                }
+                await _context.SaveChangesAsync();
             }
-        }
 
-        if (newUsers.Count > 0)
-        {
-            // Create role-specific entities without saving each time; save once after.
-            foreach (var user in newUsers)
+            // Obtain Student entity Id for FK seeds
+            var studentUser = await _userManager.FindByEmailAsync("student@localhost");
+            if (studentUser is null)
             {
-                await CreateRoleSpecificEntity(user.Id, user.Role);
+                _logger.LogWarning("Student user not found; skipping student-related seed data.");
+                await transaction.CommitAsync();
+                return;
             }
-            await _context.SaveChangesAsync();
-        }
 
-        // Obtain Student entity Id for FK seeds
-        var studentUser = await _userManager.FindByEmailAsync("student@localhost");
-        if (studentUser is null)
-        {
-            _logger.LogWarning("Student user not found; skipping student-related seed data.");
-            await transaction.CommitAsync();
-            return;
-        }
+            var studentId = await _context.Students
+                .AsNoTracking()
+                .Where(s => s.UserId == studentUser.Id)
+                .Select(s => (Guid?)s.Id)
+                .FirstOrDefaultAsync();
 
-        var studentId = await _context.Students
-            .AsNoTracking()
-            .Where(s => s.UserId == studentUser.Id)
-            .Select(s => (Guid?)s.Id)
-            .FirstOrDefaultAsync();
-
-        if (studentId is null)
-        {
-            _logger.LogWarning("Student entity not found for user; skipping student-related seed data.");
-            await transaction.CommitAsync();
-            return;
-        }
-
-        var studentEntityId = studentId.Value;
-
-        // --- Todo List ---
-        if (!await _context.TodoLists.AsNoTracking().AnyAsync())
-        {
-            _context.TodoLists.Add(new TodoList
+            if (studentId is null)
             {
-                Title = "Todo List",
-                Items =
+                _logger.LogWarning("Student entity not found for user; skipping student-related seed data.");
+                await transaction.CommitAsync();
+                return;
+            }
+
+            var studentEntityId = studentId.Value;
+
+            // --- Todo List ---
+            if (!await _context.TodoLists.AsNoTracking().AnyAsync())
+            {
+                _context.TodoLists.Add(new TodoList
+                {
+                    Title = "Todo List",
+                    Items =
                 {
                     new TodoItem { Title = "Make a todo list 📃" },
                     new TodoItem { Title = "Check off the first item ✅" },
                     new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
                     new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
                 }
-            });
+                });
 
-            await _context.SaveChangesAsync();
-        }
+                await _context.SaveChangesAsync();
+            }
 
-        // --- Tags ---
-        if (!await _context.Tags.AsNoTracking().AnyAsync())
-        {
-            var tags = new List<Tag>
+            // --- Tags ---
+            if (!await _context.Tags.AsNoTracking().AnyAsync())
+            {
+                var tags = new List<Tag>
             {
                 new Tag { Title = "Islamic Studies", Description = "Foundational topics on Islam." },
                 new Tag { Title = "Quran", Description = "Quranic studies and recitation." },
                 new Tag { Title = "Hadith", Description = "Prophetic traditions and explanations." },
                 new Tag { Title = "Beginner Friendly", Description = "Suitable for newcomers." }
             };
-            _context.Tags.AddRange(tags);
-            await _context.SaveChangesAsync();
-        }
+                _context.Tags.AddRange(tags);
+                await _context.SaveChangesAsync();
+            }
 
-        // --- Levels ---
-        if (!await _context.Levels.AsNoTracking().AnyAsync())
-        {
-            var levels = new List<Level>
+            // --- Levels ---
+            if (!await _context.Levels.AsNoTracking().AnyAsync())
+            {
+                var levels = new List<Level>
             {
                 new Level { Title = "Beginner", Description = "Introductory level for new learners.", Difficulty = LevelDifficulty.Beginner, Order = 1 },
                 new Level { Title = "Intermediate", Description = "For learners with some background.", Difficulty = LevelDifficulty.Intermediate, Order = 2 },
                 new Level { Title = "Advanced", Description = "In-depth topics and advanced study.", Difficulty = LevelDifficulty.Advanced, Order = 3 }
             };
 
-            _context.Levels.AddRange(levels);
-            await _context.SaveChangesAsync();
-        }
+                _context.Levels.AddRange(levels);
+                await _context.SaveChangesAsync();
+            }
 
-        // --- Courses & CourseTags ---
-        if (!await _context.Courses.AsNoTracking().AnyAsync())
-        {
-            var firstLevel = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
-            var tagIds = await _context.Tags.AsNoTracking().OrderBy(t => t.Title).Select(t => t.Id).ToListAsync();
-
-            var introCourse = new Course
+            // --- Courses & CourseTags ---
+            if (!await _context.Courses.AsNoTracking().AnyAsync())
             {
-                Title = "Introduction to Islam",
-                Description = "Basics of belief, practice and history.",
-                LevelId = firstLevel.Id,
-                IsPublished = true,
-                Rating = 4.7,
-                Order = 1
-            };
+                var firstLevel = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+                var tagIds = await _context.Tags.AsNoTracking().OrderBy(t => t.Title).Select(t => t.Id).ToListAsync();
 
-            var recitationCourse = new Course
-            {
-                Title = "Quranic Recitation Basics",
-                Description = "Learn tajweed and basic recitation.",
-                LevelId = firstLevel.Id,
-                IsPublished = true,
-                Rating = 4.5,
-                Order = 2
-            };
+                var introCourse = new Course
+                {
+                    Title = "Introduction to Islam",
+                    Description = "Basics of belief, practice and history.",
+                    LevelId = firstLevel.Id,
+                    IsPublished = true,
+                    Rating = 4.7,
+                    Order = 1
+                };
 
-            _context.Courses.AddRange(introCourse, recitationCourse);
-            await _context.SaveChangesAsync();
+                var recitationCourse = new Course
+                {
+                    Title = "Quranic Recitation Basics",
+                    Description = "Learn tajweed and basic recitation.",
+                    LevelId = firstLevel.Id,
+                    IsPublished = true,
+                    Rating = 4.5,
+                    Order = 2
+                };
 
-            // Link some tags (first two tags to first course, first + third to second)
-            if (tagIds.Count >= 3)
-            {
-                var courseTags = new List<CourseTag>
+                _context.Courses.AddRange(introCourse, recitationCourse);
+                await _context.SaveChangesAsync();
+
+                // Link some tags (first two tags to first course, first + third to second)
+                if (tagIds.Count >= 3)
+                {
+                    var courseTags = new List<CourseTag>
                 {
                     new CourseTag { CourseId = introCourse.Id, TagId = tagIds[0] },
                     new CourseTag { CourseId = introCourse.Id, TagId = tagIds[1] },
                     new CourseTag { CourseId = recitationCourse.Id, TagId = tagIds[0] },
                     new CourseTag { CourseId = recitationCourse.Id, TagId = tagIds[2] }
                 };
-                _context.CourseTags.AddRange(courseTags);
-                await _context.SaveChangesAsync();
+                    _context.CourseTags.AddRange(courseTags);
+                    await _context.SaveChangesAsync();
+                }
             }
-        }
 
-        // --- Lessons ---
-        if (!await _context.Lessons.AsNoTracking().AnyAsync())
-        {
-            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
+            // --- Lessons ---
+            if (!await _context.Lessons.AsNoTracking().AnyAsync())
+            {
+                var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
-            var lessons = new List<Lesson>
+                var lessons = new List<Lesson>
             {
                 new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1, Type = LessonType.Article },
                 new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2, Type = LessonType.Article }
             };
 
-            _context.Lessons.AddRange(lessons);
-            await _context.SaveChangesAsync();
-        }
+                _context.Lessons.AddRange(lessons);
+                await _context.SaveChangesAsync();
+            }
 
-        // --- Quizzes, Questions, Options ---
-        if (!await _context.Quizzes.AsNoTracking().AnyAsync())
-        {
-            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
-
-            // Course quiz
-            var quiz = new Quiz
+            // --- Quizzes, Questions, Options ---
+            if (!await _context.Quizzes.AsNoTracking().AnyAsync())
             {
-                Title = "Introductory Quiz",
-                CourseId = course.Id,
-                TargetType = QuizTargetType.Course,
-                TotalMarks = 10,
-                Questions = new List<Question>
+                var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
+
+                // Course quiz
+                var quiz = new Quiz
+                {
+                    Title = "Introductory Quiz",
+                    CourseId = course.Id,
+                    TargetType = QuizTargetType.Course,
+                    TotalMarks = 10,
+                    Questions = new List<Question>
                 {
                     new Question
                     {
@@ -309,286 +312,286 @@ public class ApplicationDbContextInitialiser
                         }
                     }
                 }
-            };
-
-            _context.Quizzes.Add(quiz);
-            await _context.SaveChangesAsync();
-
-            // Level quiz
-            var levelId = course.LevelId;
-            _context.Quizzes.Add(new Quiz
-            {
-                Title = "Level Check",
-                LevelId = levelId,
-                TargetType = QuizTargetType.Level,
-                TotalMarks = 10
-            });
-
-            // Lesson quiz (for the first lesson)
-            var firstLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).FirstOrDefaultAsync();
-            if (firstLesson != null)
-            {
-                _context.Quizzes.Add(new Quiz
-                {
-                    Title = "Lesson Quick Quiz",
-                    LessonId = firstLesson.Id,
-                    TargetType = QuizTargetType.Lesson,
-                    TotalMarks = 10
-                });
-            }
-
-            // Lesson quiz (for the second lesson)
-            var secondLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).Skip(1).FirstOrDefaultAsync();
-            if (secondLesson != null)
-            {
-                _context.Quizzes.Add(new Quiz
-                {
-                    Title = "Lesson Quick Quiz 2",
-                    LessonId = secondLesson.Id,
-                    TargetType = QuizTargetType.Lesson,
-                    TotalMarks = 10
-                });
-
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-        // --- Enrollments & QuizAttempts ---
-        if (!await _context.Enrollments.AsNoTracking().AnyAsync())
-        {
-            var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
-
-            var enrollment = new Enrollment
-            {
-                StudentId = studentEntityId,
-                CourseId = course.Id,
-                EnrolledAt = DateTime.UtcNow,
-                Status = EnrollmentStatus.Active,
-                LevelProgress = 0,
-                CourseProgress = 0
-            };
-
-            _context.Enrollments.Add(enrollment);
-            await _context.SaveChangesAsync();
-
-            var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.CourseId == course.Id);
-            if (quiz != null)
-            {
-                var attempt = new QuizAttempt
-                {
-                    QuizId = quiz.Id,
-                    StudentId = studentEntityId,
-                    Score = 8.5M
                 };
 
-                _context.QuizAttempts.Add(attempt);
+                _context.Quizzes.Add(quiz);
+                await _context.SaveChangesAsync();
+
+                // Level quiz
+                var levelId = course.LevelId;
+                _context.Quizzes.Add(new Quiz
+                {
+                    Title = "Level Check",
+                    LevelId = levelId,
+                    TargetType = QuizTargetType.Level,
+                    TotalMarks = 10
+                });
+
+                // Lesson quiz (for the first lesson)
+                var firstLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).FirstOrDefaultAsync();
+                if (firstLesson != null)
+                {
+                    _context.Quizzes.Add(new Quiz
+                    {
+                        Title = "Lesson Quick Quiz",
+                        LessonId = firstLesson.Id,
+                        TargetType = QuizTargetType.Lesson,
+                        TotalMarks = 10
+                    });
+                }
+
+                // Lesson quiz (for the second lesson)
+                var secondLesson = await _context.Lessons.AsNoTracking().Where(l => l.CourseId == course.Id).OrderBy(l => l.Order).Skip(1).FirstOrDefaultAsync();
+                if (secondLesson != null)
+                {
+                    _context.Quizzes.Add(new Quiz
+                    {
+                        Title = "Lesson Quick Quiz 2",
+                        LessonId = secondLesson.Id,
+                        TargetType = QuizTargetType.Lesson,
+                        TotalMarks = 10
+                    });
+                }
+
                 await _context.SaveChangesAsync();
             }
-        }
 
-        // --- Student Notes ---
-        if (!await _context.StudentNotes.AsNoTracking().AnyAsync())
-        {
-            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
-
-            _context.StudentNotes.AddRange(
-                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Key point about Shahada.", Timestamp = 12.5 },
-                new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Clarify Five Pillars order.", Timestamp = 89.3 }
-            );
-            await _context.SaveChangesAsync();
-        }
-
-        // --- Student Questions ---
-        if (!await _context.StudentQuestions.AsNoTracking().AnyAsync())
-        {
-            var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
-
-            _context.StudentQuestions.AddRange(
-                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Can you expand on the meaning of Shahada?", Timestamp = 30, Answered = false },
-                new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Is Zakat mandatory for everyone?", Timestamp = 145, Answered = true, AnswerText = "Zakat is mandatory once nisab is reached." }
-            );
-            await _context.SaveChangesAsync();
-        }
-
-        // --- Certificates ---
-        if (!await _context.Certificates.AsNoTracking().AnyAsync())
-        {
-            var level = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
-
-            var certificate = new Certificate
+            // --- Enrollments & QuizAttempts ---
+            if (!await _context.Enrollments.AsNoTracking().AnyAsync())
             {
-                LevelId = level.Id,
-                StudentId = studentEntityId,
-                Url = "https://example.com/certificates/sample.pdf",
-                IssuedAt = DateTime.UtcNow
-            };
+                var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
-            _context.Certificates.Add(certificate);
-            await _context.SaveChangesAsync();
-        }
+                var enrollment = new Enrollment
+                {
+                    StudentId = studentEntityId,
+                    CourseId = course.Id,
+                    EnrolledAt = DateTime.UtcNow,
+                    Status = EnrollmentStatus.Active,
+                    LevelProgress = 0,
+                    CourseProgress = 0
+                };
 
-        // --- QAs & QATranslations & QATags ---
-        if (!await _context.QAs.AsNoTracking().AnyAsync())
-        {
-            var tagsByTitle = await _context.Tags.AsNoTracking().ToDictionaryAsync(t => t.Title, t => t.Id);
+                _context.Enrollments.Add(enrollment);
+                await _context.SaveChangesAsync();
 
-            var qa1 = new QA
+                var quiz = await _context.Quizzes.AsNoTracking().FirstOrDefaultAsync(q => q.CourseId == course.Id);
+                if (quiz != null)
+                {
+                    var attempt = new QuizAttempt
+                    {
+                        QuizId = quiz.Id,
+                        StudentId = studentEntityId,
+                        Score = 8.5M
+                    };
+
+                    _context.QuizAttempts.Add(attempt);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // --- Student Notes ---
+            if (!await _context.StudentNotes.AsNoTracking().AnyAsync())
             {
-                ImageUrl = null,
-                VideoUrl = null,
-                IsPublished = true,
-                Translations = new List<QATranslation>
+                var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+                _context.StudentNotes.AddRange(
+                    new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Key point about Shahada.", Timestamp = 12.5 },
+                    new StudentNote { StudentId = studentEntityId, LessonId = firstLesson.Id, Text = "Clarify Five Pillars order.", Timestamp = 89.3 }
+                );
+                await _context.SaveChangesAsync();
+            }
+
+            // --- Student Questions ---
+            if (!await _context.StudentQuestions.AsNoTracking().AnyAsync())
+            {
+                var firstLesson = await _context.Lessons.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+                _context.StudentQuestions.AddRange(
+                    new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Can you expand on the meaning of Shahada?", Timestamp = 30, Answered = false },
+                    new StudentQuestion { StudentId = studentEntityId, LessonId = firstLesson.Id, QuestionText = "Is Zakat mandatory for everyone?", Timestamp = 145, Answered = true, AnswerText = "Zakat is mandatory once nisab is reached." }
+                );
+                await _context.SaveChangesAsync();
+            }
+
+            // --- Certificates ---
+            if (!await _context.Certificates.AsNoTracking().AnyAsync())
+            {
+                var level = await _context.Levels.AsNoTracking().OrderBy(l => l.Order).FirstAsync();
+
+                var certificate = new Certificate
+                {
+                    LevelId = level.Id,
+                    StudentId = studentEntityId,
+                    Url = "https://example.com/certificates/sample.pdf",
+                    IssuedAt = DateTime.UtcNow
+                };
+
+                _context.Certificates.Add(certificate);
+                await _context.SaveChangesAsync();
+            }
+
+            // --- QAs & QATranslations & QATags ---
+            if (!await _context.QAs.AsNoTracking().AnyAsync())
+            {
+                var tagsByTitle = await _context.Tags.AsNoTracking().ToDictionaryAsync(t => t.Title, t => t.Id);
+
+                var qa1 = new QA
+                {
+                    ImageUrl = null,
+                    VideoUrl = null,
+                    IsPublished = true,
+                    Translations = new List<QATranslation>
                 {
                     new QATranslation { Language = Language.English, QuestionText = "What is Islam?", AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him)." },
                     new QATranslation { Language = Language.Arabic, QuestionText = "ما هو الإسلام؟", AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ." }
                 }
-            };
+                };
 
-            var qa2 = new QA
-            {
-                ImageUrl = null,
-                VideoUrl = null,
-                IsPublished = true,
-                Translations = new List<QATranslation>
+                var qa2 = new QA
+                {
+                    ImageUrl = null,
+                    VideoUrl = null,
+                    IsPublished = true,
+                    Translations = new List<QATranslation>
                 {
                     new QATranslation { Language = Language.English, QuestionText = "Who is Allah?", AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth." },
                     new QATranslation { Language = Language.Arabic, QuestionText = "من هو الله؟", AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض." }
                 }
-            };
+                };
 
-            // Attach tags by title when available
-            if (tagsByTitle.TryGetValue("Islamic Studies", out var islamicStudiesTag))
-            {
-                qa1.QATags.Add(new QATag { TagId = islamicStudiesTag });
-                qa2.QATags.Add(new QATag { TagId = islamicStudiesTag });
-            }
-            if (tagsByTitle.TryGetValue("Beginner Friendly", out var beginnerTag))
-            {
-                qa1.QATags.Add(new QATag { TagId = beginnerTag });
-            }
-
-            _context.QAs.AddRange(qa1, qa2);
-            await _context.SaveChangesAsync();
-        }
-
-        // --- Meeting Requests Seed ---
-        if (!await _context.MeetingRequests.AsNoTracking().AnyAsync())
-        {
-            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
-            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
-            if (requesterUser != null && scholarUser != null)
-            {
-                _context.MeetingRequests.Add(new MeetingRequest
+                // Attach tags by title when available
+                if (tagsByTitle.TryGetValue("Islamic Studies", out var islamicStudiesTag))
                 {
-                    RequesterId = requesterUser.Id,
-                    // No ScholarId until accepted
-                    Topic = MeetingInquiryTopic.GeneralInquiry,
-                    Message = "I would like to learn more about the basics of Islam.",
-                    Languages = [Language.English],
-                    ScheduledAt = DateTime.UtcNow.AddDays(2),
-                    Status = MeetingInquiryRequestStatus.Pending,
-                });
-                _context.MeetingRequests.Add(new MeetingRequest
+                    qa1.QATags.Add(new QATag { TagId = islamicStudiesTag });
+                    qa2.QATags.Add(new QATag { TagId = islamicStudiesTag });
+                }
+                if (tagsByTitle.TryGetValue("Beginner Friendly", out var beginnerTag))
                 {
-                    RequesterId = requesterUser.Id,
-                    ScholarId = scholarUser.Id,
-                    Topic = MeetingInquiryTopic.Quran,
-                    Message = "Questions about Quranic recitation rules.",
-                    Languages = [Language.Arabic, Language.English],
-                    ScheduledAt = DateTime.UtcNow.AddDays(5),
-                    Status = MeetingInquiryRequestStatus.Accepted,
-                    Response = "Looking forward to our meeting! here is the link https://meet.google.com/qwt-mxag-kyf"
-                });
+                    qa1.QATags.Add(new QATag { TagId = beginnerTag });
+                }
+
+                _context.QAs.AddRange(qa1, qa2);
                 await _context.SaveChangesAsync();
             }
-        }
 
-        // --- Inquiry Requests Seed ---
-        if (!await _context.InquiryRequests.AsNoTracking().AnyAsync())
-        {
-            var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
-            var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
-            if (requesterUser != null && scholarUser != null)
+            // --- Meeting Requests Seed ---
+            if (!await _context.MeetingRequests.AsNoTracking().AnyAsync())
             {
-                _context.InquiryRequests.Add(new InquiryRequest
+                var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+                var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+                if (requesterUser != null && scholarUser != null)
                 {
-                    RequesterId = requesterUser.Id,
-                    // No ScholarId until accepted
-                    Topic = MeetingInquiryTopic.GeneralInquiry,
-                    Message = "I would like to learn more about the basics of Islam.",
-                    Languages = [Language.English, Language.Arabic],
-                    Status = MeetingInquiryRequestStatus.Pending,
-                });
-                _context.InquiryRequests.Add(new InquiryRequest
-                {
-                    RequesterId = requesterUser.Id,
-                    ScholarId = scholarUser.Id,
-                    Topic = MeetingInquiryTopic.Quran,
-                    Message = "Questions about Quranic recitation rules.",
-                    Languages = [Language.Arabic],
-                    Status = MeetingInquiryRequestStatus.Accepted,
-                    Response = "Looking forward to our discussion!"
-                });
-                await _context.SaveChangesAsync();
+                    _context.MeetingRequests.Add(new MeetingRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        // No ScholarId until accepted
+                        Topic = MeetingInquiryTopic.GeneralInquiry,
+                        Message = "I would like to learn more about the basics of Islam.",
+                        Languages = [Language.English],
+                        ScheduledAt = DateTime.UtcNow.AddDays(2),
+                        Status = MeetingInquiryRequestStatus.Pending,
+                    });
+                    _context.MeetingRequests.Add(new MeetingRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        ScholarId = scholarUser.Id,
+                        Topic = MeetingInquiryTopic.Quran,
+                        Message = "Questions about Quranic recitation rules.",
+                        Languages = [Language.Arabic, Language.English],
+                        ScheduledAt = DateTime.UtcNow.AddDays(5),
+                        Status = MeetingInquiryRequestStatus.Accepted,
+                        Response = "Looking forward to our meeting! here is the link https://meet.google.com/qwt-mxag-kyf"
+                    });
+                    await _context.SaveChangesAsync();
+                }
             }
-        }
 
-        // --- Events & EventRegistrations ---
-        if (!await _context.Events.AsNoTracking().AnyAsync())
-        {
-            var speaker = "Dr. Ahmed";
-            var now = DateTime.UtcNow;
-            var event1 = new Event
+            // --- Inquiry Requests Seed ---
+            if (!await _context.InquiryRequests.AsNoTracking().AnyAsync())
             {
-                Title = "Understanding Ramadan",
-                Description = "A session on the spiritual dimensions of Ramadan.",
-                SpeakerName = speaker,
-                ImageUrl = null,
-                StartDateTime = now.AddDays(7),
-                EndDateTime = now.AddDays(7).AddHours(2),
-                MeetingLink = "https://meet.example.com/ramadan",
-                IsPublished = true
-            };
-            var event2 = new Event
-            {
-                Title = "Intro to Quranic Sciences",
-                Description = "Overview of 'Ulum al-Quran.",
-                SpeakerName = "Ustadh Bilal",
-                ImageUrl = null,
-                StartDateTime = now.AddDays(14),
-                EndDateTime = now.AddDays(14).AddHours(1),
-                MeetingLink = "https://meet.example.com/quranic-sciences",
-                IsPublished = true
-            };
-
-            _context.Events.AddRange(event1, event2);
-            await _context.SaveChangesAsync();
-
-            // Register the student user for event1
-            var eventStudentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
-            if (eventStudentUser != null)
-            {
-                _context.EventRegistrations.Add(new EventRegistration
+                var requesterUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+                var scholarUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "instructor@localhost");
+                if (requesterUser != null && scholarUser != null)
                 {
-                    EventId = event1.Id,
-                    UserId = eventStudentUser.Id,
-                    QuestionText = "Will there be a Q&A session?",
-                    Status = EventStatus.Approved
-                });
-                await _context.SaveChangesAsync();
+                    _context.InquiryRequests.Add(new InquiryRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        // No ScholarId until accepted
+                        Topic = MeetingInquiryTopic.GeneralInquiry,
+                        Message = "I would like to learn more about the basics of Islam.",
+                        Languages = [Language.English, Language.Arabic],
+                        Status = MeetingInquiryRequestStatus.Pending,
+                    });
+                    _context.InquiryRequests.Add(new InquiryRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        ScholarId = scholarUser.Id,
+                        Topic = MeetingInquiryTopic.Quran,
+                        Message = "Questions about Quranic recitation rules.",
+                        Languages = [Language.Arabic],
+                        Status = MeetingInquiryRequestStatus.Accepted,
+                        Response = "Looking forward to our discussion!"
+                    });
+                    await _context.SaveChangesAsync();
+                }
             }
-        }
+
+            // --- Events & EventRegistrations ---
+            if (!await _context.Events.AsNoTracking().AnyAsync())
+            {
+                var speaker = "Dr. Ahmed";
+                var now = DateTime.UtcNow;
+                var event1 = new Event
+                {
+                    Title = "Understanding Ramadan",
+                    Description = "A session on the spiritual dimensions of Ramadan.",
+                    SpeakerName = speaker,
+                    ImageUrl = null,
+                    StartDateTime = now.AddDays(7),
+                    EndDateTime = now.AddDays(7).AddHours(2),
+                    MeetingLink = "https://meet.example.com/ramadan",
+                    IsPublished = true
+                };
+                var event2 = new Event
+                {
+                    Title = "Intro to Quranic Sciences",
+                    Description = "Overview of 'Ulum al-Quran.",
+                    SpeakerName = "Ustadh Bilal",
+                    ImageUrl = null,
+                    StartDateTime = now.AddDays(14),
+                    EndDateTime = now.AddDays(14).AddHours(1),
+                    MeetingLink = "https://meet.example.com/quranic-sciences",
+                    IsPublished = true
+                };
+
+                _context.Events.AddRange(event1, event2);
+                await _context.SaveChangesAsync();
+
+                // Register the student user for event1
+                var eventStudentUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email == "student@localhost");
+                if (eventStudentUser != null)
+                {
+                    _context.EventRegistrations.Add(new EventRegistration
+                    {
+                        EventId = event1.Id,
+                        UserId = eventStudentUser.Id,
+                        QuestionText = "Will there be a Q&A session?",
+                        Status = EventStatus.Approved
+                    });
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             await transaction.CommitAsync();
         });
     }
 
-    private Task CreateRoleSpecificEntity(Guid userId, UserRole role)
+    private Task CreateRoleSpecificEntity(Guid userId, UserRole role, ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim)
     {
         switch (role)
         {
             case UserRole.Student:
+            case UserRole.NonMuslim:
                 if (!_context.Students.AsNoTracking().Any(s => s.UserId == userId))
                 {
                     _context.Students.Add(new Student
@@ -635,18 +638,6 @@ public class ApplicationDbContextInitialiser
                         JoinedDate = DateTime.UtcNow,
                         IsActive = true,
                         IsVerified = false
-                    });
-                }
-                break;
-
-            case UserRole.NonMuslim:
-                if (!_context.Students.AsNoTracking().Any(s => s.UserId == userId))
-                {
-                    _context.Students.Add(new Student
-                    {
-                        UserId = userId,
-                        EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                        IsActive = true
                     });
                 }
                 break;
