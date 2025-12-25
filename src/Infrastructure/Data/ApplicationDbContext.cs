@@ -9,7 +9,10 @@ namespace AskAMuslimBackend.Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+    {
+    }
+
     public DbSet<TodoList> TodoLists => Set<TodoList>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
@@ -33,9 +36,10 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<InquiryRequest> InquiryRequests => Set<InquiryRequest>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
-    
+
     // User Management
     public DbSet<Student> Students => Set<Student>();
+
     public DbSet<Instructor> Instructors => Set<Instructor>();
     public DbSet<Admin> Admins => Set<Admin>();
     public DbSet<Preacher> Preachers => Set<Preacher>();
@@ -45,6 +49,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
 
     // MuslimTube
     public DbSet<MuslimTubeChannel> MuslimTubeChannels => Set<MuslimTubeChannel>();
+
     public DbSet<MuslimTubeVideo> MuslimTubeVideos => Set<MuslimTubeVideo>();
 
     protected override void OnModelCreating(ModelBuilder builder)

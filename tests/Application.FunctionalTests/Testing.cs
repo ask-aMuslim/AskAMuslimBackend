@@ -76,33 +76,33 @@ public partial class Testing
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
         var existing = await userManager.FindByEmailAsync(email);
-        if (existing == null)
-        {
-            var user = new User
-            {
-                UserName = email,
-                Email = email,
-                FirstName = string.Empty,
-                LastName = string.Empty,
-                Role = roleEnum,
-                ReligionStatus = religiousStatus,
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
+        //if (existing == null)
+        //{
+        //    var user = new User
+        //    {
+        //        UserName = email,
+        //        Email = email,
+        //        FirstName = string.Empty,
+        //        LastName = string.Empty,
+        //        Role = roleEnum,
+        //        ReligionStatus = religiousStatus,
+        //        EmailConfirmed = true,
+        //        IsActive = true,
+        //        CreatedAt = DateTime.UtcNow
+        //    };
 
-            var result = await userManager.CreateAsync(user, password);
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(user, roleEnum.ToString());
-            }
+        //    var result = await userManager.CreateAsync(user, password);
+        //    if (result.Succeeded)
+        //    {
+        //        await userManager.AddToRoleAsync(user, roleEnum.ToString());
+        //    }
 
-            _userId = user.Id.ToString();
-        }
-        else
-        {
-            _userId = existing.Id.ToString();
-        }
+        //    _userId = user.Id.ToString();
+        //}
+        //else
+        //{
+        //    _userId = existing.Id.ToString();
+        //}
 
         _roles = new List<string>(roles ?? Array.Empty<string>());
         return _userId!;

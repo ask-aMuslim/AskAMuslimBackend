@@ -123,8 +123,9 @@ public class IdentityService : IIdentityService
         // Generate token
         var token = GenerateJwtToken(user);
 
-        // Handle it using appsettings.json for maintainability
-        var expiresAt = DateTime.UtcNow.AddHours(24);
+        // Get token expiration from appsettings.json
+        var tokenExpirationHours = _configuration.GetValue<int>("JwtSettings:TokenExpirationHours", 24);
+        var expiresAt = DateTime.UtcNow.AddHours(tokenExpirationHours);
 
         var authResponse = new AuthenticationResponse
         {
