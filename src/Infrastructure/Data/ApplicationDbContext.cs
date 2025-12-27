@@ -39,6 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
 
     // User Management
     public DbSet<Student> Students => Set<Student>();
+    public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
 
     public DbSet<Instructor> Instructors => Set<Instructor>();
     public DbSet<Admin> Admins => Set<Admin>();

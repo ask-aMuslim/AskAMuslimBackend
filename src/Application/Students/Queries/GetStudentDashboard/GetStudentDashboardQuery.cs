@@ -38,7 +38,8 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
 
         if (!string.IsNullOrWhiteSpace(request.Country))
         {
-            query = query.Where(s => s.Country == request.Country);
+            query = query.Where(s => _context.StudentProfiles
+                .Any(sp => sp.StudentId == s.Id && sp.Country == request.Country));
         }
 
         var students = await query
@@ -78,6 +79,9 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
                 currentLesson = lastLesson?.Title;
             }
 
+            var profile = await _context.StudentProfiles
+                .FirstOrDefaultAsync(sp => sp.StudentId == student.Id, cancellationToken);
+
             studentDashboards.Add(new StudentDashboardDto
             {
                 Id = student.Id,
@@ -85,7 +89,7 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
                 FirstName = user?.FirstName ?? string.Empty,
                 LastName = user?.LastName ?? string.Empty,
                 Email = user?.Email ?? string.Empty,
-                Country = student.Country,
+                Country = profile?.Country,
                 IsActive = student.IsActive,
                 Progress = new StudentProgressDto
                 {

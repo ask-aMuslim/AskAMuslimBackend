@@ -20,9 +20,9 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasForeignKey<Student>(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(s => s.Bio).HasMaxLength(2000);
-        builder.Property(s => s.PhoneNumber).HasMaxLength(50);
-        builder.Property(s => s.Address).HasMaxLength(500);
-        builder.Property(s => s.Country).HasMaxLength(100);
+        builder.HasOne(s => s.Profile)
+            .WithOne(sp => sp.Student)
+            .HasForeignKey<StudentProfile>(sp => sp.StudentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

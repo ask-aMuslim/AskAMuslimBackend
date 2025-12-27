@@ -1,5 +1,6 @@
 namespace AskAMuslimBackend.Application.Students.Commands.UpdateStudentProfile;
 
+// Deprecated - use StudentProfiles.Commands.UpdateStudentProfile.UpdateStudentProfileCommandValidator
 public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStudentProfileCommand>
 {
     public UpdateStudentProfileCommandValidator()
@@ -19,5 +20,9 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
         RuleFor(x => x.DateOfBirth)
             .LessThan(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Date of birth must be in the past.")
             .When(x => x.DateOfBirth.HasValue);
+
+        RuleFor(x => x.DateOfIslamConversion)
+            .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow)).WithMessage("Date of Islam conversion must not be in the future.")
+            .When(x => x.DateOfIslamConversion.HasValue);
     }
 }

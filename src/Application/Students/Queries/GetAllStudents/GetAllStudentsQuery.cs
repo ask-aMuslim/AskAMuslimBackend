@@ -26,13 +26,10 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, R
                 Email = string.Empty, // Will be populated from Identity if needed
                 FirstName = string.Empty,
                 LastName = string.Empty,
-                Bio = s.Bio,
-                PhoneNumber = s.PhoneNumber,
-                Address = s.Address,
-                DateOfBirth = s.DateOfBirth,
                 EnrollmentDate = s.EnrollmentDate,
                 IsActive = s.IsActive,
-                TotalEnrollments = s.Enrollments.Count
+                TotalEnrollments = s.Enrollments.Count,
+                HasProfile = _context.StudentProfiles.Any(sp => sp.StudentId == s.Id)
             })
             .ToListAsync(cancellationToken);
             

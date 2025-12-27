@@ -33,6 +33,7 @@ public interface IApplicationDbContext
 
     // User Management
     DbSet<Student> Students { get; }
+    DbSet<StudentProfile> StudentProfiles { get; }
     DbSet<Instructor> Instructors { get; }
     DbSet<Admin> Admins { get; }
     DbSet<Preacher> Preachers { get; }

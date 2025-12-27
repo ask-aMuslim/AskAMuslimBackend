@@ -3326,6 +3326,109 @@
         ]
       }
     },
+    "/api/StudentProfiles/me": {
+      "get": {
+        "tags": [
+          "StudentProfiles"
+        ],
+        "operationId": "GetMyProfile4",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "StudentProfiles"
+        ],
+        "operationId": "CreateStudentProfile",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStudentProfileCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "StudentProfiles"
+        ],
+        "operationId": "UpdateStudentProfile",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentProfileCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/StudentProfiles/{userId}": {
+      "get": {
+        "tags": [
+          "StudentProfiles"
+        ],
+        "operationId": "GetStudentProfile",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/StudentQuestions/{id}": {
       "get": {
         "tags": [
@@ -3506,7 +3609,7 @@
         "tags": [
           "Students"
         ],
-        "operationId": "GetMyProfile4",
+        "operationId": "GetMyProfile5",
         "responses": {
           "200": {
             "description": ""
@@ -3522,13 +3625,13 @@
         "tags": [
           "Students"
         ],
-        "operationId": "UpdateStudentProfile",
+        "operationId": "UpdateStudentProfile2",
         "requestBody": {
           "x-name": "command",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateStudentProfileCommand"
+                "$ref": "#/components/schemas/UpdateStudentProfileCommand2"
               }
             }
           },
@@ -3552,7 +3655,7 @@
         "tags": [
           "Students"
         ],
-        "operationId": "GetStudentProfile",
+        "operationId": "GetStudentProfile2",
         "parameters": [
           {
             "name": "userId",
@@ -5188,6 +5291,94 @@
           }
         }
       },
+      "CreateStudentProfileCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "dateOfIslamConversion": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "oldReligion": {
+            "type": "string",
+            "nullable": true
+          },
+          "reasonForConversion": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateStudentProfileCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "dateOfIslamConversion": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "oldReligion": {
+            "type": "string",
+            "nullable": true
+          },
+          "reasonForConversion": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "CreateStudentQuestionCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5222,7 +5413,7 @@
           }
         }
       },
-      "UpdateStudentProfileCommand": {
+      "UpdateStudentProfileCommand2": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

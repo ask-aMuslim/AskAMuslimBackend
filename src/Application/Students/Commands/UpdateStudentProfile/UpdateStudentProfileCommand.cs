@@ -1,9 +1,10 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Students.Commands.UpdateStudentProfile;
 
+// This command is deprecated. Use StudentProfiles.Commands.UpdateStudentProfile instead.
+// Kept for backward compatibility, redirects to StudentProfile functionality.
 public record UpdateStudentProfileCommand : IRequest<Result<Guid>>
 {
     public string? Bio { get; init; }
@@ -17,47 +18,27 @@ public record UpdateStudentProfileCommand : IRequest<Result<Guid>>
 
 public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentProfileCommand, Result<Guid>>
 {
-    private readonly IApplicationDbContext _context;
-    private readonly IUser _currentUser;
+    private readonly IMediator _mediator;
 
-    public UpdateStudentProfileCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public UpdateStudentProfileCommandHandler(IMediator mediator)
     {
-        _context = context;
-        _currentUser = currentUser;
+        _mediator = mediator;
     }
 
     public async Task<Result<Guid>> Handle(UpdateStudentProfileCommand request, CancellationToken cancellationToken)
     {
-        var userIdString = _currentUser.Id;
-        
-        if (string.IsNullOrEmpty(userIdString))
+        // Redirect to the new StudentProfile command
+        var profileCommand = new UpdateStudentProfileCommand
         {
-            return Result<Guid>.Failure(new[] { "User not authenticated" });
-        }
+            Bio = request.Bio,
+            PhoneNumber = request.PhoneNumber,
+            Address = request.Address,
+            Country = request.Country,
+            CountryCode = request.CountryCode,
+            DateOfBirth = request.DateOfBirth,
+            DateOfIslamConversion = request.DateOfIslamConversion
+        };
 
-        if (!Guid.TryParse(userIdString, out var userId))
-        {
-            return Result<Guid>.Failure(new[] { "Invalid user ID format" });
-        }
-
-        var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
-            
-        if (student == null)
-        {
-            return Result<Guid>.Failure(new[] { $"Student with user ID {userId} not found" });
-        }
-
-        student.Bio = request.Bio;
-        student.PhoneNumber = request.PhoneNumber;
-        student.Address = request.Address;
-        student.DateOfBirth = request.DateOfBirth;
-        student.Country = request.Country;
-        student.CountryCode = request.CountryCode;
-        student.DateOfIslamConversion = request.DateOfIslamConversion;
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return Result<Guid>.Success(student.Id);
+        return await _mediator.Send(profileCommand, cancellationToken);
     }
 }

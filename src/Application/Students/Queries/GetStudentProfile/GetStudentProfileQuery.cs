@@ -48,6 +48,10 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
 
+        // Check if profile exists
+        var hasProfile = await _context.StudentProfiles
+            .AnyAsync(sp => sp.StudentId == student.Id, cancellationToken);
+
         return Result<StudentDto?>.Success(new StudentDto
         {
             Id = student.Id,
@@ -55,13 +59,10 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             Email = email,
             FirstName = firstName,
             LastName = lastName,
-            Bio = student.Bio,
-            PhoneNumber = student.PhoneNumber,
-            Address = student.Address,
-            DateOfBirth = student.DateOfBirth,
             EnrollmentDate = student.EnrollmentDate,
             IsActive = student.IsActive,
-            TotalEnrollments = student.Enrollments.Count
+            TotalEnrollments = student.Enrollments.Count,
+            HasProfile = hasProfile
         });
     }
 }

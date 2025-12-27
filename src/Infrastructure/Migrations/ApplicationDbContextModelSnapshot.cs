@@ -1146,36 +1146,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Address")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Bio")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("CountryCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateOnly?>("DateOfBirth")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly?>("DateOfIslamConversion")
-                        .HasColumnType("date");
-
                     b.Property<DateOnly>("EnrollmentDate")
                         .HasColumnType("date");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
@@ -1227,6 +1202,63 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("StudentNotes", (string)null);
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Bio")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("DateOfIslamConversion")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsMuslim")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNewMuslim")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OldReligion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ReasonForConversion")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId")
+                        .IsUnique();
+
+                    b.ToTable("StudentProfiles", (string)null);
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentQuestion", b =>
@@ -1983,6 +2015,17 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentProfile", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", "Student")
+                        .WithOne("Profile")
+                        .HasForeignKey("AskAMuslimBackend.Domain.Entities.StudentProfile", "StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentQuestion", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.Lesson", "Lesson")
@@ -2158,6 +2201,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("AdminNotes");
 
                     b.Navigation("Enrollments");
+
+                    b.Navigation("Profile");
 
                     b.Navigation("QuizAttempts");
 
