@@ -23,6 +23,7 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .MaximumLength(100).WithMessage("Last name must not exceed 100 characters.");
 
         RuleFor(x => x.Role)
-            .IsInEnum().WithMessage("Invalid role selected.");
+            .IsInEnum().WithMessage("Invalid role selected.")
+            .NotEqual(UserRole.Admin).WithMessage("Cannot register as admin.");
     }
 }
