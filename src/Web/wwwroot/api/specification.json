@@ -161,7 +161,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -186,7 +203,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -211,7 +245,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -236,7 +287,24 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -3604,52 +3672,6 @@
         ]
       }
     },
-    "/api/Students/me": {
-      "get": {
-        "tags": [
-          "Students"
-        ],
-        "operationId": "GetMyProfile5",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      },
-      "put": {
-        "tags": [
-          "Students"
-        ],
-        "operationId": "UpdateStudentProfile2",
-        "requestBody": {
-          "x-name": "command",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateStudentProfileCommand2"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
-    },
     "/api/Students/{userId}": {
       "get": {
         "tags": [
@@ -4250,14 +4272,37 @@
           }
         }
       },
-      "RegisterCommand": {
+      "ResultOfAuthenticationResponse": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "email": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AuthenticationResponse"
+              }
+            ]
+          }
+        }
+      },
+      "AuthenticationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
             "type": "string"
           },
-          "password": {
+          "email": {
             "type": "string"
           },
           "firstName": {
@@ -4269,8 +4314,20 @@
           "role": {
             "$ref": "#/components/schemas/UserRole"
           },
-          "religion": {
-            "$ref": "#/components/schemas/ReligiousStatus"
+          "religiousStatus": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReligiousStatus"
+              }
+            ]
+          },
+          "token": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -4305,6 +4362,30 @@
           2,
           3
         ]
+      },
+      "RegisterCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "religion": {
+            "$ref": "#/components/schemas/ReligiousStatus"
+          }
+        }
       },
       "LoginCommand": {
         "type": "object",
@@ -5410,42 +5491,6 @@
           },
           "answerText": {
             "type": "string"
-          }
-        }
-      },
-      "UpdateStudentProfileCommand2": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "bio": {
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "type": "string",
-            "nullable": true
-          },
-          "address": {
-            "type": "string",
-            "nullable": true
-          },
-          "country": {
-            "type": "string",
-            "nullable": true
-          },
-          "countryCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "dateOfIslamConversion": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
           }
         }
       },

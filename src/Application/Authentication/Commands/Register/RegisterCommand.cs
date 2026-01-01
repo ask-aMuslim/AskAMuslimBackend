@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace AskAMuslimBackend.Application.Authentication.Commands.Register;
 
@@ -11,7 +12,6 @@ public record RegisterCommand : IRequest<Result<AuthenticationResponse>>
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
     public UserRole Role { get; init; } = UserRole.Student;
-
     public ReligiousStatus Religion { get; init; }
 }
 
@@ -32,7 +32,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             request.FirstName,
             request.LastName,
             request.Role,
-            request.Religion);
+            request.Religion,
+            null,
+            cancellationToken);
 
         return result;
     }

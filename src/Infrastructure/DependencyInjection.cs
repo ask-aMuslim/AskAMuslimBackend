@@ -78,6 +78,7 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IYouTubeService, YouTubeService>();
         builder.Services.AddSingleton<IMuslimTubeCache, MuslimTubeMemoryCache>();
+        builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

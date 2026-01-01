@@ -13,31 +13,40 @@ public class Authentication : EndpointGroupBase
     {
         groupBuilder.MapPost(Register, "register")
             .AllowAnonymous()
+            .DisableAntiforgery()
             .WithName("Register")
             .WithSummary("Register a new user")
-            .WithDescription("Creates a new user account with the specified role (Admin, Student, Instructor, NonMuslim)");
+            .WithDescription("Creates a new user account with the specified role (Admin, Student, Instructor, NonMuslim). Accepts multipart/form-data for image upload.")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
 
         groupBuilder.MapPost(Login, "login")
             .AllowAnonymous()
             .WithName("Login")
             .WithSummary("Login user")
-            .WithDescription("Authenticates a user and returns a JWT token");
+            .WithDescription("Authenticates a user and returns a JWT token")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
 
         groupBuilder.MapPost(LoginWithGoogle, "login/google")
             .AllowAnonymous()
             .WithName("LoginWithGoogle")
             .WithSummary("Login with Google")
-            .WithDescription("Accepts a Google ID token, verifies it and returns a JWT token");
+            .WithDescription("Accepts a Google ID token, verifies it and returns a JWT token")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
 
         groupBuilder.MapPost(LoginWithFacebook, "login/facebook")
             .AllowAnonymous()
             .WithName("LoginWithFacebook")
             .WithSummary("Login with Facebook")
-            .WithDescription("Accepts a Facebook access token, verifies it and returns a JWT token");
+            .WithDescription("Accepts a Facebook access token, verifies it and returns a JWT token")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
     }
 
     public async Task<IResult> Register(
-        ISender sender, 
+        ISender sender,
         RegisterCommand command)
     {
         var result = await sender.Send(command);
@@ -45,7 +54,7 @@ public class Authentication : EndpointGroupBase
     }
 
     public async Task<IResult> Login(
-        ISender sender, 
+        ISender sender,
         LoginCommand command)
     {
         var result = await sender.Send(command);

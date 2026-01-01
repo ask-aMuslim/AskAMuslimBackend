@@ -9,6 +9,7 @@ public class User : IdentityUser<Guid>
     public string LastName { get; set; } = string.Empty;
     public UserRole Role { get; set; }
     public ReligiousStatus? ReligionStatus { get; set; }
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }

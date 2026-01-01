@@ -18,12 +18,12 @@ public static class ResultExtensions
     {
         if (result.Succeeded)
         {
-            return result.Data is null 
-                ? Results.NotFound() 
-                : Results.Ok(result.Data);
+            // Return the full Result wrapper with succeeded, errors, and data
+            return Results.Ok(result);
         }
 
-        return Results.BadRequest(new { errors = result.Errors });
+        // Return the full Result wrapper with error information
+        return Results.BadRequest(result);
     }
 
     public static IResult ToCreatedResult<T>(this Result<T> result, string uri)

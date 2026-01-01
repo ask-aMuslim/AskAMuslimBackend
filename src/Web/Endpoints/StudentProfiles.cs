@@ -13,7 +13,7 @@ public class StudentProfiles : EndpointGroupBase
     {
         groupBuilder.MapGet(GetMyProfile, "me")
             .RequireAuthorization()
-            .WithName("GetMyStudentProfile")
+            .WithName("GetMyStudentProfileDetails")
             .WithSummary("Get current student's profile with religious status information");
 
         groupBuilder.MapGet(GetStudentProfile, "{userId}")

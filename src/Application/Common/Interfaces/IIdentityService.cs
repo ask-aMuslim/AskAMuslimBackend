@@ -1,5 +1,6 @@
 ﻿using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace AskAMuslimBackend.Application.Common.Interfaces;
 
@@ -21,7 +22,9 @@ public interface IIdentityService
         string firstName,
         string lastName,
         UserRole role,
-        ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim);
+        ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim,
+        IFormFile? image = null,
+        CancellationToken cancellationToken = default);
 
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
 

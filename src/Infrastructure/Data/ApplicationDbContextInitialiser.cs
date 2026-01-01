@@ -3,6 +3,7 @@ using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -29,19 +30,22 @@ public class ApplicationDbContextInitialiser
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IHostEnvironment _env;
+    private readonly IConfiguration _configuration;
 
     public ApplicationDbContextInitialiser(
         ILogger<ApplicationDbContextInitialiser> logger,
         ApplicationDbContext context,
         UserManager<User> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
-        IHostEnvironment env)
+        IHostEnvironment env,
+        IConfiguration configuration)
     {
         _logger = logger;
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _env = env;
+        _configuration = configuration;
     }
 
     public async Task InitialiseAsync()
@@ -107,9 +111,15 @@ public class ApplicationDbContextInitialiser
             }
 
             // --- Default Users ---
+            // Read admin configuration from appsettings
+            var adminEmail = _configuration["AdminSeed:Email"] ?? "administrator@localhost";
+            var adminPassword = _configuration["AdminSeed:Password"] ?? "Administrator1!";
+            var adminFirstName = _configuration["AdminSeed:FirstName"] ?? "Admin";
+            var adminLastName = _configuration["AdminSeed:LastName"] ?? "User";
+
             var userSeeds = new List<(string Email, string Password, string FirstName, string LastName, UserRole UserRole, ReligiousStatus religion)>
         {
-            ("administrator@localhost", "Administrator1!", "Admin", "User", UserRole.Admin, ReligiousStatus.BornMuslim),
+            (adminEmail, adminPassword, adminFirstName, adminLastName, UserRole.Admin, ReligiousStatus.BornMuslim),
             ("student@localhost", "Student1!", "John", "Student", UserRole.Student, ReligiousStatus.RevertedMuslim),
             ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim, ReligiousStatus.NonMuslim),
             ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor, ReligiousStatus.BornMuslim),

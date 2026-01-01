@@ -1,4 +1,6 @@
+using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 
 namespace AskAMuslimBackend.Application.Authentication.Commands.Register;
 
@@ -25,5 +27,22 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Invalid role selected.")
             .NotEqual(UserRole.Admin).WithMessage("Cannot register as admin.");
+    }
+
+    private bool BeAValidImage(IFormFile? file)
+    {
+        if (file == null) return true;
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        return allowedExtensions.Contains(extension);
+    }
+
+    private bool BeAValidSize(IFormFile? file)
+    {
+        if (file == null) return true;
+
+        const long maxSize = 5 * 1024 * 1024; // 5MB
+        return file.Length <= maxSize;
     }
 }

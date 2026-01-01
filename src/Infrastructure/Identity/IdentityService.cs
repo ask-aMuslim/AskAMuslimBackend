@@ -8,6 +8,7 @@ using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -21,19 +22,22 @@ public class IdentityService : IIdentityService
     private readonly RoleManager<IdentityRole<Guid>> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IFileStorageService _fileStorageService;
 
     public IdentityService(
         ApplicationDbContext dbContext,
         UserManager<User> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
         IConfiguration configuration,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IFileStorageService fileStorageService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
+        _fileStorageService = fileStorageService;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
@@ -85,13 +89,29 @@ public class IdentityService : IIdentityService
         string firstName,
         string lastName,
         UserRole role,
-        ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim)
+        ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim,
+        IFormFile? image = null,
+        CancellationToken cancellationToken = default)
     {
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
         if (existingUser != null)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "User with this email already exists." });
+        }
+
+        // Upload image if provided
+        string? imageUrl = null;
+        if (image != null)
+        {
+            try
+            {
+                imageUrl = await _fileStorageService.UploadFileAsync(image, "profile-images", cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Failed to upload image: {ex.Message}" });
+            }
         }
 
         var user = new User
@@ -102,6 +122,7 @@ public class IdentityService : IIdentityService
             LastName = lastName,
             Role = role,
             ReligionStatus = religiousStatus,
+            ImageUrl = imageUrl,
             EmailConfirmed = true,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -279,6 +300,7 @@ public class IdentityService : IIdentityService
         var email = payload.Email;
         var firstName = payload.GivenName ?? string.Empty;
         var lastName = payload.FamilyName ?? string.Empty;
+        var imageUrl = payload.Picture; // Google profile picture
 
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -291,6 +313,7 @@ public class IdentityService : IIdentityService
                 LastName = lastName,
                 Role = UserRole.Student, // default role, adjust as needed
                 ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
+                ImageUrl = imageUrl,
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -374,6 +397,14 @@ public class IdentityService : IIdentityService
         var firstName = meDoc.RootElement.TryGetProperty("first_name", out var fnProp) ? fnProp.GetString() : null;
         var lastName = meDoc.RootElement.TryGetProperty("last_name", out var lnProp) ? lnProp.GetString() : null;
         var fbId = meDoc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetString() : userId;
+        
+        // Extract Facebook profile picture
+        string? imageUrl = null;
+        if (!string.IsNullOrWhiteSpace(fbId))
+        {
+            // Facebook profile picture URL format
+            imageUrl = $"https://graph.facebook.com/{fbId}/picture?type=large";
+        }
 
         // Fallback email if not present: create a synthetic email based on FB id and app domain
         if (string.IsNullOrWhiteSpace(email))
@@ -396,6 +427,7 @@ public class IdentityService : IIdentityService
                 LastName = lastName,
                 Role = UserRole.Student,
                 ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
+                ImageUrl = imageUrl,
                 EmailConfirmed = true,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
