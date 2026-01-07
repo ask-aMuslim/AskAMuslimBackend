@@ -23,6 +23,16 @@ public static class DependencyInjection
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+        // Add CORS
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
 
         // Customise default API behaviour
         builder.Services.Configure<ApiBehaviorOptions>(options =>
