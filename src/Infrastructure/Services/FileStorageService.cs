@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
@@ -8,15 +9,28 @@ public class FileStorageService : IFileStorageService
 {
     private readonly string _uploadPath;
 
-    public FileStorageService(IConfiguration configuration)
+    public FileStorageService(IConfiguration configuration, IWebHostEnvironment env)
     {
-        _uploadPath = configuration["FileStorage:UploadPath"] ?? "/var/opt/Uploads";
+        var configuredPath = configuration["FileStorage:UploadPath"];
         
-        // Ensure the directory exists
-        if (!Directory.Exists(_uploadPath))
+        if (string.IsNullOrWhiteSpace(configuredPath))
         {
-            Directory.CreateDirectory(_uploadPath);
+            // Default to temp path if not configured
+            _uploadPath = Path.Combine(Path.GetTempPath(), "Uploads");
         }
+        else if (Path.IsPathRooted(configuredPath))
+        {
+            // Absolute path - use as-is
+            _uploadPath = configuredPath;
+        }
+        else
+        {
+            // Relative path - resolve based on content root
+            _uploadPath = Path.Combine(env.ContentRootPath, configuredPath);
+        }
+        
+        // Don't create directory in constructor - do it lazily when needed
+        // This prevents crashes if the path doesn't have permissions
     }
 
     public async Task<string> UploadFileAsync(IFormFile file, string containerName, CancellationToken cancellationToken = default)
@@ -28,8 +42,18 @@ public class FileStorageService : IFileStorageService
 
         // Create container directory if it doesn't exist
         var containerPath = Path.Combine(_uploadPath, containerName);
-        if (!Directory.Exists(containerPath))
+        
+        try
         {
+            if (!Directory.Exists(containerPath))
+            {
+                Directory.CreateDirectory(containerPath);
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // If we can't create the directory, use temp path instead
+            containerPath = Path.Combine(Path.GetTempPath(), "Uploads", containerName);
             Directory.CreateDirectory(containerPath);
         }
 
@@ -42,7 +66,7 @@ public class FileStorageService : IFileStorageService
         using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream, cancellationToken);
 
-        // Return relative path from upload directory
+        // Return relative path from upload directory (use forward slashes for URLs)
         return $"/uploads/{containerName}/{uniqueFileName}";
     }
 
