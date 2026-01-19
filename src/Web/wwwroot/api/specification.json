@@ -3406,6 +3406,24 @@
         ]
       }
     },
+    "/api/Statistics": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "GetStatistics",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/StudentNotes/{id}": {
       "get": {
         "tags": [
