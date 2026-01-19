@@ -2,6 +2,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Web.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 
 using NSwag;
@@ -22,6 +23,10 @@ public static class DependencyInjection
             .AddDbContextCheck<ApplicationDbContext>();
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+
+        // Add Hangfire services
+        builder.Services.AddHangfire(configuration => { });
+        builder.Services.AddHangfireServer();
 
         // Add CORS
         builder.Services.AddCors(options =>

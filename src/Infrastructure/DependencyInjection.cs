@@ -1,15 +1,22 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Infrastructure.Data.Interceptors;
 using AskAMuslimBackend.Infrastructure.Identity;
 using AskAMuslimBackend.Infrastructure.Services;
+using AskAMuslimBackend.Infrastructure.Services.BackgroundJobs;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -79,6 +86,39 @@ public static class DependencyInjection
         builder.Services.AddScoped<IYouTubeService, YouTubeService>();
         builder.Services.AddSingleton<IMuslimTubeCache, MuslimTubeMemoryCache>();
         builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+
+        // Configure Firebase Admin SDK
+        var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"];
+        if (!string.IsNullOrEmpty(firebaseCredentialPath))
+        {
+            var fullPath = Path.Combine(AppContext.BaseDirectory, firebaseCredentialPath);
+            if (File.Exists(fullPath))
+            {
+                FirebaseApp.Create(new AppOptions
+                {
+                    Credential = GoogleCredential.FromFile(fullPath)
+                });
+            }
+        }
+
+        builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
+
+        // Configure Hangfire
+        GlobalConfiguration.Configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.Zero,
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true
+            });
+
+        builder.Services.AddScoped<IBackgroundJobService, BackgroundNotificationJobService>();
+        builder.Services.AddScoped<NotificationJobExecutor>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

@@ -1,4 +1,6 @@
 using AskAMuslimBackend.Infrastructure.Data;
+using AskAMuslimBackend.Web.Infrastructure;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +34,12 @@ app.UseSwaggerUi(settings =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add Hangfire Dashboard (admin-only access)
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
 
 app.UseExceptionHandler(options => { });
 

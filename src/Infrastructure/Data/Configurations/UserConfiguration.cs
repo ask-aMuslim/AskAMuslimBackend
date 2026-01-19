@@ -39,6 +39,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.RefreshToken)
             .HasMaxLength(500);
 
+        builder.Property(u => u.FcmToken)
+            .HasMaxLength(255);
+
         builder.Property(u => u.EmailConfirmed)
             .HasDefaultValue(false);
 
