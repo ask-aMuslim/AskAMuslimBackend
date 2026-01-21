@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Admins.Commands.UpdateAdminProfile;
 using AskAMuslimBackend.Application.Admins.Queries;
 using AskAMuslimBackend.Application.Admins.Queries.GetAdminProfile;
+using AskAMuslimBackend.Application.Admins.Queries.GetAllAdmins;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -20,6 +21,11 @@ public class Admins : EndpointGroupBase
             .WithName("GetAdminProfile")
             .WithSummary("Get admin profile by user ID");
 
+        groupBuilder.MapGet(GetAllAdmins)
+            .RequireAuthorization()
+            .WithName("GetAllAdmins")
+            .WithSummary("Get all admins");
+
         groupBuilder.MapPut(UpdateAdminProfile, "me")
             .RequireAuthorization()
             .WithName("UpdateAdminProfile")
@@ -35,6 +41,12 @@ public class Admins : EndpointGroupBase
     public async Task<IResult> GetAdminProfile(ISender sender, string userId)
     {
         var result = await sender.Send(new GetAdminProfileQuery { UserId = userId });
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetAllAdmins(ISender sender)
+    {
+        var result = await sender.Send(new GetAllAdminsQuery());
         return result.ToHttpResult();
     }
 

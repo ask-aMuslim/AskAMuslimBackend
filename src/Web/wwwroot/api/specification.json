@@ -141,6 +141,24 @@
         ]
       }
     },
+    "/api/Admins": {
+      "get": {
+        "tags": [
+          "Admins"
+        ],
+        "operationId": "GetAllAdmins",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Authentication/register": {
       "post": {
         "tags": [
