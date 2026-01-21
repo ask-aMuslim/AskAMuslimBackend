@@ -15,7 +15,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x   # خليها 9.0.x لو مشروعك فعليًا .NET 9
 
     - name: Restore
       run: dotnet restore src/Web/Web.csproj
@@ -29,12 +29,13 @@ jobs:
     - name: Publish
       run: dotnet publish src/Web/Web.csproj -c Release -o publish
 
-    - name: Deploy to Monster ASP.NET
+    - name: Deploy to Monster ASP.NET via SFTP
       if: github.event_name == 'push'
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.0   # <- الإصدار الصحيح
+      uses: appleboy/scp-action@v0.1.6
       with:
-        server: ${{ secrets.FTP_SERVER }}
+        host: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: publish/
-        server-dir: ${{ secrets.FTP_PATH }}
+        port: 22
+        source: "publish/*"
+        target: ${{ secrets.FTP_PATH }}
