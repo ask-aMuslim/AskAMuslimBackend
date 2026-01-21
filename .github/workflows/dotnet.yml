@@ -15,7 +15,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x   # خليها 9.0.x لو مشروعك فعليًا .NET 9
+        dotnet-version: 9.0.x  # لو مشروعك .NET 9 استخدم 9.0.x
 
     - name: Restore
       run: dotnet restore src/Web/Web.csproj
@@ -38,4 +38,7 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         port: 22
         source: "publish/*"
-        target: ${{ secrets.FTP_PATH }}
+        target: ${{ secrets.FTP_PATH }}   # استخدام مجلد فرعي لتفادي مشاكل overwrite
+        tar_exec: ""           # منع استخدام tar نهائيًا
+        tar_dereference: false
+        overwrite: true        # استبدال الملفات القديمة
