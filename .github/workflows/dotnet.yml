@@ -3,8 +3,6 @@ name: .NET CI/CD
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 jobs:
   build:
@@ -17,9 +15,9 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.0.x   # خليها 8.0.x لو مشروعك فعلاً 8
+        dotnet-version: 8.0.x
 
-    - name: Restore dependencies
+    - name: Restore
       run: dotnet restore src/Web/Web.csproj
 
     - name: Build
@@ -31,8 +29,9 @@ jobs:
     - name: Publish
       run: dotnet publish src/Web/Web.csproj -c Release -o publish
 
-    - name: Deploy to Monster ASP.NET (FTP)
-      uses: SamKirkland/FTP-Deploy-Action@v4
+    - name: Deploy to Monster ASP.NET
+      if: github.event_name == 'push'
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.0   # <- الإصدار الصحيح
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
