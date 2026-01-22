@@ -17,23 +17,25 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
 
     public async Task<Result<List<AdminDto>>> Handle(GetAllAdminsQuery request, CancellationToken cancellationToken)
     {
-        var admins = await _context.Admins
-            .Select(a => new AdminDto
-            {
-                Id = a.Id,
-                UserId = a.UserId,
-                Email = string.Empty, // Will be populated from Identity if needed
-                FirstName = string.Empty,
-                LastName = string.Empty,
-                Department = a.Department,
-                PhoneNumber = a.PhoneNumber,
-                IsSuperAdmin = a.IsSuperAdmin,
-                IsActive = a.IsActive,
-                JoinedDate = a.JoinedDate,
-                LastLoginDate = a.LastLoginDate
-            })
-            .ToListAsync(cancellationToken);
-            
+        var admins = await (from a in _context.Admins
+                            join u in _context.Users on a.UserId equals u.Id into users
+                            from u in users.DefaultIfEmpty()
+                            select new AdminDto
+                            {
+                                Id = a.Id,
+                                UserId = a.UserId,
+                                Email = u != null ? u.Email ?? string.Empty : string.Empty,
+                                FirstName = u != null ? u.FirstName ?? string.Empty : string.Empty,
+                                LastName = u != null ? u.LastName ?? string.Empty : string.Empty,
+                                Department = a.Department,
+                                PhoneNumber = a.PhoneNumber,
+                                IsSuperAdmin = a.IsSuperAdmin,
+                                IsActive = a.IsActive,
+                                JoinedDate = a.JoinedDate,
+                                LastLoginDate = a.LastLoginDate
+                            })
+                            .ToListAsync(cancellationToken);
+
         return Result<List<AdminDto>>.Success(admins);
     }
 }

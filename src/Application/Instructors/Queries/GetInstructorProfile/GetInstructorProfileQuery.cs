@@ -39,13 +39,16 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
             return Result<InstructorDto>.Failure(new[] { "Instructor not found" });
         }
 
+        // attempt to get user info
+        var user = await _context.Users.FindAsync(new object[] { instructor.UserId }, cancellationToken);
+
         return Result<InstructorDto>.Success(new InstructorDto
         {
             Id = instructor.Id,
             UserId = instructor.UserId,
-            Email = string.Empty, // Will be populated from Identity if needed
-            FirstName = string.Empty,
-            LastName = string.Empty,
+            Email = user?.Email ?? string.Empty,
+            FirstName = user?.FirstName ?? string.Empty,
+            LastName = user?.LastName ?? string.Empty,
             Bio = instructor.Bio,
             Specialization = instructor.Specialization,
             PhoneNumber = instructor.PhoneNumber,

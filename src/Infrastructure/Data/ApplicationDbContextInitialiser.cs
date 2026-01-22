@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 
 namespace AskAMuslimBackend.Infrastructure.Data;
 
@@ -171,6 +172,107 @@ public class ApplicationDbContextInitialiser
                 {
                     await CreateRoleSpecificEntity(user.Id, user.Role);
                 }
+                await _context.SaveChangesAsync();
+            }
+
+            // Ensure users have required basic fields (Email, FirstName, LastName)
+            var usersWithMissing = await _context.Users
+                .Where(u => string.IsNullOrWhiteSpace(u.Email) || string.IsNullOrWhiteSpace(u.FirstName) || string.IsNullOrWhiteSpace(u.LastName))
+                .ToListAsync();
+
+            foreach (var u in usersWithMissing)
+            {
+                var changed = false;
+
+                if (string.IsNullOrWhiteSpace(u.Email))
+                {
+                    u.Email = $"{u.Id}@localhost";
+                    u.UserName = u.Email;
+                    u.NormalizedEmail = u.Email.ToUpperInvariant();
+                    u.NormalizedUserName = u.UserName?.ToUpperInvariant();
+                    changed = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(u.FirstName))
+                {
+                    var local = (u.Email ?? u.Id.ToString()).Split('@')[0];
+                    var parts = local.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+                    u.FirstName = parts.Length > 0 ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parts[0]) : "User";
+                    changed = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(u.LastName))
+                {
+                    var local = (u.Email ?? u.Id.ToString()).Split('@')[0];
+                    var parts = local.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+                    u.LastName = parts.Length > 1 ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parts[1]) : "User";
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    _context.Users.Update(u);
+                }
+            }
+
+            if (usersWithMissing.Count > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            // Ensure users referenced by role-specific entities also have basic fields
+            var referencedUserIds = new List<Guid>();
+
+            referencedUserIds.AddRange(await _context.Preachers.AsNoTracking().Select(p => p.UserId).ToListAsync());
+            referencedUserIds.AddRange(await _context.Instructors.AsNoTracking().Select(i => i.UserId).ToListAsync());
+            referencedUserIds.AddRange(await _context.Admins.AsNoTracking().Select(a => a.UserId).ToListAsync());
+            referencedUserIds.AddRange(await _context.Students.AsNoTracking().Select(s => s.UserId).ToListAsync());
+
+            referencedUserIds = referencedUserIds.Distinct().ToList();
+
+            var changedAny = false;
+            foreach (var uid in referencedUserIds)
+            {
+                var u = await _context.Users.FindAsync(new object[] { uid });
+                if (u == null) continue;
+
+                var changed = false;
+                if (string.IsNullOrWhiteSpace(u.Email))
+                {
+                    u.Email = $"{u.Id}@localhost";
+                    u.UserName = u.Email;
+                    u.NormalizedEmail = u.Email.ToUpperInvariant();
+                    u.NormalizedUserName = u.UserName?.ToUpperInvariant();
+                    changed = true;
+                }
+
+                if (string.IsNullOrWhiteSpace(u.FirstName) || string.IsNullOrWhiteSpace(u.LastName))
+                {
+                    // derive from email local part or use role-based defaults
+                    var local = (u.Email ?? u.Id.ToString()).Split('@')[0];
+                    var parts = local.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (string.IsNullOrWhiteSpace(u.FirstName))
+                    {
+                        u.FirstName = parts.Length > 0 ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parts[0]) : "User";
+                        changed = true;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(u.LastName))
+                    {
+                        u.LastName = parts.Length > 1 ? CultureInfo.CurrentCulture.TextInfo.ToTitleCase(parts[1]) : "User";
+                        changed = true;
+                    }
+                }
+
+                if (changed)
+                {
+                    _context.Users.Update(u);
+                    changedAny = true;
+                }
+            }
+
+            if (changedAny)
+            {
                 await _context.SaveChangesAsync();
             }
 
