@@ -12,7 +12,8 @@ public class AdminNoteConfiguration : IEntityTypeConfiguration<AdminNote>
 
         builder.HasKey(an => an.Id);
 
-        builder.HasOne<Student>()
+        // Configure relationship to Student using the navigation property to avoid shadow FK
+        builder.HasOne(an => an.Student)
             .WithMany(s => s.AdminNotes)
             .HasForeignKey(an => an.StudentId)
             .OnDelete(DeleteBehavior.Cascade);

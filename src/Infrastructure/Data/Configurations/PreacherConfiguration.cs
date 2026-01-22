@@ -23,5 +23,10 @@ public class PreacherConfiguration : IEntityTypeConfiguration<Preacher>
         builder.Property(p => p.Bio).HasMaxLength(2000);
         builder.Property(p => p.Specialization).HasMaxLength(200);
         builder.Property(p => p.PhoneNumber).HasMaxLength(50);
+
+        // Ensure rating has explicit precision to avoid truncation warnings
+        builder.Property(p => p.Rating)
+            .HasPrecision(3, 2)
+            .HasColumnType("decimal(3,2)");
     }
 }

@@ -121,9 +121,15 @@ public class ApplicationDbContextInitialiser
         {
             (adminEmail, adminPassword, adminFirstName, adminLastName, UserRole.Admin, ReligiousStatus.BornMuslim),
             ("student@localhost", "Student1!", "John", "Student", UserRole.Student, ReligiousStatus.RevertedMuslim),
+            ("student2@localhost", "Student2!", "Sara", "Learner", UserRole.Student, ReligiousStatus.RevertedMuslim),
             ("nonmuslim@localhost", "NonMuslim1!", "Jane", "NonMuslim", UserRole.NonMuslim, ReligiousStatus.NonMuslim),
+            ("nonmuslim2@localhost", "NonMuslim2!", "Liam", "Guest", UserRole.NonMuslim, ReligiousStatus.NonMuslim),
             ("instructor@localhost", "Instructor1!", "Bob", "Instructor", UserRole.Instructor, ReligiousStatus.BornMuslim),
-            ("preacher@localhost", "Preacher1!", "Ahmed", "Preacher", UserRole.Preacher, ReligiousStatus.BornMuslim)
+            ("instructor2@localhost", "Instructor2!", "Fatima", "Khan", UserRole.Instructor, ReligiousStatus.BornMuslim),
+            ("instructor3@localhost", "Instructor3!", "Omar", "Saeed", UserRole.Instructor, ReligiousStatus.BornMuslim),
+            ("preacher@localhost", "Preacher1!", "Ahmed", "Preacher", UserRole.Preacher, ReligiousStatus.BornMuslim),
+            ("preacher2@localhost", "Preacher2!", "Ibrahim", "Saleh", UserRole.Preacher, ReligiousStatus.BornMuslim),
+            ("admin2@localhost", "Admin2!", "Alice", "Adminson", UserRole.Admin, ReligiousStatus.BornMuslim)
         };
 
             var newUsers = new List<User>();
@@ -469,18 +475,33 @@ public class ApplicationDbContextInitialiser
                 }
                 };
 
+                // Additional QA: Prayer basics
+                var qa3 = new QA
+                {
+                    ImageUrl = null,
+                    VideoUrl = null,
+                    IsPublished = true,
+                    Translations = new List<QATranslation>
+                {
+                    new QATranslation { Language = Language.English, QuestionText = "How many daily prayers are there?", AnswerText = "There are five obligatory prayers each day in Islam: Fajr, Dhuhr, Asr, Maghrib and Isha." },
+                    new QATranslation { Language = Language.Arabic, QuestionText = "كم عدد الصلوات اليومية؟", AnswerText = "هناك خمس صلوات مفروضة يومياً في الإسلام: الفجر، الظهر، العصر، المغرب، والعشاء." }
+                }
+                };
+
                 // Attach tags by title when available
                 if (tagsByTitle.TryGetValue("Islamic Studies", out var islamicStudiesTag))
                 {
                     qa1.QATags.Add(new QATag { TagId = islamicStudiesTag });
                     qa2.QATags.Add(new QATag { TagId = islamicStudiesTag });
+                    qa3.QATags.Add(new QATag { TagId = islamicStudiesTag });
                 }
                 if (tagsByTitle.TryGetValue("Beginner Friendly", out var beginnerTag))
                 {
                     qa1.QATags.Add(new QATag { TagId = beginnerTag });
+                    qa3.QATags.Add(new QATag { TagId = beginnerTag });
                 }
 
-                _context.QAs.AddRange(qa1, qa2);
+                _context.QAs.AddRange(qa1, qa2, qa3);
                 await _context.SaveChangesAsync();
             }
 
@@ -497,7 +518,7 @@ public class ApplicationDbContextInitialiser
                         // No ScholarId until accepted
                         Topic = MeetingInquiryTopic.GeneralInquiry,
                         Message = "I would like to learn more about the basics of Islam.",
-                        Languages = [Language.English],
+                        Languages = new List<Language> { Language.English },
                         ScheduledAt = DateTime.UtcNow.AddDays(2),
                         Status = MeetingInquiryRequestStatus.Pending,
                     });
@@ -507,11 +528,24 @@ public class ApplicationDbContextInitialiser
                         ScholarId = scholarUser.Id,
                         Topic = MeetingInquiryTopic.Quran,
                         Message = "Questions about Quranic recitation rules.",
-                        Languages = [Language.Arabic, Language.English],
+                        Languages = new List<Language> { Language.Arabic, Language.English },
                         ScheduledAt = DateTime.UtcNow.AddDays(5),
                         Status = MeetingInquiryRequestStatus.Accepted,
                         Response = "Looking forward to our meeting! here is the link https://meet.google.com/qwt-mxag-kyf"
                     });
+
+                    // Additional meeting request with another time and mixed languages
+                    _context.MeetingRequests.Add(new MeetingRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        ScholarId = scholarUser.Id,
+                        Topic = MeetingInquiryTopic.Fiqh,
+                        Message = "Clarify fasting rules during travel.",
+                        Languages = new List<Language> { Language.English },
+                        ScheduledAt = DateTime.UtcNow.AddDays(10).AddHours(3),
+                        Status = MeetingInquiryRequestStatus.Pending
+                    });
+
                     await _context.SaveChangesAsync();
                 }
             }
@@ -529,7 +563,7 @@ public class ApplicationDbContextInitialiser
                         // No ScholarId until accepted
                         Topic = MeetingInquiryTopic.GeneralInquiry,
                         Message = "I would like to learn more about the basics of Islam.",
-                        Languages = [Language.English, Language.Arabic],
+                        Languages = new List<Language> { Language.English, Language.Arabic },
                         Status = MeetingInquiryRequestStatus.Pending,
                     });
                     _context.InquiryRequests.Add(new InquiryRequest
@@ -538,10 +572,21 @@ public class ApplicationDbContextInitialiser
                         ScholarId = scholarUser.Id,
                         Topic = MeetingInquiryTopic.Quran,
                         Message = "Questions about Quranic recitation rules.",
-                        Languages = [Language.Arabic],
+                        Languages = new List<Language> { Language.Arabic },
                         Status = MeetingInquiryRequestStatus.Accepted,
                         Response = "Looking forward to our discussion!"
                     });
+
+                    // Additional short inquiry
+                    _context.InquiryRequests.Add(new InquiryRequest
+                    {
+                        RequesterId = requesterUser.Id,
+                        Topic = MeetingInquiryTopic.Hadith,
+                        Message = "Can you recommend beginner hadith collections?",
+                        Languages = new List<Language> { Language.English },
+                        Status = MeetingInquiryRequestStatus.Pending
+                    });
+
                     await _context.SaveChangesAsync();
                 }
             }
@@ -587,6 +632,14 @@ public class ApplicationDbContextInitialiser
                         UserId = eventStudentUser.Id,
                         QuestionText = "Will there be a Q&A session?",
                         Status = EventStatus.Approved
+                    });
+                    // Register student for second event as well
+                    _context.EventRegistrations.Add(new EventRegistration
+                    {
+                        EventId = event2.Id,
+                        UserId = eventStudentUser.Id,
+                        QuestionText = "Is the session recorded?",
+                        Status = EventStatus.Pending
                     });
                     await _context.SaveChangesAsync();
                 }
