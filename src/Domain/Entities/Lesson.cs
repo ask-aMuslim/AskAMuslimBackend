@@ -11,8 +11,7 @@ public class Lesson : BaseAuditableEntity
     public string? Transcript { get; set; }
     public string? TranscriptJson { get; set; }
     public string? ThumbnailUrl { get; set; }
-    public int Order { get; set; }
-
+    public int Order { get; set; }    public bool IsPublished { get; set; } = false;
     // Navigation
     public Course? Course { get; set; }
     public ICollection<StudentQuestion> StudentQuestions { get; set; } = new HashSet<StudentQuestion>();

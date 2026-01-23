@@ -1,12 +1,8 @@
-using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Lessons.Commands.CreateLesson;
 using AskAMuslimBackend.Application.Lessons.Commands.DeleteLesson;
 using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
-using AskAMuslimBackend.Application.Lessons.Queries;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
-using AskAMuslimBackend.Web.Infrastructure;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 

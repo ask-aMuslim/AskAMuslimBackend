@@ -24,5 +24,8 @@ public class LevelConfiguration : IEntityTypeConfiguration<Level>
         builder.Property(l => l.Difficulty)
             .HasConversion<string>() // 👈 Enum stored as string
             .HasMaxLength(50);
+
+        builder.Property(l => l.IsPublished)
+            .HasDefaultValue(false);
     }
 }
