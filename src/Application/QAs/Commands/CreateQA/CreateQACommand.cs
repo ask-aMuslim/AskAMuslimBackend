@@ -12,7 +12,6 @@ public record QATranslationInput
 {
     public Language Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
-    public string? QuestionTextJson { get; init; }
     public string AnswerText { get; init; } = string.Empty;
     public string? AnswerTextJson { get; init; }
 }
@@ -68,7 +67,6 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
             {
                 Language = t.Language,
                 QuestionText = t.QuestionText,
-                QuestionTextJson = t.QuestionTextJson,
                 AnswerText = t.AnswerText,
                 AnswerTextJson = t.AnswerTextJson
             });
@@ -108,9 +106,6 @@ public class CreateQACommandValidator : AbstractValidator<CreateQACommand>
         RuleForEach(x => x.Translations).ChildRules(tr =>
         {
             tr.RuleFor(t => t.QuestionText).NotEmpty().MaximumLength(5000);
-            tr.RuleFor(t => t.QuestionTextJson)
-                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.QuestionTextJson))
-                .When(t => !string.IsNullOrEmpty(t.QuestionTextJson));
             tr.RuleFor(t => t.AnswerText).NotEmpty().MaximumLength(20000);
             tr.RuleFor(t => t.AnswerTextJson)
                 .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.AnswerTextJson))

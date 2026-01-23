@@ -76,7 +76,6 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
                 {
                     existing.Language = tr.Language;
                     existing.QuestionText = tr.QuestionText;
-                    existing.QuestionTextJson = tr.QuestionTextJson;
                     existing.AnswerText = tr.AnswerText;
                     existing.AnswerTextJson = tr.AnswerTextJson;
                 }
@@ -87,7 +86,6 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
                 {
                     Language = tr.Language,
                     QuestionText = tr.QuestionText,
-                    QuestionTextJson = tr.QuestionTextJson,
                     AnswerText = tr.AnswerText,
                     AnswerTextJson = tr.AnswerTextJson
                 });
@@ -118,9 +116,6 @@ public class UpdateQACommandValidator : AbstractValidator<UpdateQACommand>
         RuleForEach(x => x.Translations).ChildRules(tr =>
         {
             tr.RuleFor(t => t.QuestionText).NotEmpty().MaximumLength(5000);
-            tr.RuleFor(t => t.QuestionTextJson)
-                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.QuestionTextJson))
-                .When(t => !string.IsNullOrEmpty(t.QuestionTextJson));
             tr.RuleFor(t => t.AnswerText).NotEmpty().MaximumLength(20000);
             tr.RuleFor(t => t.AnswerTextJson)
                 .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.AnswerTextJson))

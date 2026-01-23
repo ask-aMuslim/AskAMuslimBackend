@@ -8,7 +8,6 @@ public class QATranslationDto
     public Guid Id { get; init; }
     public Language Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
-    public string? QuestionTextJson { get; init; }
     public string AnswerText { get; init; } = string.Empty;
     public string? AnswerTextJson { get; init; }
 

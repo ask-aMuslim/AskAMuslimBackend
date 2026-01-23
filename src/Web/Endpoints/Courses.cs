@@ -1,12 +1,8 @@
-using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Courses.Commands.CreateCourse;
 using AskAMuslimBackend.Application.Courses.Commands.DeleteCourse;
 using AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
-using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
-using AskAMuslimBackend.Web.Infrastructure;
-using Microsoft.AspNetCore.Http.HttpResults;
-using AskAMuslimBackend.Application.Courses.Queries;
+using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -14,14 +10,14 @@ public class Courses : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetCoursesWithPagination).WithName("GetCourses").WithSummary("Get courses (optionally filtered by level)");
+        groupBuilder.MapGet(GetCoursesWithLevelId).WithName("GetCourses").WithSummary("Get courses (optionally filtered by level)");
         groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id");
         groupBuilder.MapPost(CreateCourse).RequireAuthorization().WithName("CreateCourse").WithSummary("Create a new course");
         groupBuilder.MapPut(UpdateCourse, "{id}").RequireAuthorization().WithName("UpdateCourse").WithSummary("Update a course");
         groupBuilder.MapDelete(DeleteCourse, "{id}").RequireAuthorization().WithName("DeleteCourse").WithSummary("Delete a course");
     }
 
-    public async Task<IResult> GetCoursesWithPagination(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
+    public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
     {
         var result = await sender.Send(query);
         return result.ToHttpResult();

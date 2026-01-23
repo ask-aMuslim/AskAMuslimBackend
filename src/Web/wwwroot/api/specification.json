@@ -5494,10 +5494,6 @@
           "questionText": {
             "type": "string"
           },
-          "questionTextJson": {
-            "type": "string",
-            "nullable": true
-          },
           "answerText": {
             "type": "string"
           },
