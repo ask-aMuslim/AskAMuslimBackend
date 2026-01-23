@@ -31,6 +31,12 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
         builder.Property(l => l.ContentUrl)
             .HasMaxLength(500);
 
+        builder.Property(l => l.ContentJson)
+            .HasColumnType("nvarchar(max)");
+
+        builder.Property(l => l.TranscriptJson)
+            .HasColumnType("nvarchar(max)");
+
         builder.Property(l => l.ThumbnailUrl)
             .HasMaxLength(500);
 

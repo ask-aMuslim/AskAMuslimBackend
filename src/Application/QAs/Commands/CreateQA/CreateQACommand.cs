@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Validators;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -11,7 +12,9 @@ public record QATranslationInput
 {
     public Language Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
+    public string? QuestionTextJson { get; init; }
     public string AnswerText { get; init; } = string.Empty;
+    public string? AnswerTextJson { get; init; }
 }
 
 public record CreateQACommand : IRequest<Result<Guid>>
@@ -65,7 +68,9 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
             {
                 Language = t.Language,
                 QuestionText = t.QuestionText,
-                AnswerText = t.AnswerText
+                QuestionTextJson = t.QuestionTextJson,
+                AnswerText = t.AnswerText,
+                AnswerTextJson = t.AnswerTextJson
             });
         }
 
@@ -103,7 +108,13 @@ public class CreateQACommandValidator : AbstractValidator<CreateQACommand>
         RuleForEach(x => x.Translations).ChildRules(tr =>
         {
             tr.RuleFor(t => t.QuestionText).NotEmpty().MaximumLength(5000);
+            tr.RuleFor(t => t.QuestionTextJson)
+                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.QuestionTextJson))
+                .When(t => !string.IsNullOrEmpty(t.QuestionTextJson));
             tr.RuleFor(t => t.AnswerText).NotEmpty().MaximumLength(20000);
+            tr.RuleFor(t => t.AnswerTextJson)
+                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.AnswerTextJson))
+                .When(t => !string.IsNullOrEmpty(t.AnswerTextJson));
             tr.RuleFor(t => t.Language).IsInEnum();
         });
 
@@ -113,4 +124,13 @@ public class CreateQACommandValidator : AbstractValidator<CreateQACommand>
     }
 
     private async Task<bool> TagExists(Guid tagId, CancellationToken ct) => await _context.Tags.AnyAsync(t => t.Id == tagId, ct);
+
+    private bool BeValidTiptapJson(string? json)
+        => TiptapJsonValidator.IsValidTiptapJson(json, out _);
+
+    private string GetTiptapJsonError(string? json)
+    {
+        TiptapJsonValidator.IsValidTiptapJson(json, out var error);
+        return error ?? "Invalid Tiptap JSON.";
+    }
 }

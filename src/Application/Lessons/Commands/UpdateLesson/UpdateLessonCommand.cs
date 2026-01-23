@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Validators;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -12,9 +13,11 @@ public record UpdateLessonCommand : IRequest<Result>
     public Guid CourseId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? ContentJson { get; init; }
     public LessonType Type { get; init; } = LessonType.Video;
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
+    public string? TranscriptJson { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
 }
@@ -47,9 +50,11 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
 
         entity.Title = request.Title;
         entity.Description = request.Description;
+        entity.ContentJson = request.ContentJson;
         entity.Type = request.Type;
         entity.ContentUrl = request.ContentUrl;
         entity.Transcript = request.Transcript;
+        entity.TranscriptJson = request.TranscriptJson;
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.Order = request.Order;
 
@@ -70,5 +75,22 @@ public class UpdateLessonCommandValidator : AbstractValidator<UpdateLessonComman
         RuleFor(x => x.ThumbnailUrl).MaximumLength(500).When(x => !string.IsNullOrEmpty(x.ThumbnailUrl));
         RuleFor(x => x.Type).IsInEnum();
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
+
+        RuleFor(x => x.ContentJson)
+            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))
+            .When(x => !string.IsNullOrEmpty(x.ContentJson));
+
+        RuleFor(x => x.TranscriptJson)
+            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.TranscriptJson))
+            .When(x => !string.IsNullOrEmpty(x.TranscriptJson));
+    }
+
+    private bool BeValidTiptapJson(string? json)
+        => TiptapJsonValidator.IsValidTiptapJson(json, out _);
+
+    private string GetTiptapJsonError(string? json)
+    {
+        TiptapJsonValidator.IsValidTiptapJson(json, out var error);
+        return error ?? "Invalid Tiptap JSON.";
     }
 }

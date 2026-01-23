@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Validators;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,7 +21,9 @@ public record UpdateQATranslationInput
     public Guid? Id { get; init; } // null => new translation
     public Domain.Enums.Language Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
+    public string? QuestionTextJson { get; init; }
     public string AnswerText { get; init; } = string.Empty;
+    public string? AnswerTextJson { get; init; }
     public bool IsDeleted { get; init; } // mark existing for deletion
 }
 
@@ -73,7 +76,9 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
                 {
                     existing.Language = tr.Language;
                     existing.QuestionText = tr.QuestionText;
+                    existing.QuestionTextJson = tr.QuestionTextJson;
                     existing.AnswerText = tr.AnswerText;
+                    existing.AnswerTextJson = tr.AnswerTextJson;
                 }
             }
             else if (!tr.IsDeleted && !tr.Id.HasValue)
@@ -82,7 +87,9 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
                 {
                     Language = tr.Language,
                     QuestionText = tr.QuestionText,
-                    AnswerText = tr.AnswerText
+                    QuestionTextJson = tr.QuestionTextJson,
+                    AnswerText = tr.AnswerText,
+                    AnswerTextJson = tr.AnswerTextJson
                 });
             }
         }
@@ -111,7 +118,13 @@ public class UpdateQACommandValidator : AbstractValidator<UpdateQACommand>
         RuleForEach(x => x.Translations).ChildRules(tr =>
         {
             tr.RuleFor(t => t.QuestionText).NotEmpty().MaximumLength(5000);
+            tr.RuleFor(t => t.QuestionTextJson)
+                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.QuestionTextJson))
+                .When(t => !string.IsNullOrEmpty(t.QuestionTextJson));
             tr.RuleFor(t => t.AnswerText).NotEmpty().MaximumLength(20000);
+            tr.RuleFor(t => t.AnswerTextJson)
+                .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.AnswerTextJson))
+                .When(t => !string.IsNullOrEmpty(t.AnswerTextJson));
             tr.RuleFor(t => t.Language).IsInEnum();
         });
 
@@ -121,4 +134,13 @@ public class UpdateQACommandValidator : AbstractValidator<UpdateQACommand>
     }
 
     private async Task<bool> TagExists(Guid tagId, CancellationToken ct) => await _context.Tags.AnyAsync(t => t.Id == tagId, ct);
+
+    private bool BeValidTiptapJson(string? json)
+        => TiptapJsonValidator.IsValidTiptapJson(json, out _);
+
+    private string GetTiptapJsonError(string? json)
+    {
+        TiptapJsonValidator.IsValidTiptapJson(json, out var error);
+        return error ?? "Invalid Tiptap JSON.";
+    }
 }

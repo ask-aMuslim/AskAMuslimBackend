@@ -1,0 +1,288 @@
+// Example Tiptap JSON structures for testing
+
+// 1. Simple paragraph with formatting
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "This is " },
+        { 
+          "type": "text", 
+          "marks": [{ "type": "bold" }], 
+          "text": "bold text" 
+        },
+        { "type": "text", "text": " and " },
+        { 
+          "type": "text", 
+          "marks": [{ "type": "italic" }], 
+          "text": "italic text" 
+        },
+        { "type": "text", "text": "." }
+      ]
+    }
+  ]
+}
+
+// 2. Heading with list
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [
+        { "type": "text", "text": "Introduction to Islam" }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Islam has five pillars:" }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Shahada (Faith)" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Salah (Prayer)" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Zakat (Charity)" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+// 3. Image with caption
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Here is an illustration:" }
+      ]
+    },
+    {
+      "type": "image",
+      "attrs": {
+        "src": "https://yourdomain.com/uploads/lesson-images/abc123.jpg",
+        "alt": "Prayer diagram showing the positions",
+        "title": "Prayer Positions"
+      }
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { 
+          "type": "text", 
+          "marks": [{ "type": "italic" }], 
+          "text": "Figure 1: The positions of prayer" 
+        }
+      ]
+    }
+  ]
+}
+
+// 4. Link with text
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "For more information, visit " },
+        { 
+          "type": "text",
+          "marks": [
+            { 
+              "type": "link",
+              "attrs": {
+                "href": "https://example.com/resources",
+                "target": "_blank"
+              }
+            }
+          ],
+          "text": "our resources page" 
+        },
+        { "type": "text", "text": "." }
+      ]
+    }
+  ]
+}
+
+// 5. Code block
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Example Quranic verse in Arabic:" }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "content": [
+        { 
+          "type": "text", 
+          "text": "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ" 
+        }
+      ]
+    }
+  ]
+}
+
+// 6. Blockquote
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "The Prophet Muhammad (peace be upon him) said:" }
+      ]
+    },
+    {
+      "type": "blockquote",
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            { 
+              "type": "text", 
+              "text": "The best among you are those who have the best manners and character." 
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+// 7. Complete lesson example
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": { "level": 1 },
+      "content": [
+        { "type": "text", "text": "Lesson 1: Introduction to Prayer" }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "Prayer (" },
+        { 
+          "type": "text", 
+          "marks": [{ "type": "bold" }], 
+          "text": "Salah" 
+        },
+        { "type": "text", "text": ") is one of the five pillars of Islam." }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": { "level": 2 },
+      "content": [
+        { "type": "text", "text": "Prerequisites" }
+      ]
+    },
+    {
+      "type": "orderedList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Perform ablution (Wudu)" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Face the Qibla" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                { "type": "text", "text": "Ensure prayer time has entered" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "image",
+      "attrs": {
+        "src": "https://yourdomain.com/uploads/lesson-images/prayer-diagram.jpg",
+        "alt": "Prayer positions diagram"
+      }
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        { "type": "text", "text": "For detailed instructions, please refer to the " },
+        { 
+          "type": "text",
+          "marks": [
+            { 
+              "type": "link",
+              "attrs": {
+                "href": "https://example.com/prayer-guide"
+              }
+            }
+          ],
+          "text": "complete prayer guide" 
+        },
+        { "type": "text", "text": "." }
+      ]
+    }
+  ]
+}

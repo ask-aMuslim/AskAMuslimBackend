@@ -5,9 +5,11 @@ public class Lesson : BaseAuditableEntity
     public Guid CourseId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ContentJson { get; set; }
     public LessonType Type { get; set; }
     public string? ContentUrl { get; set; }
     public string? Transcript { get; set; }
+    public string? TranscriptJson { get; set; }
     public string? ThumbnailUrl { get; set; }
     public int Order { get; set; }
 

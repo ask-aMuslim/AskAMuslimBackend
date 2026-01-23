@@ -7,6 +7,7 @@ namespace AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination
 
 public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<CourseBriefDto>>>, IPaginationQuery
 {
+    public Guid? LevelId { get; init; }
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
 }
@@ -24,7 +25,14 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
 
     public async Task<Result<PaginatedList<CourseBriefDto>>> Handle(GetCoursesWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var paginatedList = await _context.Courses
+        var query = _context.Courses.AsNoTracking();
+        
+        if (request.LevelId.HasValue)
+        {
+            query = query.Where(c => c.LevelId == request.LevelId.Value);
+        }
+
+        var paginatedList = await query
             .OrderBy(c => c.Order)
             .ThenBy(c => c.Title)
             .ProjectTo<CourseBriefDto>(_mapper.ConfigurationProvider)

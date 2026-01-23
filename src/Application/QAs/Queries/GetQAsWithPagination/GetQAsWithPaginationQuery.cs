@@ -46,6 +46,14 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
                     .Where(t => t.Language == request.Language)
                     .Select(t => t.AnswerText)
                     .FirstOrDefault() ?? string.Empty,
+                QuestionTextJson = q.Translations
+                    .Where(t => t.Language == request.Language)
+                    .Select(t => t.QuestionTextJson)
+                    .FirstOrDefault(),
+                AnswerTextJson = q.Translations
+                    .Where(t => t.Language == request.Language)
+                    .Select(t => t.AnswerTextJson)
+                    .FirstOrDefault(),
                 Tags = q.QATags
                     .Select(ct => ct.Tag != null ? ct.Tag.Title : "")
                     .Where(title => title != "")

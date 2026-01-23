@@ -448,6 +448,16 @@
         "operationId": "GetCoursesWithPagination",
         "parameters": [
           {
+            "name": "LevelId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
             "name": "PageNumber",
             "in": "query",
             "required": true,
@@ -455,7 +465,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 1
+            "x-position": 2
           },
           {
             "name": "PageSize",
@@ -465,7 +475,7 @@
               "type": "integer",
               "format": "int32"
             },
-            "x-position": 2
+            "x-position": 3
           }
         ],
         "responses": {
@@ -1774,6 +1784,51 @@
             "x-position": 1
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Media/upload": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "operationId": "UploadImage",
+        "parameters": [
+          {
+            "name": "containerName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "lesson-images"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": ""
@@ -4980,6 +5035,10 @@
             "type": "string",
             "nullable": true
           },
+          "contentJson": {
+            "type": "string",
+            "nullable": true
+          },
           "type": {
             "$ref": "#/components/schemas/LessonType"
           },
@@ -4988,6 +5047,10 @@
             "nullable": true
           },
           "transcript": {
+            "type": "string",
+            "nullable": true
+          },
+          "transcriptJson": {
             "type": "string",
             "nullable": true
           },
@@ -5036,6 +5099,10 @@
             "type": "string",
             "nullable": true
           },
+          "contentJson": {
+            "type": "string",
+            "nullable": true
+          },
           "type": {
             "$ref": "#/components/schemas/LessonType"
           },
@@ -5044,6 +5111,10 @@
             "nullable": true
           },
           "transcript": {
+            "type": "string",
+            "nullable": true
+          },
+          "transcriptJson": {
             "type": "string",
             "nullable": true
           },
@@ -5423,8 +5494,16 @@
           "questionText": {
             "type": "string"
           },
+          "questionTextJson": {
+            "type": "string",
+            "nullable": true
+          },
           "answerText": {
             "type": "string"
+          },
+          "answerTextJson": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -5477,8 +5556,16 @@
           "questionText": {
             "type": "string"
           },
+          "questionTextJson": {
+            "type": "string",
+            "nullable": true
+          },
           "answerText": {
             "type": "string"
+          },
+          "answerTextJson": {
+            "type": "string",
+            "nullable": true
           },
           "isDeleted": {
             "type": "boolean"

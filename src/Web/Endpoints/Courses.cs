@@ -14,7 +14,7 @@ public class Courses : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetCoursesWithPagination).WithName("GetCourses").WithSummary("Get course lookups and lists");
+        groupBuilder.MapGet(GetCoursesWithPagination).WithName("GetCourses").WithSummary("Get courses (optionally filtered by level)");
         groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id");
         groupBuilder.MapPost(CreateCourse).RequireAuthorization().WithName("CreateCourse").WithSummary("Create a new course");
         groupBuilder.MapPut(UpdateCourse, "{id}").RequireAuthorization().WithName("UpdateCourse").WithSummary("Update a course");

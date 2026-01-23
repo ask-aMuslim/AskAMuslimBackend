@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Validators;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -12,9 +13,11 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public Guid CourseId { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public string? ContentJson { get; init; }
     public LessonType Type { get; init; } = LessonType.Video;
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
+    public string? TranscriptJson { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
 }
@@ -42,9 +45,11 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             CourseId = request.CourseId,
             Title = request.Title,
             Description = request.Description,
+            ContentJson = request.ContentJson,
             Type = request.Type,
             ContentUrl = request.ContentUrl,
             Transcript = request.Transcript,
+            TranscriptJson = request.TranscriptJson,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order
         };
@@ -86,10 +91,27 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Invalid lesson type.");
 
+        RuleFor(x => x.ContentJson)
+            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))
+            .When(x => !string.IsNullOrEmpty(x.ContentJson));
+
+        RuleFor(x => x.TranscriptJson)
+            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.TranscriptJson))
+            .When(x => !string.IsNullOrEmpty(x.TranscriptJson));
+
         RuleFor(x => x.Order)
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");
     }
 
     private async Task<bool> CourseExists(Guid courseId, CancellationToken ct)
         => await _context.Courses.AnyAsync(c => c.Id == courseId, ct);
+
+    private bool BeValidTiptapJson(string? json)
+        => TiptapJsonValidator.IsValidTiptapJson(json, out _);
+
+    private string GetTiptapJsonError(string? json)
+    {
+        TiptapJsonValidator.IsValidTiptapJson(json, out var error);
+        return error ?? "Invalid Tiptap JSON.";
+    }
 }

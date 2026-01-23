@@ -91,16 +91,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("StudentId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AdminUserId");
 
                     b.HasIndex("StudentId");
-
-                    b.HasIndex("StudentId1");
 
                     b.ToTable("AdminNotes", (string)null);
                 });
@@ -492,6 +487,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ContentJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ContentUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -528,6 +526,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Transcript")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TranscriptJson")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
@@ -888,7 +889,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(3, 2)
+                        .HasColumnType("decimal(3,2)");
 
                     b.Property<string>("Specialization")
                         .HasMaxLength(200)
@@ -973,6 +975,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AnswerTextJson")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
 
@@ -994,6 +999,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuestionTextJson")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -1712,15 +1720,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", null)
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", "Student")
                         .WithMany("AdminNotes")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId1");
 
                     b.Navigation("Student");
                 });
