@@ -17,7 +17,6 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public LessonType Type { get; init; } = LessonType.Video;
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
-    public string? TranscriptJson { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
 }
@@ -49,7 +48,6 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             Type = request.Type,
             ContentUrl = request.ContentUrl,
             Transcript = request.Transcript,
-            TranscriptJson = request.TranscriptJson,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order
         };
@@ -94,10 +92,6 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
         RuleFor(x => x.ContentJson)
             .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))
             .When(x => !string.IsNullOrEmpty(x.ContentJson));
-
-        RuleFor(x => x.TranscriptJson)
-            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.TranscriptJson))
-            .When(x => !string.IsNullOrEmpty(x.TranscriptJson));
 
         RuleFor(x => x.Order)
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");

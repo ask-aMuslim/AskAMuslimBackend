@@ -533,9 +533,6 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<string>("Transcript")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TranscriptJson")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(50)

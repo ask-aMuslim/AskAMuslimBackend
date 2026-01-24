@@ -5152,10 +5152,6 @@
             "type": "string",
             "nullable": true
           },
-          "transcriptJson": {
-            "type": "string",
-            "nullable": true
-          },
           "thumbnailUrl": {
             "type": "string",
             "nullable": true
@@ -5213,10 +5209,6 @@
             "nullable": true
           },
           "transcript": {
-            "type": "string",
-            "nullable": true
-          },
-          "transcriptJson": {
             "type": "string",
             "nullable": true
           },

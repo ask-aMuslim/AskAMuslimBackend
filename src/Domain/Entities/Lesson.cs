@@ -9,7 +9,6 @@ public class Lesson : BaseAuditableEntity
     public LessonType Type { get; set; }
     public string? ContentUrl { get; set; }
     public string? Transcript { get; set; }
-    public string? TranscriptJson { get; set; }
     public string? ThumbnailUrl { get; set; }
     public int Order { get; set; }    public bool IsPublished { get; set; } = false;
     // Navigation

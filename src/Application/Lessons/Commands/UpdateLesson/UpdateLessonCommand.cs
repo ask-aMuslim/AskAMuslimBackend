@@ -17,7 +17,6 @@ public record UpdateLessonCommand : IRequest<Result>
     public LessonType Type { get; init; } = LessonType.Video;
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
-    public string? TranscriptJson { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
 }
@@ -54,7 +53,6 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.Type = request.Type;
         entity.ContentUrl = request.ContentUrl;
         entity.Transcript = request.Transcript;
-        entity.TranscriptJson = request.TranscriptJson;
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.Order = request.Order;
 
@@ -79,10 +77,6 @@ public class UpdateLessonCommandValidator : AbstractValidator<UpdateLessonComman
         RuleFor(x => x.ContentJson)
             .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))
             .When(x => !string.IsNullOrEmpty(x.ContentJson));
-
-        RuleFor(x => x.TranscriptJson)
-            .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.TranscriptJson))
-            .When(x => !string.IsNullOrEmpty(x.TranscriptJson));
     }
 
     private bool BeValidTiptapJson(string? json)
