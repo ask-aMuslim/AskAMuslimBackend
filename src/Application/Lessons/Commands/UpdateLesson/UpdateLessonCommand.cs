@@ -19,6 +19,7 @@ public record UpdateLessonCommand : IRequest<Result>
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
+    public bool IsPublished { get; init; }
 }
 
 public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, Result>
@@ -55,6 +56,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.Transcript = request.Transcript;
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.Order = request.Order;
+        entity.IsPublished = request.IsPublished;
 
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();

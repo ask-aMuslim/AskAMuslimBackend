@@ -19,6 +19,7 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
+    public bool IsPublished { get; init; } = false;
 }
 
 public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Result<Guid>>
@@ -49,7 +50,8 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             ContentUrl = request.ContentUrl,
             Transcript = request.Transcript,
             ThumbnailUrl = request.ThumbnailUrl,
-            Order = request.Order
+            Order = request.Order,
+            IsPublished = request.IsPublished
         };
 
         _context.Lessons.Add(lesson);

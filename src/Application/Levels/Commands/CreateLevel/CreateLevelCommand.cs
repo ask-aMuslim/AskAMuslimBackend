@@ -11,8 +11,7 @@ public record CreateLevelCommand : IRequest<Result<Guid>>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public int Order { get; init; }
-    public LevelDifficulty Difficulty { get; init; }
-}
+    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; } = false;}
 
 public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Result<Guid>>
 {
@@ -30,7 +29,8 @@ public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Res
             Title = request.Title,
             Description = request.Description,
             Order = request.Order,
-            Difficulty = request.Difficulty
+            Difficulty = request.Difficulty,
+            IsPublished = request.IsPublished
         };
 
         _context.Levels.Add(level);

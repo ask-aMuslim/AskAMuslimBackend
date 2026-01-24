@@ -10,6 +10,7 @@ public class LevelBriefDto
     public string? Description { get; init; }
     public int Order { get; init; }
     public LevelDifficulty Difficulty { get; init; }
+    public bool IsPublished { get; init; }
     public int TotalCourses { get; init; }
 
     private class Mapping : Profile

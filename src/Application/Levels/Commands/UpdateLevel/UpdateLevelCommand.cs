@@ -11,8 +11,7 @@ public record UpdateLevelCommand : IRequest<Result>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public int Order { get; init; }
-    public LevelDifficulty Difficulty { get; init; }
-}
+    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; }}
 
 public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Result>
 {
@@ -36,6 +35,7 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Res
         entity.Description = request.Description;
         entity.Order = request.Order;
         entity.Difficulty = request.Difficulty;
+        entity.IsPublished = request.IsPublished;
 
         await _context.SaveChangesAsync(cancellationToken);
         

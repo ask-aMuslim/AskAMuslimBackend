@@ -15,6 +15,7 @@ public class LessonBriefDto
     public string? ThumbnailUrl { get; init; }
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
+    public bool IsPublished { get; init; }
 
     private class Mapping : Profile
     {
