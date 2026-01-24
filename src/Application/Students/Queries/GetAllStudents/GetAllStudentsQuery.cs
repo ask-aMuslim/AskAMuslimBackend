@@ -17,22 +17,23 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, R
 
     public async Task<Result<List<StudentDto>>> Handle(GetAllStudentsQuery request, CancellationToken cancellationToken)
     {
-        var students = await _context.Students
-            .Include(s => s.Enrollments)
-            .Select(s => new StudentDto
-            {
-                Id = s.Id,
-                UserId = s.UserId,
-                Email = string.Empty, // Will be populated from Identity if needed
-                FirstName = string.Empty,
-                LastName = string.Empty,
-                EnrollmentDate = s.EnrollmentDate,
-                IsActive = s.IsActive,
-                TotalEnrollments = s.Enrollments.Count,
-                HasProfile = _context.StudentProfiles.Any(sp => sp.StudentId == s.Id)
-            })
-            .ToListAsync(cancellationToken);
-            
+        var students = await (from s in _context.Students.Include(s => s.Enrollments)
+                              join u in _context.Users on s.UserId equals u.Id into users
+                              from u in users.DefaultIfEmpty()
+                              select new StudentDto
+                              {
+                                  Id = s.Id,
+                                  UserId = s.UserId,
+                                  Email = u != null ? u.Email ?? string.Empty : string.Empty,
+                                  FirstName = u != null ? u.FirstName ?? string.Empty : string.Empty,
+                                  LastName = u != null ? u.LastName ?? string.Empty : string.Empty,
+                                  EnrollmentDate = s.EnrollmentDate,
+                                  IsActive = s.IsActive,
+                                  TotalEnrollments = s.Enrollments.Count,
+                                  HasProfile = _context.StudentProfiles.Any(sp => sp.StudentId == s.Id)
+                              })
+                              .ToListAsync(cancellationToken);
+
         return Result<List<StudentDto>>.Success(students);
     }
 }
