@@ -1,4 +1,5 @@
-﻿using AskAMuslimBackend.Domain.Entities;
+﻿using System.Globalization;
+using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
 
 namespace AskAMuslimBackend.Infrastructure.Data;
 
@@ -396,10 +396,25 @@ public class ApplicationDbContextInitialiser
                 var course = await _context.Courses.AsNoTracking().OrderBy(c => c.Order).FirstAsync();
 
                 var lessons = new List<Lesson>
-            {
-                new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1, Type = LessonType.Article },
-                new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2, Type = LessonType.Article }
-            };
+                {
+                    new Lesson { Title = "What is Islam?", Description = "Overview of Islam.", CourseId = course.Id, Order = 1, Type = LessonType.Article, IsPublished = true,
+                        ContentJson = "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him).\"}]}]}" },
+
+                    new Lesson { Title = "Five Pillars", Description = "Detailed look at the five pillars.", CourseId = course.Id, Order = 2, Type = LessonType.Article, IsPublished = true,
+                        ContentJson = "{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"The Five Pillars of Islam are: Shahada, Salah, Zakat, Sawm, and Hajj.\"}]}]}" },
+
+                    // Video lesson example
+                    new Lesson { Title = "Tajweed Basics (Video)", Description = "Learn the basics of Quranic recitation and tajweed rules.", CourseId = course.Id, Order = 3, Type = LessonType.Video, IsPublished = true,
+                        ContentUrl = "https://example.com/media/videos/tajweed-basics.mp4",
+                        ThumbnailUrl = "https://example.com/media/thumbnails/tajweed-basics.jpg",
+                        Transcript = "This video covers the basic tajweed rules including ikhfa, idgham and qalqalah. Follow along with the recitation examples." },
+
+                    // Audio lesson example
+                    new Lesson { Title = "Recitation Practice (Audio)", Description = "Short audio practice for beginners.", CourseId = course.Id, Order = 4, Type = LessonType.Audio, IsPublished = true,
+                        ContentUrl = "https://example.com/media/audio/recitation-practice.mp3",
+                        Transcript = "Audio practice track with pauses for repetition. Listen and repeat after the reciter.",
+                        ThumbnailUrl = "https://example.com/media/thumbnails/recitation-audio.jpg" },
+                };
 
                 _context.Lessons.AddRange(lessons);
                 await _context.SaveChangesAsync();
@@ -560,18 +575,18 @@ public class ApplicationDbContextInitialiser
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {
-                    new QATranslation 
-                    { 
-                        Language = Language.English, 
-                        QuestionText = "What is Islam?", 
-                        AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him).", 
+                    new QATranslation
+                    {
+                        Language = Language.English,
+                        QuestionText = "What is Islam?",
+                        AnswerText = "Islam is a monotheistic faith centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him).",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""Islam is a ""},{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""monotheistic faith""},{""type"":""text"",""text"":"" centered on submission to Allah and following the teachings of the Prophet Muhammad (peace be upon him).""}]},{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""The Five Pillars of Islam are:""}]},{""type"":""bulletList"",""content"":[{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Shahada""},{""type"":""text"",""text"":"" - Declaration of Faith""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Salah""},{""type"":""text"",""text"":"" - Prayer (five times daily)""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Zakat""},{""type"":""text"",""text"":"" - Charity""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Sawm""},{""type"":""text"",""text"":"" - Fasting during Ramadan""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Hajj""},{""type"":""text"",""text"":"" - Pilgrimage to Mecca""}]}]}]}]}"
                     },
-                    new QATranslation 
-                    { 
-                        Language = Language.Arabic, 
-                        QuestionText = "ما هو الإسلام؟", 
-                        AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ.", 
+                    new QATranslation
+                    {
+                        Language = Language.Arabic,
+                        QuestionText = "ما هو الإسلام؟",
+                        AnswerText = "الإسلام هو دين توحيدي يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ.",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""الإسلام هو دين ""},{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""توحيدي""},{""type"":""text"",""text"":"" يقوم على عبادة الله وحده واتباع تعاليم النبي محمد ﷺ.""}]}]}"
                     }
                 }
@@ -584,18 +599,18 @@ public class ApplicationDbContextInitialiser
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {
-                    new QATranslation 
-                    { 
-                        Language = Language.English, 
-                        QuestionText = "Who is Allah?", 
-                        AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth.", 
+                    new QATranslation
+                    {
+                        Language = Language.English,
+                        QuestionText = "Who is Allah?",
+                        AnswerText = "Allah is the Arabic word for God, the One and Only, the Creator of the heavens and the earth.",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Allah""},{""type"":""text"",""text"":"" is the Arabic word for God, the ""},{""type"":""text"",""marks"":[{""type"":""italic""}],""text"":""One and Only""},{""type"":""text"",""text"":"", the Creator of the heavens and the earth.""}]},{""type"":""blockquote"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""italic""}],""text"":""Say, He is Allah, the One. Allah, the Eternal Refuge. He neither begets nor is born, nor is there to Him any equivalent.""}]}]},{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""(Quran 112:1-4)""}]}]}"
                     },
-                    new QATranslation 
-                    { 
-                        Language = Language.Arabic, 
-                        QuestionText = "من هو الله؟", 
-                        AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض.", 
+                    new QATranslation
+                    {
+                        Language = Language.Arabic,
+                        QuestionText = "من هو الله؟",
+                        AnswerText = "الله هو اسم الجلالة، الإله الواحد الأحد خالق السماوات والأرض.",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""الله هو اسم الجلالة، الإله ""},{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""الواحد الأحد""},{""type"":""text"",""text"":"" خالق السماوات والأرض.""}]}]}"
                     }
                 }
@@ -609,18 +624,18 @@ public class ApplicationDbContextInitialiser
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {
-                    new QATranslation 
-                    { 
-                        Language = Language.English, 
-                        QuestionText = "How many daily prayers are there?", 
-                        AnswerText = "There are five obligatory prayers each day in Islam: Fajr, Dhuhr, Asr, Maghrib and Isha.", 
+                    new QATranslation
+                    {
+                        Language = Language.English,
+                        QuestionText = "How many daily prayers are there?",
+                        AnswerText = "There are five obligatory prayers each day in Islam: Fajr, Dhuhr, Asr, Maghrib and Isha.",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""There are ""},{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""five obligatory prayers""},{""type"":""text"",""text"":"" each day in Islam:""}]},{""type"":""orderedList"",""content"":[{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Fajr""},{""type"":""text"",""text"":"" - Dawn prayer (before sunrise)""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Dhuhr""},{""type"":""text"",""text"":"" - Noon prayer (after the sun passes its zenith)""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Asr""},{""type"":""text"",""text"":"" - Afternoon prayer""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Maghrib""},{""type"":""text"",""text"":"" - Sunset prayer""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""Isha""},{""type"":""text"",""text"":"" - Night prayer""}]}]}]},{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""These prayers are performed at specific times throughout the day and night.""}]}]}"
                     },
-                    new QATranslation 
-                    { 
-                        Language = Language.Arabic, 
-                        QuestionText = "كم عدد الصلوات اليومية؟", 
-                        AnswerText = "هناك خمس صلوات مفروضة يومياً في الإسلام: الفجر، الظهر، العصر، المغرب، والعشاء.", 
+                    new QATranslation
+                    {
+                        Language = Language.Arabic,
+                        QuestionText = "كم عدد الصلوات اليومية؟",
+                        AnswerText = "هناك خمس صلوات مفروضة يومياً في الإسلام: الفجر، الظهر، العصر، المغرب، والعشاء.",
                         AnswerTextJson = @"{""type"":""doc"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""text"":""هناك ""},{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""خمس صلوات مفروضة""},{""type"":""text"",""text"":"" يومياً في الإسلام:""}]},{""type"":""orderedList"",""content"":[{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""الفجر""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""الظهر""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""العصر""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""المغرب""}]}]},{""type"":""listItem"",""content"":[{""type"":""paragraph"",""content"":[{""type"":""text"",""marks"":[{""type"":""bold""}],""text"":""العشاء""}]}]}]}]}"
                     }
                 }
