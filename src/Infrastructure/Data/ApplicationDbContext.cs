@@ -20,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<CourseTag> CourseTags => Set<CourseTag>();
     public DbSet<Level> Levels => Set<Level>();
     public DbSet<Course> Courses => Set<Course>();
+    public DbSet<CoursePrerequisite> CoursePrerequisites => Set<CoursePrerequisite>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<Quiz> Quizzes => Set<Quiz>();
     public DbSet<Question> Questions => Set<Question>();

@@ -1,7 +1,11 @@
+using AskAMuslimBackend.Application.Courses.Commands.AddCoursePrerequisite;
 using AskAMuslimBackend.Application.Courses.Commands.CreateCourse;
 using AskAMuslimBackend.Application.Courses.Commands.DeleteCourse;
+using AskAMuslimBackend.Application.Courses.Commands.RemoveCoursePrerequisite;
 using AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
+using AskAMuslimBackend.Application.Courses.Queries.GetCourseDetailById;
+using AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -12,9 +16,13 @@ public class Courses : EndpointGroupBase
     {
         groupBuilder.MapGet(GetCoursesWithLevelId).WithName("GetCourses").WithSummary("Get courses (optionally filtered by level)");
         groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id");
+        groupBuilder.MapGet(GetCourseDetailById, "{id}/detail").WithName("GetCourseDetail").WithSummary("Get detailed course info with prerequisites");
+        groupBuilder.MapGet(GetCourseRoadmap, "roadmap/{levelId}").WithName("GetCourseRoadmap").WithSummary("Get complete course roadmap for a level");
         groupBuilder.MapPost(CreateCourse).RequireAuthorization().WithName("CreateCourse").WithSummary("Create a new course");
         groupBuilder.MapPut(UpdateCourse, "{id}").RequireAuthorization().WithName("UpdateCourse").WithSummary("Update a course");
         groupBuilder.MapDelete(DeleteCourse, "{id}").RequireAuthorization().WithName("DeleteCourse").WithSummary("Delete a course");
+        groupBuilder.MapPost(AddPrerequisite, "{id}/prerequisites").RequireAuthorization().WithName("AddCoursePrerequisite").WithSummary("Add a prerequisite to a course");
+        groupBuilder.MapDelete(RemovePrerequisite, "{id}/prerequisites/{prerequisiteId}").RequireAuthorization().WithName("RemoveCoursePrerequisite").WithSummary("Remove a prerequisite from a course");
     }
 
     public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
@@ -45,6 +53,35 @@ public class Courses : EndpointGroupBase
     public async Task<IResult> DeleteCourse(ISender sender, Guid id)
     {
         var result = await sender.Send(new DeleteCourseCommand(id));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetCourseDetailById(ISender sender, Guid id, Guid? studentId = null)
+    {
+        var result = await sender.Send(new GetCourseDetailByIdQuery(id, studentId));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetCourseRoadmap(ISender sender, Guid levelId, Guid? studentId = null)
+    {
+        var result = await sender.Send(new GetCourseRoadmapQuery(levelId, studentId));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> AddPrerequisite(ISender sender, Guid id, AddCoursePrerequisiteCommand command)
+    {
+        if (id != command.CourseId) return TypedResults.BadRequest();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> RemovePrerequisite(ISender sender, Guid id, Guid prerequisiteId)
+    {
+        var result = await sender.Send(new RemoveCoursePrerequisiteCommand
+        {
+            CourseId = id,
+            PrerequisiteCourseId = prerequisiteId
+        });
         return result.ToHttpResult();
     }
 }

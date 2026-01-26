@@ -3599,6 +3599,24 @@
         ]
       }
     },
+    "/api/Statistics/aggregated": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "GetAggregatedStatistics",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/StudentNotes/{id}": {
       "get": {
         "tags": [
@@ -5159,6 +5177,9 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "isPublished": {
+            "type": "boolean"
           }
         }
       },
@@ -5219,6 +5240,9 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "isPublished": {
+            "type": "boolean"
           }
         }
       },
@@ -5239,6 +5263,9 @@
           },
           "difficulty": {
             "$ref": "#/components/schemas/LevelDifficulty"
+          },
+          "isPublished": {
+            "type": "boolean"
           }
         }
       },
@@ -5279,6 +5306,9 @@
           },
           "difficulty": {
             "$ref": "#/components/schemas/LevelDifficulty"
+          },
+          "isPublished": {
+            "type": "boolean"
           }
         }
       },

@@ -44,6 +44,38 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
             return Result<Guid>.Failure(new[] { "Student is already enrolled in this course." });
         }
 
+        // Check prerequisites - all must be completed
+        var prerequisiteIds = await _context.CoursePrerequisites
+            .Where(cp => cp.CourseId == request.CourseId)
+            .Select(cp => cp.PrerequisiteCourseId)
+            .ToListAsync(cancellationToken);
+
+        if (prerequisiteIds.Any())
+        {
+            // Get completed course IDs for this student
+            var completedCourseIds = await _context.Enrollments
+                .Where(e => e.StudentId == request.StudentId && 
+                           e.Status == EnrollmentStatus.Completed &&
+                           prerequisiteIds.Contains(e.CourseId))
+                .Select(e => e.CourseId)
+                .ToListAsync(cancellationToken);
+
+            // Find missing prerequisites
+            var missingPrerequisites = prerequisiteIds.Except(completedCourseIds).ToList();
+
+            if (missingPrerequisites.Any())
+            {
+                // Get course titles for better error message
+                var missingCourseTitles = await _context.Courses
+                    .Where(c => missingPrerequisites.Contains(c.Id))
+                    .Select(c => c.Title)
+                    .ToListAsync(cancellationToken);
+
+                var errorMessage = $"You must complete the following prerequisite course(s) first: {string.Join(", ", missingCourseTitles)}.";
+                return Result<Guid>.Failure(new[] { errorMessage });
+            }
+        }
+
         var entity = new Enrollment
         {
             StudentId = request.StudentId,

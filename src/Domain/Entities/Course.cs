@@ -18,5 +18,16 @@ public class Course : BaseAuditableEntity
 
     // Tags (many-to-many via join entity)
     public ICollection<CourseTag> CourseTags { get; set; } = new HashSet<CourseTag>();
+
+    // Prerequisites (many-to-many self-referencing via join entity)
+    /// <summary>
+    /// Join entities representing courses that must be completed before this course.
+    /// </summary>
+    public ICollection<CoursePrerequisite> CoursePrerequisites { get; set; } = new HashSet<CoursePrerequisite>();
+
+    /// <summary>
+    /// Join entities representing courses that require this course as a prerequisite.
+    /// </summary>
+    public ICollection<CoursePrerequisite> PrerequisiteForCourses { get; set; } = new HashSet<CoursePrerequisite>();
 }
 
