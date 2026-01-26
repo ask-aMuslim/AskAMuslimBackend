@@ -276,6 +276,91 @@ public class ApplicationDbContextInitialiser
                 await _context.SaveChangesAsync();
             }
 
+            // Seed LastLoginAt for a broader set of users so last-login metrics are meaningful
+            var generalLoginSeeds = new List<(string Email, DateTime LastLogin)>
+            {
+                (adminEmail, DateTime.UtcNow.AddDays(-1)), // within last 7 days
+                ("admin2@localhost", DateTime.UtcNow.AddDays(-40)), // outside 30 days
+                ("student@localhost", DateTime.UtcNow), // today
+                ("student2@localhost", DateTime.UtcNow.AddDays(-10)), // within last 30 days
+                ("instructor@localhost", DateTime.UtcNow.AddDays(-3)), // within last 7 days
+                ("instructor2@localhost", DateTime.UtcNow.AddDays(-20)), // within last 30 days
+                ("instructor3@localhost", DateTime.UtcNow.AddDays(-2)), // within last 7 days
+                ("preacher@localhost", DateTime.UtcNow.AddDays(-5)), // within last 7 days
+                ("preacher2@localhost", DateTime.UtcNow.AddDays(-15)), // within last 30 days
+                ("nonmuslim@localhost", DateTime.UtcNow.AddDays(-8)) // within last 30 days
+            };
+
+            foreach (var (email, lastLogin) in generalLoginSeeds)
+            {
+                var u = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+                if (u != null)
+                {
+                    u.LastLoginAt = lastLogin;
+                    _context.Users.Update(u);
+
+                    // Also set Admin.LastLoginDate if an Admin entity exists for user
+                    var adminEntity = await _context.Admins.FirstOrDefaultAsync(a => a.UserId == u.Id);
+                    if (adminEntity != null)
+                    {
+                        adminEntity.LastLoginDate = lastLogin;
+                        _context.Admins.Update(adminEntity);
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            // --- Ensure StudentProfiles exist for all Students (including Non-Muslims) ---
+            var allStudents = await _context.Students.AsNoTracking().ToListAsync();
+            var profilesToAdd = new List<StudentProfile>();
+            foreach (var student in allStudents)
+            {
+                var existingProfile = await _context.StudentProfiles.AsNoTracking().FirstOrDefaultAsync(sp => sp.StudentId == student.Id);
+                if (existingProfile != null) continue;
+
+                var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == student.UserId);
+                var isMuslim = false;
+                var isNewMuslim = false;
+                DateOnly? conversionDate = null;
+                string? oldReligion = null;
+
+                if (user != null && user.ReligionStatus.HasValue)
+                {
+                    switch (user.ReligionStatus.Value)
+                    {
+                        case ReligiousStatus.BornMuslim:
+                            isMuslim = true;
+                            break;
+                        case ReligiousStatus.RevertedMuslim:
+                            isMuslim = true;
+                            isNewMuslim = true;
+                            conversionDate = DateOnly.FromDateTime(DateTime.UtcNow.AddMonths(-1));
+                            oldReligion = "Unknown";
+                            break;
+                        case ReligiousStatus.NonMuslim:
+                        default:
+                            isMuslim = false;
+                            break;
+                    }
+                }
+
+                profilesToAdd.Add(new StudentProfile
+                {
+                    StudentId = student.Id,
+                    IsMuslim = isMuslim,
+                    IsNewMuslim = isNewMuslim,
+                    DateOfIslamConversion = conversionDate,
+                    OldReligion = oldReligion
+                });
+            }
+
+            if (profilesToAdd.Count > 0)
+            {
+                _context.StudentProfiles.AddRange(profilesToAdd);
+                await _context.SaveChangesAsync();
+            }
+
             // Obtain Student entity Id for FK seeds
             var studentUser = await _userManager.FindByEmailAsync("student@localhost");
             if (studentUser is null)

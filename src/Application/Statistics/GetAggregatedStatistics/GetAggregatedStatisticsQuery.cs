@@ -59,12 +59,13 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
         var newUsersThisMonth = newStudentsThisMonth + newAdminsThisMonth + newInstructorsThisMonth + newPreachersThisMonth;
 
         // Last login statistics
-        var adminsLoginToday = await _context.Admins
-            .CountAsync(a => a.LastLoginDate.HasValue && a.LastLoginDate.Value.Date == today, cancellationToken);
-        var adminsLoginLast7Days = await _context.Admins
-            .CountAsync(a => a.LastLoginDate.HasValue && a.LastLoginDate.Value >= last7Days, cancellationToken);
-        var adminsLoginLast30Days = await _context.Admins
-            .CountAsync(a => a.LastLoginDate.HasValue && a.LastLoginDate.Value >= last30Days, cancellationToken);
+        // Use Users.LastLoginAt (covers all roles) for last-login metrics
+        var loginToday = await _context.Users
+            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value.Date == today, cancellationToken);
+        var loginLast7Days = await _context.Users
+            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= last7Days, cancellationToken);
+        var loginLast30Days = await _context.Users
+            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= last30Days, cancellationToken);
 
         // Course Statistics
         var totalCourses = await _context.Courses.CountAsync(cancellationToken);
@@ -118,9 +119,9 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
                 NewThisMonth = newUsersThisMonth,
                 LastLogin = new LastLoginStatistics
                 {
-                    Today = adminsLoginToday,
-                    Last7Days = adminsLoginLast7Days,
-                    Last30Days = adminsLoginLast30Days
+                    Today = loginToday,
+                    Last7Days = loginLast7Days,
+                    Last30Days = loginLast30Days
                 },
                 ByRole = new UserRoleStatistics
                 {
