@@ -202,6 +202,26 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("Courses", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.CoursePrerequisite", b =>
+                {
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PrerequisiteCourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("CourseId", "PrerequisiteCourseId");
+
+                    b.HasIndex("PrerequisiteCourseId");
+
+                    b.ToTable("CoursePrerequisites", (string)null);
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.CourseTag", b =>
                 {
                     b.Property<Guid>("CourseId")
@@ -1765,6 +1785,25 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Level");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.CoursePrerequisite", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "Course")
+                        .WithMany("CoursePrerequisites")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "PrerequisiteCourse")
+                        .WithMany("PrerequisiteForCourses")
+                        .HasForeignKey("PrerequisiteCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("PrerequisiteCourse");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.CourseTag", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "Course")
@@ -2156,11 +2195,15 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Course", b =>
                 {
+                    b.Navigation("CoursePrerequisites");
+
                     b.Navigation("CourseTags");
 
                     b.Navigation("Enrollments");
 
                     b.Navigation("Lessons");
+
+                    b.Navigation("PrerequisiteForCourses");
 
                     b.Navigation("Quizzes");
                 });
