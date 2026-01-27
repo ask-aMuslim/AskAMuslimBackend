@@ -15,8 +15,8 @@ public class FileStorageService : IFileStorageService
         
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
-            // Default to temp path if not configured
-            _uploadPath = Path.Combine(Path.GetTempPath(), "Uploads");
+            // Default to wwwroot/uploads (inside content root) if not configured
+            _uploadPath = Path.Combine(env.ContentRootPath, "wwwroot", "uploads");
         }
         else if (Path.IsPathRooted(configuredPath))
         {
@@ -25,8 +25,17 @@ public class FileStorageService : IFileStorageService
         }
         else
         {
-            // Relative path - resolve based on content root
-            _uploadPath = Path.Combine(env.ContentRootPath, configuredPath);
+            // Relative path - prefer wwwroot as the base so 'uploads' -> 'wwwroot/uploads'
+            var normalized = configuredPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
+
+            if (normalized.StartsWith("wwwroot" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || string.Equals(normalized, "wwwroot", StringComparison.OrdinalIgnoreCase))
+            {
+                _uploadPath = Path.Combine(env.ContentRootPath, normalized);
+            }
+            else
+            {
+                _uploadPath = Path.Combine(env.ContentRootPath, "wwwroot", normalized);
+            }
         }
         
         // Don't create directory in constructor - do it lazily when needed
