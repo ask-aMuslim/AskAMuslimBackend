@@ -10,7 +10,7 @@ public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefD
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 10;
     public bool? IsPublished { get; init; }
-    public Language Language { get; init; } = Language.English;
+    public Language? Language { get; init; }
 }
 
 public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, Result<PaginatedList<QABriefDto>>>
@@ -38,18 +38,30 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
             .Select(q => new QABriefDto
             {
                 Id = q.Id,
-                QuestionText = q.Translations
-                    .Where(t => t.Language == request.Language)
-                    .Select(t => t.QuestionText)
-                    .FirstOrDefault() ?? string.Empty,
-                AnswerText = q.Translations
-                    .Where(t => t.Language == request.Language)
-                    .Select(t => t.AnswerText)
-                    .FirstOrDefault() ?? string.Empty,
-                AnswerTextJson = q.Translations
-                    .Where(t => t.Language == request.Language)
-                    .Select(t => t.AnswerTextJson)
-                    .FirstOrDefault(),
+                QuestionText = request.Language.HasValue
+                    ? q.Translations
+                        .Where(t => t.Language == request.Language.Value)
+                        .Select(t => t.QuestionText)
+                        .FirstOrDefault() ?? string.Empty
+                    : q.Translations
+                        .Select(t => t.QuestionText)
+                        .FirstOrDefault() ?? string.Empty,
+                AnswerText = request.Language.HasValue
+                    ? q.Translations
+                        .Where(t => t.Language == request.Language.Value)
+                        .Select(t => t.AnswerText)
+                        .FirstOrDefault() ?? string.Empty
+                    : q.Translations
+                        .Select(t => t.AnswerText)
+                        .FirstOrDefault() ?? string.Empty,
+                AnswerTextJson = request.Language.HasValue
+                    ? q.Translations
+                        .Where(t => t.Language == request.Language.Value)
+                        .Select(t => t.AnswerTextJson)
+                        .FirstOrDefault()
+                    : q.Translations
+                        .Select(t => t.AnswerTextJson)
+                        .FirstOrDefault(),
                 Tags = q.QATags
                     .Select(ct => ct.Tag != null ? ct.Tag.Title : "")
                     .Where(title => title != "")
@@ -65,6 +77,8 @@ public class GetQAsWithPaginationQueryValidator : PaginationQueryValidator<GetQA
 {
     public GetQAsWithPaginationQueryValidator()
     {
-        RuleFor(x => x.Language).IsInEnum();
+        RuleFor(x => x.Language)
+            .IsInEnum()
+            .When(x => x.Language.HasValue);
     }
 }

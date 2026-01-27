@@ -9,8 +9,6 @@ namespace AskAMuslimBackend.Application.QAs.Commands.UpdateQA;
 public record UpdateQACommand : IRequest<Result>
 {
     public Guid Id { get; init; }
-    public string? ImageUrl { get; init; }
-    public string? VideoUrl { get; init; }
     public bool IsPublished { get; init; }
     public List<UpdateQATranslationInput> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
@@ -46,8 +44,6 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
         if (entity == null)
             return Result.Failure(new[] { "QA not found." });
 
-        entity.ImageUrl = request.ImageUrl;
-        entity.VideoUrl = request.VideoUrl;
         entity.IsPublished = request.IsPublished;
 
         // Update tags
@@ -106,8 +102,6 @@ public class UpdateQACommandValidator : AbstractValidator<UpdateQACommand>
         _context = context;
 
         RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.ImageUrl).MaximumLength(2048).When(x => !string.IsNullOrEmpty(x.ImageUrl));
-        RuleFor(x => x.VideoUrl).MaximumLength(2048).When(x => !string.IsNullOrEmpty(x.VideoUrl));
 
         RuleForEach(x => x.TagIds)
             .NotEmpty().WithMessage("Tag Id must not be empty.")

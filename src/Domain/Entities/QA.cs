@@ -2,8 +2,6 @@ namespace AskAMuslimBackend.Domain.Entities;
 
 public class QA : BaseAuditableEntity
 {
-    public string? ImageUrl { get; set; }
-    public string? VideoUrl { get; set; }
     public bool IsPublished { get; set; }
 
     // Navigation

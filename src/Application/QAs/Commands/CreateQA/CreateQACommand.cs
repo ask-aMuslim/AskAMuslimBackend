@@ -18,8 +18,6 @@ public record QATranslationInput
 
 public record CreateQACommand : IRequest<Result<Guid>>
 {
-    public string? ImageUrl { get; init; }
-    public string? VideoUrl { get; init; }
     public bool IsPublished { get; init; }
     public List<QATranslationInput> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
@@ -56,8 +54,6 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
 
         var entity = new QA
         {
-            ImageUrl = request.ImageUrl,
-            VideoUrl = request.VideoUrl,
             IsPublished = request.IsPublished,
         };
 
@@ -94,11 +90,6 @@ public class CreateQACommandValidator : AbstractValidator<CreateQACommand>
         RuleForEach(x => x.TagIds)
             .NotEmpty().WithMessage("Tag Id must not be empty.")
             .MustAsync(TagExists).WithMessage("Tag does not exist.");
-
-        RuleFor(x => x.ImageUrl)
-            .MaximumLength(2048).When(x => !string.IsNullOrEmpty(x.ImageUrl));
-        RuleFor(x => x.VideoUrl)
-            .MaximumLength(2048).When(x => !string.IsNullOrEmpty(x.VideoUrl));
 
         RuleFor(x => x.Translations)
             .NotEmpty().WithMessage("At least one translation is required.");
