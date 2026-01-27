@@ -655,8 +655,6 @@ public class ApplicationDbContextInitialiser
 
                 var qa1 = new QA
                 {
-                    ImageUrl = null,
-                    VideoUrl = null,
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {
@@ -679,8 +677,6 @@ public class ApplicationDbContextInitialiser
 
                 var qa2 = new QA
                 {
-                    ImageUrl = null,
-                    VideoUrl = null,
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {
@@ -704,8 +700,6 @@ public class ApplicationDbContextInitialiser
                 // Additional QA: Prayer basics
                 var qa3 = new QA
                 {
-                    ImageUrl = null,
-                    VideoUrl = null,
                     IsPublished = true,
                     Translations = new List<QATranslation>
                 {

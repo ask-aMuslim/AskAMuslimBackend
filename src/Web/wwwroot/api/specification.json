@@ -3235,9 +3235,13 @@
           {
             "name": "Language",
             "in": "query",
-            "required": true,
             "schema": {
-              "$ref": "#/components/schemas/Language"
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Language"
+                }
+              ]
             },
             "x-position": 4
           }
@@ -5909,14 +5913,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "videoUrl": {
-            "type": "string",
-            "nullable": true
-          },
           "isPublished": {
             "type": "boolean"
           },
@@ -5961,14 +5957,6 @@
           "id": {
             "type": "string",
             "format": "guid"
-          },
-          "imageUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "videoUrl": {
-            "type": "string",
-            "nullable": true
           },
           "isPublished": {
             "type": "boolean"

@@ -10,8 +10,6 @@ public class QAConfiguration : IEntityTypeConfiguration<QA>
     {
         builder.ToTable("QAs");
         builder.HasKey(q => q.Id);
-        builder.Property(q => q.ImageUrl).HasMaxLength(2048);
-        builder.Property(q => q.VideoUrl).HasMaxLength(2048);
 
         builder.HasMany(q => q.Translations)
             .WithOne(t => t.QA)
