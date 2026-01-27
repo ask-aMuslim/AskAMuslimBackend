@@ -44,9 +44,9 @@ public class UploadImageCommandHandler : IRequestHandler<UploadImageCommand, Res
 
 public class UploadImageCommandValidator : AbstractValidator<UploadImageCommand>
 {
-    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-    private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp", "image/gif" };
-    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg" };
+    private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp", "image/svg+xml" };
+    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
 
     public UploadImageCommandValidator()
     {
