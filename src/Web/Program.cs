@@ -1,6 +1,6 @@
 using AskAMuslimBackend.Infrastructure.Data;
-using AskAMuslimBackend.Web.Infrastructure;
 using Hangfire;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +23,9 @@ app.UseHsts();
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// Serve uploaded files from configured upload path (maps to /uploads)
+app.UseUploadStaticFiles();
 
 app.UseCors();
 
