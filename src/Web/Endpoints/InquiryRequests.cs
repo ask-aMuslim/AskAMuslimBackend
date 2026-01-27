@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.InquiryRequests.Commands.CreateInquiryRequest;
 using AskAMuslimBackend.Application.InquiryRequests.Commands.UpdateInquiryRequestStatus;
 using AskAMuslimBackend.Application.InquiryRequests.Commands.UpdateInquiryRequestResponse;
+using AskAMuslimBackend.Application.InquiryRequests.Commands.AssignInquiryRequest;
 using AskAMuslimBackend.Application.InquiryRequests.Queries;
 using AskAMuslimBackend.Application.InquiryRequests.Queries.GetAllInquiryRequests;
 using AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestById;
@@ -23,6 +24,7 @@ public class InquiryRequests : EndpointGroupBase
         groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateInquiryRequest").WithSummary("Create inquiry request");
         groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateInquiryRequestStatus").WithSummary("Update inquiry request status");
         groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateInquiryRequestResponse").WithSummary("Set admin response on inquiry request");
+        groupBuilder.MapPut(Assign, "{id}/assign").RequireAuthorization().WithName("AssignInquiryRequest").WithSummary("Assign a moderator to an inquiry request");
     }
 
     public async Task<IResult> GetAll(ISender sender, [AsParameters] GetAllInquiryRequestsQuery query)
@@ -63,6 +65,13 @@ public class InquiryRequests : EndpointGroupBase
     }
 
     public async Task<IResult> UpdateResponse(ISender sender, Guid id, UpdateInquiryRequestResponseCommand command)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> Assign(ISender sender, Guid id, AssignInquiryRequestCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
         var result = await sender.Send(command);

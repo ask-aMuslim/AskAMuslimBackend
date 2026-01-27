@@ -26,7 +26,9 @@ public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRe
 
     public async Task<Result<PaginatedList<InquiryRequestDto>>> Handle(GetAllInquiryRequestsQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.InquiryRequests.AsNoTracking();
+        var query = _context.InquiryRequests
+            .Include(x => x.Requester)
+            .AsNoTracking();
 
         if (request.Status.HasValue)
         {

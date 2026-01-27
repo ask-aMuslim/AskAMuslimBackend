@@ -7,6 +7,7 @@ public class InquiryRequestDto
 {
     public Guid Id { get; init; }
     public Guid RequesterId { get; init; }
+    public string RequesterName { get; init; } = string.Empty;
     public Guid? ScholarId { get; init; }
     public MeetingInquiryTopic Topic { get; init; }
     public string Message { get; init; } = string.Empty;
@@ -20,7 +21,8 @@ public class InquiryRequestDto
         public Mapping()
         {
             CreateMap<InquiryRequest, InquiryRequestDto>()
-                .ForMember(d => d.Languages, opt => opt.MapFrom(s => s.Languages));
+                .ForMember(d => d.Languages, opt => opt.MapFrom(s => s.Languages))
+                .ForMember(d => d.RequesterName, opt => opt.MapFrom(s => s.Requester != null ? $"{s.Requester.FirstName} {s.Requester.LastName}" : string.Empty));
         }
     }
 }

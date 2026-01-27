@@ -20,7 +20,10 @@ public class GetInquiryRequestsByRequesterQueryHandler : IRequestHandler<GetInqu
 
     public async Task<Result<List<InquiryRequestDto>>> Handle(GetInquiryRequestsByRequesterQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.InquiryRequests.AsQueryable().Where(i => i.RequesterId == request.RequesterId);
+        var query = _context.InquiryRequests
+            .Include(x => x.Requester)
+            .AsQueryable()
+            .Where(i => i.RequesterId == request.RequesterId);
         if (request.Status.HasValue)
         {
             query = query.Where(i => i.Status == request.Status.Value);

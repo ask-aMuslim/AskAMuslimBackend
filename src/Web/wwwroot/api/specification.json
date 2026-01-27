@@ -1589,6 +1589,48 @@
         ]
       }
     },
+    "/api/InquiryRequests/{id}/assign": {
+      "put": {
+        "tags": [
+          "InquiryRequests"
+        ],
+        "operationId": "Assign",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignInquiryRequestCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Instructors/me": {
       "get": {
         "tags": [
@@ -2044,6 +2086,51 @@
         ]
       }
     },
+    "/api/Media/upload-file": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "operationId": "UploadFile",
+        "parameters": [
+          {
+            "name": "containerName",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "lesson-files"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/MeetingRequests": {
       "get": {
         "tags": [
@@ -2302,6 +2389,48 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateMeetingRequestResponseCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/MeetingRequests/{id}/assign": {
+      "put": {
+        "tags": [
+          "MeetingRequests"
+        ],
+        "operationId": "Assign2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignMeetingRequestCommand"
               }
             }
           },
@@ -5279,6 +5408,20 @@
           }
         }
       },
+      "AssignInquiryRequestCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "moderatorId": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
       "UpdateInstructorProfileCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5527,6 +5670,20 @@
           },
           "response": {
             "type": "string"
+          }
+        }
+      },
+      "AssignMeetingRequestCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "moderatorId": {
+            "type": "string",
+            "format": "guid"
           }
         }
       },

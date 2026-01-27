@@ -20,6 +20,7 @@ public class GetInquiryRequestByIdQueryHandler : IRequestHandler<GetInquiryReque
     public async Task<Result<InquiryRequestDto?>> Handle(GetInquiryRequestByIdQuery request, CancellationToken cancellationToken)
     {
         var data = await _context.InquiryRequests
+            .Include(x => x.Requester)
             .Where(i => i.Id == request.Id)
             .ProjectTo<InquiryRequestDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);

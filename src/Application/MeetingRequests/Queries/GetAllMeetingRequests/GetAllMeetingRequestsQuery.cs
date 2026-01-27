@@ -26,7 +26,9 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
 
     public async Task<Result<PaginatedList<MeetingRequestDto>>> Handle(GetAllMeetingRequestsQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.MeetingRequests.AsNoTracking();
+        var query = _context.MeetingRequests
+            .Include(x => x.Requester)
+            .AsNoTracking();
 
         if (request.Status.HasValue)
         {

@@ -20,7 +20,10 @@ public class GetMeetingRequestsByScholarQueryHandler : IRequestHandler<GetMeetin
 
     public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByScholarQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.MeetingRequests.AsQueryable().Where(m => m.ScholarId == request.ScholarId);
+        var query = _context.MeetingRequests
+            .Include(x => x.Requester)
+            .AsQueryable()
+            .Where(m => m.ScholarId == request.ScholarId);
         if (request.Status.HasValue)
         {
             query = query.Where(m => m.Status == request.Status.Value);

@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.MeetingRequests.Commands.CreateMeetingRequest;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestStatus;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestResponse;
+using AskAMuslimBackend.Application.MeetingRequests.Commands.AssignMeetingRequest;
 using AskAMuslimBackend.Application.MeetingRequests.Queries;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetAllMeetingRequests;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestById;
@@ -23,6 +24,7 @@ public class MeetingRequests : EndpointGroupBase
         groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateMeetingRequest").WithSummary("Create meeting request");
         groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateMeetingRequestStatus").WithSummary("Update meeting request status");
         groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateMeetingRequestResponse").WithSummary("Set admin response on meeting request");
+        groupBuilder.MapPut(Assign, "{id}/assign").RequireAuthorization().WithName("AssignMeetingRequest").WithSummary("Assign a moderator to a meeting request");
     }
 
     public async Task<IResult> GetAll(ISender sender, [AsParameters] GetAllMeetingRequestsQuery query)
@@ -63,6 +65,13 @@ public class MeetingRequests : EndpointGroupBase
     }
 
     public async Task<IResult> UpdateResponse(ISender sender, Guid id, UpdateMeetingRequestResponseCommand command)
+    {
+        if (id != command.Id) return TypedResults.BadRequest();
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> Assign(ISender sender, Guid id, AssignMeetingRequestCommand command)
     {
         if (id != command.Id) return TypedResults.BadRequest();
         var result = await sender.Send(command);

@@ -7,6 +7,7 @@ public class MeetingRequestDto
 {
     public Guid Id { get; init; }
     public Guid RequesterId { get; init; }
+    public string RequesterName { get; init; } = string.Empty;
     public Guid? ScholarId { get; init; }
     public MeetingInquiryTopic Topic { get; init; }
     public string Message { get; init; } = string.Empty;
@@ -19,7 +20,8 @@ public class MeetingRequestDto
     {
         public Mapping()
         {
-            CreateMap<MeetingRequest, MeetingRequestDto>();
+            CreateMap<MeetingRequest, MeetingRequestDto>()
+                .ForMember(d => d.RequesterName, opt => opt.MapFrom(s => s.Requester != null ? $"{s.Requester.FirstName} {s.Requester.LastName}" : string.Empty));
         }
     }
 }
