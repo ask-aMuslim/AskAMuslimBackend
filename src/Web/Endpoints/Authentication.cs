@@ -2,6 +2,8 @@ using AskAMuslimBackend.Application.Authentication.Commands.Login;
 using AskAMuslimBackend.Application.Authentication.Commands.Register;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
+using AskAMuslimBackend.Application.Authentication.Commands.ForgotPassword;
+using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Web.Infrastructure;
 
@@ -43,6 +45,22 @@ public class Authentication : EndpointGroupBase
             .WithDescription("Accepts a Facebook access token, verifies it and returns a JWT token")
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
+
+        groupBuilder.MapPost(ForgotPassword, "forgot-password")
+            .AllowAnonymous()
+            .WithName("ForgotPassword")
+            .WithSummary("Request password reset OTP")
+            .WithDescription("Sends a 6-digit OTP to the user's email for password reset. OTP expires in 10 minutes.")
+            .Produces<Result>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status400BadRequest);
+
+        groupBuilder.MapPost(ResetPassword, "reset-password")
+            .AllowAnonymous()
+            .WithName("ResetPassword")
+            .WithSummary("Reset password with OTP")
+            .WithDescription("Validates the OTP and resets the user's password")
+            .Produces<Result>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status400BadRequest);
     }
 
     public async Task<IResult> Register(
@@ -72,6 +90,22 @@ public class Authentication : EndpointGroupBase
     public async Task<IResult> LoginWithFacebook(
         ISender sender,
         LoginWithFacebookCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> ForgotPassword(
+        ISender sender,
+        ForgotPasswordCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> ResetPassword(
+        ISender sender,
+        ResetPasswordCommand command)
     {
         var result = await sender.Send(command);
         return result.ToHttpResult();

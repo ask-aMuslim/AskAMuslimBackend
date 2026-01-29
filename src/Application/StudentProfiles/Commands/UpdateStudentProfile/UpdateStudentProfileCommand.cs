@@ -6,6 +6,11 @@ namespace AskAMuslimBackend.Application.StudentProfiles.Commands.UpdateStudentPr
 
 public record UpdateStudentProfileCommand : IRequest<Result<Guid>>
 {
+    // User-level fields
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public string? ImageUrl { get; init; }
+    
     // Basic Profile Information
     public string? Address { get; init; }
     public string? Country { get; init; }
@@ -61,6 +66,11 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
             return Result<Guid>.Failure(new[] { $"Student with user ID {userId} not found" });
         }
 
+        // Update user-level fields
+        if (request.FirstName != null) user.FirstName = request.FirstName;
+        if (request.LastName != null) user.LastName = request.LastName;
+        if (request.ImageUrl != null) user.ImageUrl = request.ImageUrl;
+
         // Get or create student profile
         var profile = await _context.StudentProfiles
             .FirstOrDefaultAsync(sp => sp.StudentId == student.Id, cancellationToken);
@@ -77,12 +87,12 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
         }
 
         // Update basic profile information
-        profile.Address = request.Address;
-        profile.Country = request.Country;
-        profile.CountryCode = request.CountryCode;
-        profile.PhoneNumber = request.PhoneNumber;
-        profile.Bio = request.Bio;
-        profile.DateOfBirth = request.DateOfBirth;
+        if (request.Address != null) profile.Address = request.Address;
+        if (request.Country != null) profile.Country = request.Country;
+        if (request.CountryCode != null) profile.CountryCode = request.CountryCode;
+        if (request.PhoneNumber != null) profile.PhoneNumber = request.PhoneNumber;
+        if (request.Bio != null) profile.Bio = request.Bio;
+        if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth;
 
         // Update religious information based on user's ReligionStatus
         profile.IsMuslim = user.ReligionStatus == ReligiousStatus.BornMuslim || user.ReligionStatus == ReligiousStatus.RevertedMuslim;

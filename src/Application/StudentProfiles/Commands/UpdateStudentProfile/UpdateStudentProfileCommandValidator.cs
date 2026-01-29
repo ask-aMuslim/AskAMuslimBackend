@@ -4,6 +4,18 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
 {
     public UpdateStudentProfileCommandValidator()
     {
+        RuleFor(v => v.FirstName)
+            .MaximumLength(100).WithMessage("First name must not exceed 100 characters.")
+            .When(v => !string.IsNullOrEmpty(v.FirstName));
+
+        RuleFor(v => v.LastName)
+            .MaximumLength(100).WithMessage("Last name must not exceed 100 characters.")
+            .When(v => !string.IsNullOrEmpty(v.LastName));
+
+        RuleFor(v => v.ImageUrl)
+            .MaximumLength(500).WithMessage("Image URL must not exceed 500 characters.")
+            .When(v => !string.IsNullOrEmpty(v.ImageUrl));
+
         RuleFor(v => v.PhoneNumber)
             .MaximumLength(20)
             .When(v => !string.IsNullOrEmpty(v.PhoneNumber))

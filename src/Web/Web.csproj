@@ -6,6 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="firebase-adminsdk.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="firebase-adminsdk.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>

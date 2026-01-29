@@ -87,6 +87,8 @@ public static class DependencyInjection
         builder.Services.AddSingleton<IMuslimTubeCache, MuslimTubeMemoryCache>();
         builder.Services.AddScoped<IFileStorageService, FileStorageService>();
         builder.Services.AddScoped<IContentRenderingService, ContentRenderingService>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddScoped<IOtpService, OtpService>();
 
         // Configure Firebase Admin SDK
         var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"];
