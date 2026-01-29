@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 
 namespace AskAMuslimBackend.Application.Events.Commands.CreateEvent;
@@ -15,15 +16,24 @@ public record CreateEventCommand : IRequest<Result<Guid>>
     public DateTime EndDateTime { get; init; }
     public string? MeetingLink { get; init; }
     public bool IsPublished { get; init; }
+    
+    /// <summary>
+    /// Target role for this event. If null, event is for all users (general event).
+    /// </summary>
+    public UserRole? TargetRole { get; init; }
 }
 
 public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IEventNotificationService _notificationService;
 
-    public CreateEventCommandHandler(IApplicationDbContext context)
+    public CreateEventCommandHandler(
+        IApplicationDbContext context,
+        IEventNotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<Guid>> Handle(CreateEventCommand request, CancellationToken cancellationToken)
@@ -37,11 +47,32 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Res
             StartDateTime = request.StartDateTime,
             EndDateTime = request.EndDateTime,
             MeetingLink = request.MeetingLink,
-            IsPublished = request.IsPublished
+            IsPublished = request.IsPublished,
+            TargetRole = request.TargetRole
         };
 
         _context.Events.Add(entity);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Send email notifications to target users (only if published)
+        if (request.IsPublished)
+        {
+            // Fire and forget - don't wait for email sending
+            _ = Task.Run(async () =>
+            {
+                await _notificationService.SendEventNotificationAsync(
+                    entity.Id,
+                    request.Title,
+                    request.Description,
+                    request.StartDateTime,
+                    request.EndDateTime,
+                    request.MeetingLink,
+                    request.SpeakerName,
+                    request.TargetRole,
+                    CancellationToken.None);
+            }, CancellationToken.None);
+        }
+
         return Result<Guid>.Success(entity.Id);
     }
 }

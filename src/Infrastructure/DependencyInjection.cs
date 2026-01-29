@@ -89,6 +89,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IContentRenderingService, ContentRenderingService>();
         builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddScoped<IOtpService, OtpService>();
+        builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
 
         // Configure Firebase Admin SDK
         var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"];
