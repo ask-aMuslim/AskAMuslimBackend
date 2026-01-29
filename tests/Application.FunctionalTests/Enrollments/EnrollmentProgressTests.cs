@@ -5,6 +5,8 @@ using AskAMuslimBackend.Application.Lessons.Commands.CreateLesson;
 using AskAMuslimBackend.Application.Quizzes.Commands.CreateQuiz;
 using AskAMuslimBackend.Application.QuizAttempts.Commands.CreateQuizAttempt;
 using AskAMuslimBackend.Application.QuizAttempts.Commands.CompleteQuizAttempt;
+using AskAMuslimBackend.Application.Questions.Commands.CreateQuestion;
+using AskAMuslimBackend.Application.Options.Commands.CreateOption;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -14,6 +16,8 @@ using static Testing;
 
 public class EnrollmentProgressTests : BaseTestFixture
 {
+    private readonly Dictionary<Guid, (Guid questionId, Guid correctOptionId, Guid incorrectOptionId)> _quizQuestions = new();
+
     private async Task<Guid> CreateStudentAsync()
     {
         var student = new Student { UserId = Guid.NewGuid() };
@@ -73,7 +77,35 @@ public class EnrollmentProgressTests : BaseTestFixture
             Title = $"Quiz - {targetType}",
             TotalMarks = 100
         });
-        return result.Data;
+        var quizId = result.Data;
+
+        // Add a question with correct and incorrect options
+        var questionResult = await SendAsync(new CreateQuestionCommand
+        {
+            QuizId = quizId,
+            Text = "Test Question"
+        });
+        var questionId = questionResult.Data;
+
+        var correctOptionResult = await SendAsync(new CreateOptionCommand
+        {
+            QuestionId = questionId,
+            Text = "Correct Answer",
+            IsCorrect = true
+        });
+        var correctOptionId = correctOptionResult.Data;
+
+        var incorrectOptionResult = await SendAsync(new CreateOptionCommand
+        {
+            QuestionId = questionId,
+            Text = "Incorrect Answer",
+            IsCorrect = false
+        });
+        var incorrectOptionId = incorrectOptionResult.Data;
+
+        _quizQuestions[quizId] = (questionId, correctOptionId, incorrectOptionId);
+
+        return quizId;
     }
 
     private async Task<Guid> EnrollAsync(Guid studentId, Guid courseId)
@@ -96,13 +128,49 @@ public class EnrollmentProgressTests : BaseTestFixture
         return result.Data;
     }
 
-    private async Task CompleteAttemptAsync(Guid attemptId, bool pass, decimal score = 100m)
+    private async Task<(Guid correctOptionId, Guid incorrectOptionId)> AddQuestionToQuizAsync(Guid quizId)
     {
+        var questionResult = await SendAsync(new CreateQuestionCommand
+        {
+            QuizId = quizId,
+            Text = "Test Question"
+        });
+        var questionId = questionResult.Data;
+
+        var correctOptionResult = await SendAsync(new CreateOptionCommand
+        {
+            QuestionId = questionId,
+            Text = "Correct Answer",
+            IsCorrect = true
+        });
+        var correctOptionId = correctOptionResult.Data;
+
+        var incorrectOptionResult = await SendAsync(new CreateOptionCommand
+        {
+            QuestionId = questionId,
+            Text = "Incorrect Answer",
+            IsCorrect = false
+        });
+        var incorrectOptionId = incorrectOptionResult.Data;
+
+        return (correctOptionId, incorrectOptionId);
+    }
+
+    private async Task CompleteAttemptAsync(Guid attemptId, Guid quizId, bool pass)
+    {
+        var (questionId, correctOptionId, incorrectOptionId) = _quizQuestions[quizId];
+        
         await SendAsync(new CompleteQuizAttemptCommand
         {
             AttemptId = attemptId,
-            IsPassed = pass,
-            Score = score
+            Answers = new List<QuizAnswerDto>
+            {
+                new QuizAnswerDto
+                {
+                    QuestionId = questionId,
+                    SelectedOptionId = pass ? correctOptionId : incorrectOptionId
+                }
+            }
         });
     }
 
@@ -125,7 +193,7 @@ public class EnrollmentProgressTests : BaseTestFixture
 
         // Pass course quiz => 1/3 = 33.33%
         var attempt1 = await StartAttemptAsync(courseQuizId, studentId);
-        await CompleteAttemptAsync(attempt1, true, 85m);
+        await CompleteAttemptAsync(attempt1, courseQuizId, true);
 
         enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.CourseProgress.ShouldBe(33.33);
@@ -133,14 +201,14 @@ public class EnrollmentProgressTests : BaseTestFixture
 
         // Fail lesson 1 quiz => no change
         var attempt2 = await StartAttemptAsync(lessonQuiz1Id, studentId);
-        await CompleteAttemptAsync(attempt2, false, 40m);
+        await CompleteAttemptAsync(attempt2, lessonQuiz1Id, false);
 
         enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.CourseProgress.ShouldBe(33.33);
 
         // Pass lesson 1 quiz => 2/3 = 66.67%
         var attempt3 = await StartAttemptAsync(lessonQuiz1Id, studentId);
-        await CompleteAttemptAsync(attempt3, true, 95m);
+        await CompleteAttemptAsync(attempt3, lessonQuiz1Id, true);
 
         enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.CourseProgress.ShouldBe(66.67);
@@ -148,7 +216,7 @@ public class EnrollmentProgressTests : BaseTestFixture
 
         // Duplicate pass on same quiz => progress unchanged
         var attempt4 = await StartAttemptAsync(lessonQuiz1Id, studentId);
-        await CompleteAttemptAsync(attempt4, true, 90m);
+        await CompleteAttemptAsync(attempt4, lessonQuiz1Id, true);
 
         enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.CourseProgress.ShouldBe(66.67);
@@ -182,11 +250,11 @@ public class EnrollmentProgressTests : BaseTestFixture
 
         // Pass all quizzes to reach 100%
         var a1 = await StartAttemptAsync(courseQuizId, studentId);
-        await CompleteAttemptAsync(a1, true);
+        await CompleteAttemptAsync(a1, courseQuizId, true);
         var a2 = await StartAttemptAsync(lessonQuiz1Id, studentId);
-        await CompleteAttemptAsync(a2, true);
+        await CompleteAttemptAsync(a2, lessonQuiz1Id, true);
         var a3 = await StartAttemptAsync(lessonQuiz2Id, studentId);
-        await CompleteAttemptAsync(a3, true);
+        await CompleteAttemptAsync(a3, lessonQuiz2Id, true);
 
         var enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.CourseProgress.ShouldBe(100);
@@ -198,7 +266,7 @@ public class EnrollmentProgressTests : BaseTestFixture
         // Create a level-only quiz and complete it; level progress should recompute (still 50%)
         var levelQuizId = await CreateQuizAsync(QuizTargetType.Level, levelId: levelId);
         var la = await StartAttemptAsync(levelQuizId, studentId);
-        await CompleteAttemptAsync(la, true);
+        await CompleteAttemptAsync(la, levelQuizId, true);
 
         enrollment = await FindAsync<Enrollment>(enrollmentId);
         enrollment!.LevelProgress.ShouldBe(50);
@@ -213,7 +281,7 @@ public class EnrollmentProgressTests : BaseTestFixture
         var otherLessonId = otherLessonResult.Data;
         var otherLessonQuizId = await CreateQuizAsync(QuizTargetType.Lesson, lessonId: otherLessonId);
         var otherCourseQuizAttempt = await StartAttemptAsync(otherLessonQuizId, studentId);
-        await CompleteAttemptAsync(otherCourseQuizAttempt, true);
+        await CompleteAttemptAsync(otherCourseQuizAttempt, otherLessonQuizId, true);
 
         // Progress for the other course now 100% and status completed, which should raise level progress to 100 for both enrollments in this level
         var otherEnrollment = await FindAsync<Enrollment>(otherEnrollmentId);

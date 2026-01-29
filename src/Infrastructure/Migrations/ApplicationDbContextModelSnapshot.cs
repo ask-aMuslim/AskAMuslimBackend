@@ -28,6 +28,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Department")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -1164,6 +1167,36 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("QuizAttempts", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.QuizAttemptAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("QuizAttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SelectedOptionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("SelectedOptionId");
+
+                    b.HasIndex("QuizAttemptId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("QuizAttemptAnswers");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Student", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2033,6 +2066,33 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.QuizAttemptAnswer", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.QuizAttempt", "QuizAttempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuizAttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Option", "SelectedOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("QuizAttempt");
+
+                    b.Navigation("SelectedOption");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Student", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", null)
@@ -2244,6 +2304,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Quiz", b =>
                 {
                     b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.QuizAttempt", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Student", b =>

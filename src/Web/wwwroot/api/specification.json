@@ -4878,6 +4878,22 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
           "department": {
             "type": "string",
             "nullable": true
@@ -5430,6 +5446,18 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "bio": {
             "type": "string",
             "nullable": true
@@ -5874,6 +5902,18 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "bio": {
             "type": "string",
             "nullable": true
@@ -6055,12 +6095,25 @@
             "type": "string",
             "format": "guid"
           },
-          "score": {
-            "type": "number",
-            "format": "decimal"
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizAnswerDto"
+            }
+          }
+        }
+      },
+      "QuizAnswerDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "format": "guid"
           },
-          "isPassed": {
-            "type": "boolean"
+          "selectedOptionId": {
+            "type": "string",
+            "format": "guid"
           }
         }
       },
