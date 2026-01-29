@@ -44,17 +44,56 @@ public class UploadImageCommandHandler : IRequestHandler<UploadImageCommand, Res
 
 public class UploadImageCommandValidator : AbstractValidator<UploadImageCommand>
 {
-    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg" };
-    private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp", "image/svg+xml" };
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
+    // Image extensions
+    private static readonly string[] ImageExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".svg" };
+    private static readonly string[] ImageContentTypes = { "image/jpeg", "image/png", "image/webp", "image/gif", "image/bmp", "image/svg+xml" };
+    
+    // Video extensions
+    private static readonly string[] VideoExtensions = { ".mp4", ".webm", ".mov", ".mkv" };
+    private static readonly string[] VideoContentTypes = { "video/mp4", "video/webm", "video/quicktime", "video/x-matroska" };
+    
+    // Audio extensions
+    private static readonly string[] AudioExtensions = { ".mp3", ".wav", ".m4a", ".aac", ".ogg" };
+    private static readonly string[] AudioContentTypes = { "audio/mpeg", "audio/wav", "audio/x-m4a", "audio/aac", "audio/ogg" };
+    
+    // Document extensions
+    private static readonly string[] DocumentExtensions = { ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx" };
+    private static readonly string[] DocumentContentTypes = { 
+        "application/pdf", 
+        "application/msword", 
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    };
+
+    // Combined allowed extensions and content types
+    private static readonly string[] AllowedExtensions = ImageExtensions
+        .Concat(VideoExtensions)
+        .Concat(AudioExtensions)
+        .Concat(DocumentExtensions)
+        .ToArray();
+
+    private static readonly string[] AllowedContentTypes = ImageContentTypes
+        .Concat(VideoContentTypes)
+        .Concat(AudioContentTypes)
+        .Concat(DocumentContentTypes)
+        .ToArray();
+
+    // File size limits
+    private const long MaxImageSize = 10 * 1024 * 1024; // 10MB for images
+    private const long MaxVideoSize = 500 * 1024 * 1024; // 500MB for videos
+    private const long MaxAudioSize = 50 * 1024 * 1024; // 50MB for audio
+    private const long MaxDocumentSize = 50 * 1024 * 1024; // 50MB for documents
 
     public UploadImageCommandValidator()
     {
         RuleFor(x => x.File)
             .NotNull().WithMessage("File is required.")
-            .Must(HaveValidExtension).WithMessage($"File must have one of the following extensions: {string.Join(", ", AllowedExtensions)}")
-            .Must(HaveValidContentType).WithMessage($"File must be one of the following types: {string.Join(", ", AllowedContentTypes)}")
-            .Must(BeWithinSizeLimit).WithMessage($"File size must not exceed {MaxFileSize / 1024 / 1024}MB.");
+            .Must(HaveValidExtension).WithMessage($"File must have a valid extension. Allowed: images ({string.Join(", ", ImageExtensions)}), videos ({string.Join(", ", VideoExtensions)}), audio ({string.Join(", ", AudioExtensions)}), documents ({string.Join(", ", DocumentExtensions)})")
+            .Must(HaveValidContentType).WithMessage("File must have a valid content type.")
+            .Must(BeWithinSizeLimit).WithMessage(GetSizeLimitMessage);
 
         RuleFor(x => x.ContainerName)
             .NotEmpty().WithMessage("Container name is required.")
@@ -77,7 +116,43 @@ public class UploadImageCommandValidator : AbstractValidator<UploadImageCommand>
     private bool BeWithinSizeLimit(IFormFile? file)
     {
         if (file == null) return false;
-        return file.Length <= MaxFileSize;
+        
+        var extension = Path.GetExtension(file.FileName).ToLower();
+        
+        if (ImageExtensions.Contains(extension))
+            return file.Length <= MaxImageSize;
+        
+        if (VideoExtensions.Contains(extension))
+            return file.Length <= MaxVideoSize;
+        
+        if (AudioExtensions.Contains(extension))
+            return file.Length <= MaxAudioSize;
+        
+        if (DocumentExtensions.Contains(extension))
+            return file.Length <= MaxDocumentSize;
+        
+        return false;
+    }
+
+    private string GetSizeLimitMessage(UploadImageCommand command)
+    {
+        if (command.File == null) return "File size validation failed.";
+        
+        var extension = Path.GetExtension(command.File.FileName).ToLower();
+        
+        if (ImageExtensions.Contains(extension))
+            return $"Image file size must not exceed {MaxImageSize / 1024 / 1024}MB.";
+        
+        if (VideoExtensions.Contains(extension))
+            return $"Video file size must not exceed {MaxVideoSize / 1024 / 1024}MB.";
+        
+        if (AudioExtensions.Contains(extension))
+            return $"Audio file size must not exceed {MaxAudioSize / 1024 / 1024}MB.";
+        
+        if (DocumentExtensions.Contains(extension))
+            return $"Document file size must not exceed {MaxDocumentSize / 1024 / 1024}MB.";
+        
+        return "File size validation failed.";
     }
 
     private bool BeValidContainerName(string containerName)
