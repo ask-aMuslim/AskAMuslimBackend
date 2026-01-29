@@ -28,7 +28,7 @@ public class StudentProfiles : EndpointGroupBase
 
         groupBuilder.MapPut(UpdateStudentProfile, "me")
             .RequireAuthorization()
-            .WithName("UpdateStudentProfile")
+            .WithName("UpdateStudentProfileDetails")
             .WithSummary("Update current student's profile");
     }
 
