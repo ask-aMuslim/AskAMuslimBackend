@@ -38,30 +38,37 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
             .Select(q => new QABriefDto
             {
                 Id = q.Id,
+                // For backward compatibility when Language is specified
                 QuestionText = request.Language.HasValue
                     ? q.Translations
                         .Where(t => t.Language == request.Language.Value)
                         .Select(t => t.QuestionText)
                         .FirstOrDefault() ?? string.Empty
-                    : q.Translations
-                        .Select(t => t.QuestionText)
-                        .FirstOrDefault() ?? string.Empty,
+                    : string.Empty,
                 AnswerText = request.Language.HasValue
                     ? q.Translations
                         .Where(t => t.Language == request.Language.Value)
                         .Select(t => t.AnswerText)
                         .FirstOrDefault() ?? string.Empty
-                    : q.Translations
-                        .Select(t => t.AnswerText)
-                        .FirstOrDefault() ?? string.Empty,
+                    : string.Empty,
                 AnswerTextJson = request.Language.HasValue
                     ? q.Translations
                         .Where(t => t.Language == request.Language.Value)
                         .Select(t => t.AnswerTextJson)
                         .FirstOrDefault()
-                    : q.Translations
-                        .Select(t => t.AnswerTextJson)
-                        .FirstOrDefault(),
+                    : null,
+                // Return all translations when Language is not specified
+                Translations = !request.Language.HasValue
+                    ? q.Translations
+                        .Select(t => new QABriefTranslationDto
+                        {
+                            Language = t.Language,
+                            QuestionText = t.QuestionText,
+                            AnswerText = t.AnswerText,
+                            AnswerTextJson = t.AnswerTextJson
+                        })
+                        .ToList()
+                    : null,
                 Tags = q.QATags
                     .Select(ct => ct.Tag != null ? ct.Tag.Title : "")
                     .Where(title => title != "")

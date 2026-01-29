@@ -21,6 +21,7 @@ public interface IApplicationDbContext
     DbSet<Option> Options { get; }
     DbSet<Enrollment> Enrollments { get; }
     DbSet<QuizAttempt> QuizAttempts { get; }
+    DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; }
     DbSet<Certificate> Certificates { get; }
     DbSet<StudentNote> StudentNotes { get; }
     DbSet<StudentQuestion> StudentQuestions { get; }

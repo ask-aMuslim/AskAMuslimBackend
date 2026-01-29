@@ -7,6 +7,7 @@ public class QuizAttemptDto
     public Guid Id { get; init; }
     public Guid QuizId { get; init; }
     public Guid StudentId { get; init; }
+    public string StudentName { get; init; } = string.Empty;
     public decimal Score { get; init; }
     public bool IsPassed { get; init; }
     public DateTime StartedAt { get; init; }

@@ -5,11 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Commands.CompleteQuizAttempt;
 
+public record QuizAnswerDto
+{
+    public Guid QuestionId { get; init; }
+    public Guid SelectedOptionId { get; init; }
+}
+
 public record CompleteQuizAttemptCommand : IRequest<Result>
 {
     public Guid AttemptId { get; init; }
-    public decimal Score { get; init; }
-    public bool IsPassed { get; init; }
+    public List<QuizAnswerDto> Answers { get; init; } = new();
 }
 
 public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAttemptCommand, Result>
@@ -25,14 +30,82 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
     {
         var attempt = await _context.QuizAttempts
             .Include(a => a.Quiz)
+                .ThenInclude(q => q!.Questions)
+                    .ThenInclude(q => q.Options)
             .FirstOrDefaultAsync(a => a.Id == request.AttemptId, cancellationToken);
+            
         if (attempt == null)
         {
             return Result.Failure(new[] { "Quiz attempt not found." });
         }
 
-        attempt.Score = request.Score;
-        attempt.IsPassed = request.IsPassed;
+        if (attempt.CompletedAt.HasValue)
+        {
+            return Result.Failure(new[] { "This quiz attempt has already been completed." });
+        }
+
+        if (attempt.Quiz == null)
+        {
+            return Result.Failure(new[] { "Quiz not found." });
+        }
+
+        // Validate that all questions are answered
+        var quizQuestionIds = attempt.Quiz.Questions.Select(q => q.Id).ToHashSet();
+        var answeredQuestionIds = request.Answers.Select(a => a.QuestionId).ToHashSet();
+        
+        if (!quizQuestionIds.SetEquals(answeredQuestionIds))
+        {
+            return Result.Failure(new[] { "All questions must be answered." });
+        }
+
+        // Calculate score based on correct answers
+        decimal totalQuestions = attempt.Quiz.Questions.Count;
+        decimal correctAnswers = 0;
+
+        var quizAttemptAnswers = new List<Domain.Entities.QuizAttemptAnswer>();
+
+        foreach (var answer in request.Answers)
+        {
+            var question = attempt.Quiz.Questions.FirstOrDefault(q => q.Id == answer.QuestionId);
+            if (question == null)
+            {
+                return Result.Failure(new[] { $"Question {answer.QuestionId} not found in this quiz." });
+            }
+
+            var selectedOption = question.Options.FirstOrDefault(o => o.Id == answer.SelectedOptionId);
+            if (selectedOption == null)
+            {
+                return Result.Failure(new[] { $"Option {answer.SelectedOptionId} not found for question {answer.QuestionId}." });
+            }
+
+            bool isCorrect = selectedOption.IsCorrect;
+            if (isCorrect)
+            {
+                correctAnswers++;
+            }
+
+            quizAttemptAnswers.Add(new Domain.Entities.QuizAttemptAnswer
+            {
+                QuizAttemptId = attempt.Id,
+                QuestionId = answer.QuestionId,
+                SelectedOptionId = answer.SelectedOptionId,
+                IsCorrect = isCorrect
+            });
+        }
+
+        // Calculate percentage score
+        decimal scorePercentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+        
+        // Determine if passed (assuming 60% is passing grade - you can make this configurable)
+        const decimal passingGrade = 60m;
+        bool isPassed = scorePercentage >= passingGrade;
+
+        // Save answers
+        _context.QuizAttemptAnswers.AddRange(quizAttemptAnswers);
+
+        // Update attempt
+        attempt.Score = Math.Round(scorePercentage, 2);
+        attempt.IsPassed = isPassed;
         attempt.CompletedAt = DateTime.UtcNow;
 
         // Save the attempt first so subsequent queries reflect the updated IsPassed flag
@@ -181,7 +254,20 @@ public class CompleteQuizAttemptCommandValidator : AbstractValidator<CompleteQui
 {
     public CompleteQuizAttemptCommandValidator()
     {
-        RuleFor(x => x.AttemptId).NotEmpty();
-        RuleFor(x => x.Score).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.AttemptId)
+            .NotEmpty().WithMessage("Attempt ID is required.");
+
+        RuleFor(x => x.Answers)
+            .NotNull().WithMessage("Answers are required.")
+            .NotEmpty().WithMessage("At least one answer must be provided.");
+
+        RuleForEach(x => x.Answers).ChildRules(answer =>
+        {
+            answer.RuleFor(a => a.QuestionId)
+                .NotEmpty().WithMessage("Question ID is required.");
+            
+            answer.RuleFor(a => a.SelectedOptionId)
+                .NotEmpty().WithMessage("Selected option ID is required.");
+        });
     }
 }

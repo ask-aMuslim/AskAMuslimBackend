@@ -1,7 +1,16 @@
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using AutoMapper;
 
 namespace AskAMuslimBackend.Application.QAs.Queries;
+
+public class QABriefTranslationDto
+{
+    public Language Language { get; init; }
+    public string QuestionText { get; init; } = string.Empty;
+    public string AnswerText { get; init; } = string.Empty;
+    public string? AnswerTextJson { get; init; }
+}
 
 public class QABriefDto
 {
@@ -9,6 +18,7 @@ public class QABriefDto
     public string QuestionText { get; init; } = string.Empty;
     public string AnswerText { get; init; } = string.Empty;
     public string? AnswerTextJson { get; init; }
+    public List<QABriefTranslationDto>? Translations { get; init; }
     public IReadOnlyCollection<string> Tags { get; init; } = [];
 
     private class Mapping : Profile
@@ -19,6 +29,7 @@ public class QABriefDto
                 .ForMember(d => d.QuestionText, opt => opt.Ignore())
                 .ForMember(d => d.AnswerText, opt => opt.Ignore())
                 .ForMember(d => d.AnswerTextJson, opt => opt.Ignore())
+                .ForMember(d => d.Translations, opt => opt.Ignore())
                 .ForMember(d => d.Tags, opt => opt.Ignore());
         }
     }

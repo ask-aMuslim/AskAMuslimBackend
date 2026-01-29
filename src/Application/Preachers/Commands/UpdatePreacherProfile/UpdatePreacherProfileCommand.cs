@@ -6,6 +6,9 @@ namespace AskAMuslimBackend.Application.Preachers.Commands.UpdatePreacherProfile
 
 public record UpdatePreacherProfileCommand : IRequest<Result<Guid>>
 {
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public string? ImageUrl { get; init; }
     public string? Bio { get; init; }
     public string? Specialization { get; init; }
     public string? PhoneNumber { get; init; }
@@ -49,6 +52,16 @@ public class UpdatePreacherProfileCommandHandler : IRequestHandler<UpdatePreache
             return Result<Guid>.Failure(new[] { $"Preacher with user ID {userId} not found" });
         }
 
+        // Update user-level fields
+        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        if (user != null)
+        {
+            if (request.FirstName != null) user.FirstName = request.FirstName;
+            if (request.LastName != null) user.LastName = request.LastName;
+            if (request.ImageUrl != null) user.ImageUrl = request.ImageUrl;
+        }
+
+        // Update preacher-specific fields
         if (request.Bio != null) preacher.Bio = request.Bio;
         if (request.Specialization != null) preacher.Specialization = request.Specialization;
         if (request.PhoneNumber != null) preacher.PhoneNumber = request.PhoneNumber;

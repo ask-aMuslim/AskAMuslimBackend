@@ -6,6 +6,9 @@ namespace AskAMuslimBackend.Application.Instructors.Commands.UpdateInstructorPro
 
 public record UpdateInstructorProfileCommand : IRequest<Result<Guid>>
 {
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public string? ImageUrl { get; init; }
     public string? Bio { get; init; }
     public string? Specialization { get; init; }
     public string? PhoneNumber { get; init; }
@@ -47,11 +50,21 @@ public class UpdateInstructorProfileCommandHandler : IRequestHandler<UpdateInstr
             return Result<Guid>.Failure(new[] { "Instructor not found" });
         }
 
-        instructor.Bio = request.Bio;
-        instructor.Specialization = request.Specialization;
-        instructor.PhoneNumber = request.PhoneNumber;
-        instructor.Website = request.Website;
-        instructor.LinkedInProfile = request.LinkedInProfile;
+        // Update user-level fields
+        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        if (user != null)
+        {
+            if (request.FirstName != null) user.FirstName = request.FirstName;
+            if (request.LastName != null) user.LastName = request.LastName;
+            if (request.ImageUrl != null) user.ImageUrl = request.ImageUrl;
+        }
+
+        // Update instructor-specific fields
+        if (request.Bio != null) instructor.Bio = request.Bio;
+        if (request.Specialization != null) instructor.Specialization = request.Specialization;
+        if (request.PhoneNumber != null) instructor.PhoneNumber = request.PhoneNumber;
+        if (request.Website != null) instructor.Website = request.Website;
+        if (request.LinkedInProfile != null) instructor.LinkedInProfile = request.LinkedInProfile;
         
         if (request.YearsOfExperience.HasValue)
         {

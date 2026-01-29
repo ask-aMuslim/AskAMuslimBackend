@@ -13,4 +13,5 @@ public class QuizAttempt : BaseAuditableEntity
     // Navigation
     public Quiz? Quiz { get; set; }
     public Student? Student { get; set; }
+    public ICollection<QuizAttemptAnswer> Answers { get; set; } = new List<QuizAttemptAnswer>();
 }

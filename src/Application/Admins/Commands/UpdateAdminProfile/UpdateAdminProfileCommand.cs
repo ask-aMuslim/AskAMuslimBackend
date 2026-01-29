@@ -6,6 +6,10 @@ namespace AskAMuslimBackend.Application.Admins.Commands.UpdateAdminProfile;
 
 public record UpdateAdminProfileCommand : IRequest<Result<Guid>>
 {
+    public string? FirstName { get; init; }
+    public string? LastName { get; init; }
+    public string? ImageUrl { get; init; }
+    public string? Bio { get; init; }
     public string? Department { get; init; }
     public string? PhoneNumber { get; init; }
 }
@@ -43,8 +47,19 @@ public class UpdateAdminProfileCommandHandler : IRequestHandler<UpdateAdminProfi
             return Result<Guid>.Failure(new[] { "Admin not found" });
         }
 
-        admin.Department = request.Department;
-        admin.PhoneNumber = request.PhoneNumber;
+        // Update user-level fields
+        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+        if (user != null)
+        {
+            if (request.FirstName != null) user.FirstName = request.FirstName;
+            if (request.LastName != null) user.LastName = request.LastName;
+            if (request.ImageUrl != null) user.ImageUrl = request.ImageUrl;
+        }
+
+        // Update admin-specific fields
+        if (request.Bio != null) admin.Bio = request.Bio;
+        if (request.Department != null) admin.Department = request.Department;
+        if (request.PhoneNumber != null) admin.PhoneNumber = request.PhoneNumber;
         admin.LastLoginDate = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
