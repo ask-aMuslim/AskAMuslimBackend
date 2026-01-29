@@ -25,20 +25,3 @@ jobs:
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
-
-    - name: Publish
-      run: dotnet publish src/Web/Web.csproj -c Release -o publish
-
-    - name: Deploy to Monster ASP.NET via SFTP
-      if: github.event_name == 'push'
-      uses: appleboy/scp-action@v0.1.6
-      with:
-        host: ${{ secrets.FTP_SERVER }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        port: 22
-        source: "publish/*"
-        target: ${{ secrets.FTP_PATH }}   # استخدام مجلد فرعي لتفادي مشاكل overwrite
-        tar_exec: ""           # منع استخدام tar نهائيًا
-        tar_dereference: false
-        overwrite: true        # استبدال الملفات القديمة
