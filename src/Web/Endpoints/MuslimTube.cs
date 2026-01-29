@@ -1,14 +1,10 @@
-using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.MuslimTube.Commands.AddChannel;
-using AskAMuslimBackend.Application.MuslimTube.Commands.ResyncChannel;
 using AskAMuslimBackend.Application.MuslimTube.Commands.DeleteChannel;
-using AskAMuslimBackend.Application.MuslimTube.Queries;
+using AskAMuslimBackend.Application.MuslimTube.Commands.ResyncChannel;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagination;
-using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideosByChannel;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetHomeVideos;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideoById;
-using AskAMuslimBackend.Web.Infrastructure;
-using Microsoft.AspNetCore.Http.HttpResults;
+using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideosByChannel;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 

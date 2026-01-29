@@ -11,6 +11,7 @@ public class MuslimTubeChannelBriefDto
     public string? ThumbnailDefaultUrl { get; set; }
     public string? ThumbnailMediumUrl { get; set; }
     public string? ThumbnailHighUrl { get; set; }
+    public DateTimeOffset? LastSyncedAt { get; set; }
 
     private class Mapping : Profile
     {
