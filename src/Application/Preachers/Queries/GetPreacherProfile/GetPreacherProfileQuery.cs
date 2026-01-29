@@ -53,6 +53,7 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
             FirstName = firstName,
             LastName = lastName,
             Bio = preacher.Bio,
+            ImageUrl = preacher.ImageUrl,
             Specialization = preacher.Specialization,
             PhoneNumber = preacher.PhoneNumber,
             Website = preacher.Website,

@@ -4,6 +4,7 @@ public class Preacher : BaseEntity
 {
     public Guid UserId { get; set; }
     public string? Bio { get; set; }
+    public string? ImageUrl { get; set; }
     public string? Specialization { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Website { get; set; }

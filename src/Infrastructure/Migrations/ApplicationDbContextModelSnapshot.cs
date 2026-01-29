@@ -35,6 +35,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -460,6 +463,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<bool>("HasAccessToAllCourses")
                         .HasColumnType("bit");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -900,6 +906,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Certifications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")

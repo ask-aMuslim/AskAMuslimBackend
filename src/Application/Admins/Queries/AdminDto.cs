@@ -9,6 +9,8 @@ public class AdminDto
     public string LastName { get; set; } = string.Empty;
     public string? Department { get; set; }
     public string? PhoneNumber { get; set; }
+    public string? Bio { get; set; }
+    public string? ImageUrl { get; set; }
     public bool IsSuperAdmin { get; set; }
     public bool IsActive { get; set; }
     public DateTime JoinedDate { get; set; }

@@ -50,6 +50,7 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
             FirstName = user?.FirstName ?? string.Empty,
             LastName = user?.LastName ?? string.Empty,
             Bio = instructor.Bio,
+            ImageUrl = instructor.ImageUrl,
             Specialization = instructor.Specialization,
             PhoneNumber = instructor.PhoneNumber,
             Website = instructor.Website,
