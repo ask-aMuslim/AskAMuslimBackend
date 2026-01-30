@@ -18,16 +18,22 @@ public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Res
     public async Task<Result> Handle(DeleteLevelCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Levels.FindAsync(new object[] { request.Id }, cancellationToken);
-        
         if (entity == null)
         {
             return Result.Failure(new[] { "Level not found" });
         }
-
-        _context.Levels.Remove(entity);
-        await _context.SaveChangesAsync(cancellationToken);
-        
-        return Result.Success();
+        try
+        {
+            _context.Levels.Remove(entity);
+            await _context.SaveChangesAsync(cancellationToken);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            // Optionally log ex here
+            var message = ex.InnerException?.Message ?? ex.Message;
+            return Result.Failure(new[] { $"Failed to delete level: {message}" });
+        }
     }
 }
 
