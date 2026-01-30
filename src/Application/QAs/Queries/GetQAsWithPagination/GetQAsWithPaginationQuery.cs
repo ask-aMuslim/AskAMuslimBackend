@@ -38,26 +38,6 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
             .Select(q => new QABriefDto
             {
                 Id = q.Id,
-                // For backward compatibility when Language is specified
-                QuestionText = request.Language.HasValue
-                    ? q.Translations
-                        .Where(t => t.Language == request.Language.Value)
-                        .Select(t => t.QuestionText)
-                        .FirstOrDefault() ?? string.Empty
-                    : string.Empty,
-                AnswerText = request.Language.HasValue
-                    ? q.Translations
-                        .Where(t => t.Language == request.Language.Value)
-                        .Select(t => t.AnswerText)
-                        .FirstOrDefault() ?? string.Empty
-                    : string.Empty,
-                AnswerTextJson = request.Language.HasValue
-                    ? q.Translations
-                        .Where(t => t.Language == request.Language.Value)
-                        .Select(t => t.AnswerTextJson)
-                        .FirstOrDefault()
-                    : null,
-                // Return all translations when Language is not specified
                 Translations = !request.Language.HasValue
                     ? q.Translations
                         .Select(t => new QABriefTranslationDto

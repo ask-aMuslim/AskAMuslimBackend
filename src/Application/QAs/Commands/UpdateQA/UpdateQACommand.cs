@@ -19,7 +19,6 @@ public record UpdateQATranslationInput
     public Guid? Id { get; init; } // null => new translation
     public Domain.Enums.Language Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
-    public string? QuestionTextJson { get; init; }
     public string AnswerText { get; init; } = string.Empty;
     public string? AnswerTextJson { get; init; }
     public bool IsDeleted { get; init; } // mark existing for deletion

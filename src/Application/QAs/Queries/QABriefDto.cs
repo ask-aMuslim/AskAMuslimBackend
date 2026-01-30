@@ -15,9 +15,6 @@ public class QABriefTranslationDto
 public class QABriefDto
 {
     public Guid Id { get; init; }
-    public string QuestionText { get; init; } = string.Empty;
-    public string AnswerText { get; init; } = string.Empty;
-    public string? AnswerTextJson { get; init; }
     public List<QABriefTranslationDto>? Translations { get; init; }
     public IReadOnlyCollection<string> Tags { get; init; } = [];
 
@@ -26,9 +23,6 @@ public class QABriefDto
         public Mapping()
         {
             CreateMap<QA, QABriefDto>()
-                .ForMember(d => d.QuestionText, opt => opt.Ignore())
-                .ForMember(d => d.AnswerText, opt => opt.Ignore())
-                .ForMember(d => d.AnswerTextJson, opt => opt.Ignore())
                 .ForMember(d => d.Translations, opt => opt.Ignore())
                 .ForMember(d => d.Tags, opt => opt.Ignore());
         }
