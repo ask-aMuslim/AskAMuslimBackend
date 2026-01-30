@@ -10,47 +10,20 @@ public class Media : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapPost(UploadImage, "upload")
+        groupBuilder.MapPost(UploadAttachment, "upload")
             .RequireAuthorization()
-            .WithName("UploadImage")
-            .WithSummary("Upload an image for use in rich text content")
-            .DisableAntiforgery(); // Required for file uploads
-
-        groupBuilder.MapPost(UploadFile, "upload-file")
-            .RequireAuthorization()
-            .WithName("UploadFile")
-            .WithSummary("Upload a file (image, video, audio, or document)")
-            .WithDescription("Supports images (jpg, png, gif, webp, bmp, svg), videos (mp4, avi, mov, wmv, flv, mkv, webm, mpeg), audio (mp3, wav, aac, ogg, flac, m4a), and documents (pdf, doc, docx, xls, xlsx, ppt, pptx, txt, rtf, odt)")
+            .WithName("UploadAttachment")
+            .WithSummary("Upload an attachment (image, video, audio, or document)")
+            .WithDescription("Supports images, videos, audio, and documents. The file type is detected automatically.")
             .DisableAntiforgery(); // Required for file uploads
     }
 
-    public async Task<IResult> UploadImage(
+    public async Task<IResult> UploadAttachment(
         ISender sender,
         IFormFile file,
-        [FromQuery] string containerName = "lesson-images")
+        [FromQuery] string containerName = "attachments")
     {
-        var command = new UploadImageCommand
-        {
-            File = file,
-            ContainerName = containerName
-        };
-
-        var result = await sender.Send(command);
-
-        if (result.Succeeded)
-        {
-            return TypedResults.Ok(new { url = result.Data });
-        }
-
-        return result.ToHttpResult();
-    }
-
-    public async Task<IResult> UploadFile(
-        ISender sender,
-        IFormFile file,
-        [FromQuery] string containerName = "lesson-files")
-    {
-        var command = new UploadFileCommand
+        var command = new Application.Media.Commands.UploadAttachment.UploadAttachmentCommand
         {
             File = file,
             ContainerName = containerName
