@@ -38,6 +38,7 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
             .Select(q => new QABriefDto
             {
                 Id = q.Id,
+                IsPublished = q.IsPublished,
                 Translations = !request.Language.HasValue
                     ? q.Translations
                         .Select(t => new QABriefTranslationDto

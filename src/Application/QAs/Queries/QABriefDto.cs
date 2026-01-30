@@ -15,6 +15,7 @@ public class QABriefTranslationDto
 public class QABriefDto
 {
     public Guid Id { get; init; }
+    public bool IsPublished { get; init; }
     public List<QABriefTranslationDto>? Translations { get; init; }
     public IReadOnlyCollection<string> Tags { get; init; } = [];
 
