@@ -515,14 +515,61 @@ public class IdentityService : IIdentityService
 
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
+        if (user == null || !user.IsActive)
         {
             return false;
         }
 
-        // For now, we'll do basic policy checking
-        // You can extend this to handle specific policies
-        return user.IsActive;
+        // Get user roles
+        var userRoles = await _userManager.GetRolesAsync(user);
+        
+        // Check if user has required role for the policy
+        // This maps policies to their required roles based on DependencyInjection.cs configuration
+        var policyRoleMap = new Dictionary<string, string[]>
+        {
+            // System Policies
+            { Domain.Constants.Policies.CanPurge, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.SuperAdminOnly, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // User Management Policies
+            { Domain.Constants.Policies.ManageAllUsers, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewAllUsers, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.AssignRoles, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Student Management Policies
+            { Domain.Constants.Policies.ViewAllStudents, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewEnrolledStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.SendNotifications, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageAdminNotes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
+            
+            // Course Management Policies
+            { Domain.Constants.Policies.ViewAllCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageAllCourses, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageOwnCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.CreateCourse, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            
+            // Content Management Policies
+            { Domain.Constants.Policies.ManageContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.PublishArticles, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageDawahContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            
+            // System Policies
+            { Domain.Constants.Policies.ViewReports, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageSystem, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewFinancialData, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageRolesAndPermissions, new[] { Domain.Constants.Roles.Administrator } }
+        };
+        
+        // Check if policy exists and user has any of the required roles
+        if (policyRoleMap.TryGetValue(policyName, out var requiredRoles))
+        {
+            return userRoles.Any(role => requiredRoles.Contains(role));
+        }
+        
+        // If policy is not found, deny access by default
+        return false;
     }
 
     public async Task<Result> DeleteUserAsync(string userId)
