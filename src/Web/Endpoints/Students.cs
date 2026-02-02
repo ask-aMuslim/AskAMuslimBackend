@@ -41,9 +41,9 @@ public class Students : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetAllStudents(ISender sender)
+    public async Task<IResult> GetAllStudents(ISender sender, [AsParameters] GetAllStudentsQuery query)
     {
-        var result = await sender.Send(new GetAllStudentsQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 

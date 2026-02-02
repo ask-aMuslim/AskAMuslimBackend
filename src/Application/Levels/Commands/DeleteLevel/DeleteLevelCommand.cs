@@ -22,6 +22,14 @@ public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Res
         {
             return Result.Failure(new[] { "Level not found" });
         }
+
+        // Check if level has any courses
+        var hasCourses = await _context.Courses.AnyAsync(c => c.LevelId == request.Id, cancellationToken);
+        if (hasCourses)
+        {
+            return Result.Failure(new[] { "Cannot delete level because it has associated courses. Please remove or reassign the courses first." });
+        }
+
         try
         {
             _context.Levels.Remove(entity);
