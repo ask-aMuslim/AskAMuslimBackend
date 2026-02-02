@@ -1,4 +1,5 @@
-﻿using AskAMuslimBackend.Domain.Entities;
+﻿using AskAMuslimBackend.Application.Tags.Queries;
+using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Courses.Queries;
 
@@ -16,11 +17,14 @@ public class CourseBriefDto
 
     public int Order { get; init; }
 
+    public List<TagBriefDto> Tags { get; init; } = new();
+
     private class Mapping : Profile
     {
         public Mapping()
         {
-            CreateMap<Course, CourseBriefDto>();
+            CreateMap<Course, CourseBriefDto>()
+                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.Tag)));
         }
     }
 }

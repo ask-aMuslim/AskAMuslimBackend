@@ -22,6 +22,8 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Res
     public async Task<Result<CourseBriefDto?>> Handle(GetCourseByIdQuery request, CancellationToken cancellationToken)
     {
         var course = await _context.Courses
+            .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
             .Where(c => c.Id == request.Id)
             .ProjectTo<CourseBriefDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);

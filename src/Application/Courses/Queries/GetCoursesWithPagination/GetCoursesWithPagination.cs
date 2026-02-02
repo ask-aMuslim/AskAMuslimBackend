@@ -25,7 +25,10 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
 
     public async Task<Result<PaginatedList<CourseBriefDto>>> Handle(GetCoursesWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.Courses.AsNoTracking();
+        var query = _context.Courses
+            .Include(c => c.CourseTags)
+                .ThenInclude(ct => ct.Tag)
+            .AsNoTracking();
         
         if (request.LevelId.HasValue)
         {

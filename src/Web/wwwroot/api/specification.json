@@ -2130,59 +2130,14 @@
         "tags": [
           "Media"
         ],
-        "operationId": "UploadImage",
+        "operationId": "UploadAttachment",
         "parameters": [
           {
             "name": "containerName",
             "in": "query",
             "schema": {
               "type": "string",
-              "default": "lesson-images"
-            },
-            "x-position": 1
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "nullable": true
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
-    },
-    "/api/Media/upload-file": {
-      "post": {
-        "tags": [
-          "Media"
-        ],
-        "operationId": "UploadFile",
-        "parameters": [
-          {
-            "name": "containerName",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "default": "lesson-files"
+              "default": "attachments"
             },
             "x-position": 1
           }
