@@ -157,6 +157,34 @@
             "JWT": []
           }
         ]
+      },
+      "post": {
+        "tags": [
+          "Admins"
+        ],
+        "operationId": "CreateAdmin",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/Authentication/register": {
@@ -3147,6 +3175,112 @@
         ]
       }
     },
+    "/api/Permissions": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "GetAllPermissions",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Permissions/users": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "GetUsersForPermissionAssignment",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Permissions/{userId}": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "GetUserPermissions",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "UpdateUserPermissions",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserPermissionsCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Preachers/me": {
       "get": {
         "tags": [
@@ -4362,6 +4496,28 @@
           "Students"
         ],
         "operationId": "GetAllStudents",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 2
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -4940,6 +5096,38 @@
           },
           "isPrivate": {
             "type": "boolean"
+          }
+        }
+      },
+      "CreateAdminCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -6013,6 +6201,186 @@
             "type": "boolean"
           }
         }
+      },
+      "UpdateUserPermissionsCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/Permission"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Permission": {
+        "type": "integer",
+        "description": "",
+        "x-enumFlags": true,
+        "x-enumNames": [
+          "None",
+          "ManageSettings",
+          "ViewDashboard",
+          "ViewAnalytics",
+          "ViewReports",
+          "ViewAdmins",
+          "ManageRolesAndPermissions",
+          "ViewFinancialData",
+          "CreateAdmin",
+          "EditAdmin",
+          "ManageSystemBackup",
+          "DeleteAdmin",
+          "ViewAuditLogs",
+          "ManageAdminRoles",
+          "ViewAllStudents",
+          "ViewEnrolledStudents",
+          "EditStudent",
+          "DeleteStudent",
+          "ViewStudentProgress",
+          "ViewStudentQuestions",
+          "AnswerStudentQuestions",
+          "ManageAdminNotes",
+          "SendNotifications",
+          "SendDirectEmail",
+          "FullStudentAccess",
+          "ViewLevels",
+          "CreateLevel",
+          "EditLevel",
+          "DeleteLevel",
+          "ViewAllCourses",
+          "ViewOwnCourses",
+          "CreateCourse",
+          "EditOwnCourses",
+          "EditAllCourses",
+          "DeleteCourse",
+          "PublishCourse",
+          "ViewLessons",
+          "CreateLesson",
+          "EditLesson",
+          "DeleteLesson",
+          "ViewQuizzes",
+          "CreateQuiz",
+          "EditQuiz",
+          "DeleteQuiz",
+          "ViewQuizResults",
+          "FullAcademyAccess",
+          "ViewQA",
+          "CreateQA",
+          "EditQA",
+          "DeleteQA",
+          "ApproveQA",
+          "FullQAAccess",
+          "ViewMuslimTube",
+          "CreateVideo",
+          "EditVideo",
+          "DeleteVideo",
+          "ApproveVideo",
+          "FullMuslimTubeAccess",
+          "ViewNotifications",
+          "SendBulkNotifications",
+          "CreateNotificationTemplate",
+          "ViewMeetingRequests",
+          "ManageMeetingRequests",
+          "ViewInquiryRequests",
+          "ManageInquiryRequests",
+          "ViewEvents",
+          "CreateEvent",
+          "EditEvent",
+          "DeleteEvent",
+          "ManageEventRegistrations",
+          "FullEventAccess",
+          "ViewTags",
+          "CreateTag",
+          "EditTag",
+          "DeleteTag",
+          "ViewSettings",
+          "AllPermissions"
+        ],
+        "enum": [
+          0,
+          1,
+          1,
+          2,
+          2,
+          4,
+          4,
+          8,
+          8,
+          16,
+          16,
+          32,
+          32,
+          64,
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192,
+          16384,
+          32768,
+          65536,
+          130688,
+          131072,
+          262144,
+          524288,
+          1048576,
+          2097152,
+          4194304,
+          8388608,
+          16777216,
+          33554432,
+          67108864,
+          134217728,
+          268435456,
+          536870912,
+          1073741824,
+          2147483648,
+          4294967296,
+          8589934592,
+          17179869184,
+          34359738368,
+          68719476736,
+          137417850880,
+          137438953472,
+          274877906944,
+          549755813888,
+          1099511627776,
+          2199023255552,
+          4260607557632,
+          4398046511104,
+          8796093022208,
+          17592186044416,
+          35184372088832,
+          70368744177664,
+          136339441844224,
+          140737488355328,
+          281474976710656,
+          562949953421312,
+          1125899906842624,
+          2251799813685248,
+          4503599627370496,
+          9007199254740992,
+          18014398509481984,
+          36028797018963968,
+          72057594037927936,
+          144115188075855872,
+          288230376151711744,
+          558446353793941504,
+          576460752303423488,
+          1152921504606846976,
+          2305843009213693952,
+          4611686018427387904,
+          -9223372036854775808,
+          -1
+        ]
       },
       "UpdatePreacherProfileCommand": {
         "type": "object",

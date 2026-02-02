@@ -114,25 +114,27 @@ public class PermissionService : IPermissionService
     {
         return Task.FromResult(role switch
         {
-            "Admin" => Permission.ViewAllUsers | Permission.EditUserProfile | Permission.ResetUserPassword |
-                       Permission.ManageAccountStatus | Permission.AssignRoles | Permission.ViewAllStudents |
-                       Permission.ViewStudentProgress | Permission.SendNotifications | Permission.ViewStudentQuestions |
-                       Permission.AnswerStudentQuestions | Permission.ManageAdminNotes | Permission.SendDirectEmail |
-                       Permission.ViewAllCourses | Permission.CreateCourse | Permission.EditAllCourses |
-                       Permission.DeleteCourse | Permission.ManageLessons | Permission.ManageCategories |
-                       Permission.ManageQA | Permission.PublishArticles | Permission.ModerateDiscussions |
-                       Permission.ManageDawahContent | Permission.ViewReports | Permission.ManageSystemSettings |
-                       Permission.ViewFinancialData | Permission.ManageRolesAndPermissions,
+            "Admin" => Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 
+                       Permission.CreateAdmin | Permission.EditAdmin | Permission.DeleteAdmin | 
+                       Permission.ManageAdminRoles | Permission.FullStudentAccess | Permission.FullAcademyAccess |
+                       Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.ViewNotifications |
+                       Permission.SendBulkNotifications | Permission.CreateNotificationTemplate |
+                       Permission.ViewMeetingRequests | Permission.ManageMeetingRequests |
+                       Permission.ViewInquiryRequests | Permission.ManageInquiryRequests |
+                       Permission.FullEventAccess | Permission.ViewTags | Permission.CreateTag | 
+                       Permission.EditTag | Permission.DeleteTag | Permission.ViewSettings | 
+                       Permission.ViewReports | Permission.ManageRolesAndPermissions |
+                       Permission.ViewFinancialData | Permission.ManageSystemBackup | Permission.ViewAuditLogs,
 
             "Instructor" => Permission.ViewEnrolledStudents | Permission.ViewStudentProgress |
                             Permission.SendNotifications | Permission.ViewStudentQuestions |
                             Permission.AnswerStudentQuestions | Permission.ManageAdminNotes |
                             Permission.SendDirectEmail | Permission.ViewAllCourses | Permission.CreateCourse |
-                            Permission.EditOwnCourses | Permission.ManageLessons,
+                            Permission.EditOwnCourses | Permission.ViewLessons | Permission.CreateLesson |
+                            Permission.EditLesson | Permission.DeleteLesson,
 
             "Preacher" => Permission.ViewStudentQuestions | Permission.ManageAdminNotes |
-                          Permission.ManageQA | Permission.PublishArticles | Permission.ModerateDiscussions |
-                          Permission.ManageDawahContent,
+                          Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.FullEventAccess,
 
             "Student" or "NonMuslim" => Permission.None,
 

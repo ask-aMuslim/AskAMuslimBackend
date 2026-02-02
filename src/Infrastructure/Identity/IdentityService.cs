@@ -10,6 +10,7 @@ using AskAMuslimBackend.Infrastructure.Data;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -523,13 +524,41 @@ public class IdentityService : IIdentityService
         // Get user roles
         var userRoles = await _userManager.GetRolesAsync(user);
         
-        // Check if user has required role for the policy
-        // This maps policies to their required roles based on DependencyInjection.cs configuration
+        // Administrators have all permissions
+        if (userRoles.Contains(Domain.Constants.Roles.Administrator))
+        {
+            return true;
+        }
+        
+        // Check custom user permissions from UserPermission table
+        var userPermission = await _dbContext.UserPermissions
+            .Where(up => up.UserId == userGuid)
+            .FirstOrDefaultAsync();
+        
+        if (userPermission != null)
+        {
+            var hasPermission = CheckPermissionForPolicy(policyName, userPermission.Permissions);
+            if (hasPermission)
+            {
+                return true;
+            }
+        }
+        
+        // Fallback to role-based authorization
         var policyRoleMap = new Dictionary<string, string[]>
         {
             // System Policies
             { Domain.Constants.Policies.CanPurge, new[] { Domain.Constants.Roles.Administrator } },
             { Domain.Constants.Policies.SuperAdminOnly, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Dashboard
+            { Domain.Constants.Policies.ViewDashboard, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ViewAnalytics, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Admin Management
+            { Domain.Constants.Policies.ViewAdmins, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageAdmins, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageAdminRoles, new[] { Domain.Constants.Roles.Administrator } },
             
             // User Management Policies
             { Domain.Constants.Policies.ManageAllUsers, new[] { Domain.Constants.Roles.Administrator } },
@@ -537,29 +566,72 @@ public class IdentityService : IIdentityService
             { Domain.Constants.Policies.AssignRoles, new[] { Domain.Constants.Roles.Administrator } },
             
             // Student Management Policies
-            { Domain.Constants.Policies.ViewAllStudents, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewAllStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.ViewEnrolledStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.ManageStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.SendNotifications, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.ManageAdminNotes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
             
-            // Course Management Policies
+            // Academy - Levels
+            { Domain.Constants.Policies.ViewLevels, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageLevels, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Academy - Courses
             { Domain.Constants.Policies.ViewAllCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ViewOwnCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.ManageAllCourses, new[] { Domain.Constants.Roles.Administrator } },
             { Domain.Constants.Policies.ManageOwnCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
             { Domain.Constants.Policies.CreateCourse, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.PublishCourse, new[] { Domain.Constants.Roles.Administrator } },
             
-            // Content Management Policies
-            { Domain.Constants.Policies.ManageContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            // Academy - Lessons & Quizzes
+            { Domain.Constants.Policies.ViewLessons, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageLessons, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ViewQuizzes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            { Domain.Constants.Policies.ManageQuizzes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
+            
+            // QA Management
+            { Domain.Constants.Policies.ViewQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
             { Domain.Constants.Policies.ManageQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ApproveQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            
+            // MuslimTube
+            { Domain.Constants.Policies.ViewMuslimTube, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageMuslimTube, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ApproveVideos, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            
+            // Notifications
+            { Domain.Constants.Policies.ViewNotifications, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.SendBulkNotifications, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Meeting & Inquiry Requests
+            { Domain.Constants.Policies.ViewMeetingRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageMeetingRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ViewInquiryRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageInquiryRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            
+            // Events
+            { Domain.Constants.Policies.ViewEvents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageEvents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageEventRegistrations, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
+            
+            // Tags
+            { Domain.Constants.Policies.ViewTags, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
+            { Domain.Constants.Policies.ManageTags, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Settings & System
+            { Domain.Constants.Policies.ViewSettings, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageSettings, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewReports, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ManageRolesAndPermissions, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewFinancialData, new[] { Domain.Constants.Roles.Administrator } },
+            { Domain.Constants.Policies.ViewAuditLogs, new[] { Domain.Constants.Roles.Administrator } },
+            
+            // Legacy compatibility
+            { Domain.Constants.Policies.ManageContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
             { Domain.Constants.Policies.PublishArticles, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
             { Domain.Constants.Policies.ManageDawahContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            
-            // System Policies
-            { Domain.Constants.Policies.ViewReports, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageSystem, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ViewFinancialData, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageRolesAndPermissions, new[] { Domain.Constants.Roles.Administrator } }
+            { Domain.Constants.Policies.ManageSystem, new[] { Domain.Constants.Roles.Administrator } }
         };
         
         // Check if policy exists and user has any of the required roles
@@ -569,6 +641,91 @@ public class IdentityService : IIdentityService
         }
         
         // If policy is not found, deny access by default
+        return false;
+    }
+    
+    private bool CheckPermissionForPolicy(string policyName, Domain.Enums.Permission userPermissions)
+    {
+        // Map policies to permission flags
+        var policyPermissionMap = new Dictionary<string, Domain.Enums.Permission>
+        {
+            // Dashboard
+            { Domain.Constants.Policies.ViewDashboard, Domain.Enums.Permission.ViewDashboard },
+            { Domain.Constants.Policies.ViewAnalytics, Domain.Enums.Permission.ViewAnalytics },
+            
+            // Admin Management
+            { Domain.Constants.Policies.ViewAdmins, Domain.Enums.Permission.ViewAdmins },
+            { Domain.Constants.Policies.ManageAdmins, Domain.Enums.Permission.CreateAdmin | Domain.Enums.Permission.EditAdmin | Domain.Enums.Permission.DeleteAdmin },
+            { Domain.Constants.Policies.ManageAdminRoles, Domain.Enums.Permission.ManageAdminRoles },
+            
+            // Student Management
+            { Domain.Constants.Policies.ViewAllStudents, Domain.Enums.Permission.ViewAllStudents },
+            { Domain.Constants.Policies.ViewEnrolledStudents, Domain.Enums.Permission.ViewEnrolledStudents },
+            { Domain.Constants.Policies.ManageStudents, Domain.Enums.Permission.EditStudent },
+            { Domain.Constants.Policies.SendNotifications, Domain.Enums.Permission.SendNotifications },
+            { Domain.Constants.Policies.ManageAdminNotes, Domain.Enums.Permission.ManageAdminNotes },
+            
+            // Academy - Levels
+            { Domain.Constants.Policies.ViewLevels, Domain.Enums.Permission.ViewLevels },
+            { Domain.Constants.Policies.ManageLevels, Domain.Enums.Permission.CreateLevel | Domain.Enums.Permission.EditLevel | Domain.Enums.Permission.DeleteLevel },
+            
+            // Academy - Courses
+            { Domain.Constants.Policies.ViewAllCourses, Domain.Enums.Permission.ViewAllCourses },
+            { Domain.Constants.Policies.ViewOwnCourses, Domain.Enums.Permission.ViewOwnCourses },
+            { Domain.Constants.Policies.ManageAllCourses, Domain.Enums.Permission.EditAllCourses | Domain.Enums.Permission.DeleteCourse },
+            { Domain.Constants.Policies.ManageOwnCourses, Domain.Enums.Permission.EditOwnCourses },
+            { Domain.Constants.Policies.CreateCourse, Domain.Enums.Permission.CreateCourse },
+            { Domain.Constants.Policies.PublishCourse, Domain.Enums.Permission.PublishCourse },
+            
+            // Academy - Lessons & Quizzes
+            { Domain.Constants.Policies.ViewLessons, Domain.Enums.Permission.ViewLessons },
+            { Domain.Constants.Policies.ManageLessons, Domain.Enums.Permission.CreateLesson | Domain.Enums.Permission.EditLesson | Domain.Enums.Permission.DeleteLesson },
+            { Domain.Constants.Policies.ViewQuizzes, Domain.Enums.Permission.ViewQuizzes },
+            { Domain.Constants.Policies.ManageQuizzes, Domain.Enums.Permission.CreateQuiz | Domain.Enums.Permission.EditQuiz | Domain.Enums.Permission.DeleteQuiz },
+            
+            // QA
+            { Domain.Constants.Policies.ViewQA, Domain.Enums.Permission.ViewQA },
+            { Domain.Constants.Policies.ManageQA, Domain.Enums.Permission.CreateQA | Domain.Enums.Permission.EditQA | Domain.Enums.Permission.DeleteQA },
+            { Domain.Constants.Policies.ApproveQA, Domain.Enums.Permission.ApproveQA },
+            
+            // MuslimTube
+            { Domain.Constants.Policies.ViewMuslimTube, Domain.Enums.Permission.ViewMuslimTube },
+            { Domain.Constants.Policies.ManageMuslimTube, Domain.Enums.Permission.CreateVideo | Domain.Enums.Permission.EditVideo | Domain.Enums.Permission.DeleteVideo },
+            { Domain.Constants.Policies.ApproveVideos, Domain.Enums.Permission.ApproveVideo },
+            
+            // Notifications
+            { Domain.Constants.Policies.ViewNotifications, Domain.Enums.Permission.ViewNotifications },
+            { Domain.Constants.Policies.SendBulkNotifications, Domain.Enums.Permission.SendBulkNotifications },
+            
+            // Meeting & Inquiry
+            { Domain.Constants.Policies.ViewMeetingRequests, Domain.Enums.Permission.ViewMeetingRequests },
+            { Domain.Constants.Policies.ManageMeetingRequests, Domain.Enums.Permission.ManageMeetingRequests },
+            { Domain.Constants.Policies.ViewInquiryRequests, Domain.Enums.Permission.ViewInquiryRequests },
+            { Domain.Constants.Policies.ManageInquiryRequests, Domain.Enums.Permission.ManageInquiryRequests },
+            
+            // Events
+            { Domain.Constants.Policies.ViewEvents, Domain.Enums.Permission.ViewEvents },
+            { Domain.Constants.Policies.ManageEvents, Domain.Enums.Permission.CreateEvent | Domain.Enums.Permission.EditEvent | Domain.Enums.Permission.DeleteEvent },
+            { Domain.Constants.Policies.ManageEventRegistrations, Domain.Enums.Permission.ManageEventRegistrations },
+            
+            // Tags
+            { Domain.Constants.Policies.ViewTags, Domain.Enums.Permission.ViewTags },
+            { Domain.Constants.Policies.ManageTags, Domain.Enums.Permission.CreateTag | Domain.Enums.Permission.EditTag | Domain.Enums.Permission.DeleteTag },
+            
+            // Settings & System
+            { Domain.Constants.Policies.ViewSettings, Domain.Enums.Permission.ViewSettings },
+            { Domain.Constants.Policies.ManageSettings, Domain.Enums.Permission.ViewSettings },
+            { Domain.Constants.Policies.ViewReports, Domain.Enums.Permission.ViewReports },
+            { Domain.Constants.Policies.ManageRolesAndPermissions, Domain.Enums.Permission.ManageRolesAndPermissions },
+            { Domain.Constants.Policies.ViewFinancialData, Domain.Enums.Permission.ViewFinancialData },
+            { Domain.Constants.Policies.ViewAuditLogs, Domain.Enums.Permission.ViewAuditLogs }
+        };
+        
+        if (policyPermissionMap.TryGetValue(policyName, out var requiredPermission))
+        {
+            return (userPermissions & requiredPermission) == requiredPermission;
+        }
+        
         return false;
     }
 

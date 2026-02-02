@@ -157,11 +157,25 @@ public static class DependencyInjection
 
         builder.Services.AddAuthorization(options =>
         {
-            // System Policies
+            // System Policies - Admin only
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator));
             options.AddPolicy(Policies.SuperAdminOnly, policy => policy.RequireRole(Roles.Administrator));
             
-            // User Management Policies
+            // Dashboard - All admin roles can view
+            options.AddPolicy(Policies.ViewDashboard, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+            options.AddPolicy(Policies.ViewAnalytics, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // Admin Management - Admin only
+            options.AddPolicy(Policies.ViewAdmins, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ManageAdmins, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ManageAdminRoles, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // User Management Policies - Admin only
             options.AddPolicy(Policies.ManageAllUsers, policy => 
                 policy.RequireRole(Roles.Administrator));
             options.AddPolicy(Policies.ViewAllUsers, policy => 
@@ -171,7 +185,7 @@ public static class DependencyInjection
             
             // Student Management Policies
             options.AddPolicy(Policies.ViewAllStudents, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
             options.AddPolicy(Policies.ViewEnrolledStudents, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Instructor));
             options.AddPolicy(Policies.ManageStudents, policy => 
@@ -181,8 +195,16 @@ public static class DependencyInjection
             options.AddPolicy(Policies.ManageAdminNotes, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
             
-            // Course Management Policies
+            // Academy - Levels
+            options.AddPolicy(Policies.ViewLevels, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.ManageLevels, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // Academy - Courses
             options.AddPolicy(Policies.ViewAllCourses, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.ViewOwnCourses, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Instructor));
             options.AddPolicy(Policies.ManageAllCourses, policy => 
                 policy.RequireRole(Roles.Administrator));
@@ -190,25 +212,87 @@ public static class DependencyInjection
                 policy.RequireRole(Roles.Administrator, Roles.Instructor));
             options.AddPolicy(Policies.CreateCourse, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.PublishCourse, policy => 
+                policy.RequireRole(Roles.Administrator));
             
-            // Content Management Policies
-            options.AddPolicy(Policies.ManageContent, policy => 
+            // Academy - Lessons & Quizzes
+            options.AddPolicy(Policies.ViewLessons, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.ManageLessons, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.ViewQuizzes, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            options.AddPolicy(Policies.ManageQuizzes, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+            
+            // QA Management
+            options.AddPolicy(Policies.ViewQA, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Preacher));
             options.AddPolicy(Policies.ManageQA, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ApproveQA, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            
+            // MuslimTube
+            options.AddPolicy(Policies.ViewMuslimTube, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ManageMuslimTube, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ApproveVideos, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            
+            // Notifications
+            options.AddPolicy(Policies.ViewNotifications, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+            options.AddPolicy(Policies.SendBulkNotifications, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // Meeting & Inquiry Requests
+            options.AddPolicy(Policies.ViewMeetingRequests, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ManageMeetingRequests, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ViewInquiryRequests, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ManageInquiryRequests, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            
+            // Events
+            options.AddPolicy(Policies.ViewEvents, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ManageEvents, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            options.AddPolicy(Policies.ManageEventRegistrations, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+            
+            // Tags
+            options.AddPolicy(Policies.ViewTags, policy => 
+                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+            options.AddPolicy(Policies.ManageTags, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // Settings & System - Admin only
+            options.AddPolicy(Policies.ViewSettings, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ManageSettings, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ViewReports, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ManageRolesAndPermissions, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ViewFinancialData, policy => 
+                policy.RequireRole(Roles.Administrator));
+            options.AddPolicy(Policies.ViewAuditLogs, policy => 
+                policy.RequireRole(Roles.Administrator));
+            
+            // Legacy compatibility
+            options.AddPolicy(Policies.ManageContent, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Preacher));
             options.AddPolicy(Policies.PublishArticles, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Preacher));
             options.AddPolicy(Policies.ManageDawahContent, policy => 
                 policy.RequireRole(Roles.Administrator, Roles.Preacher));
-            
-            // System Policies
-            options.AddPolicy(Policies.ViewReports, policy => 
-                policy.RequireRole(Roles.Administrator));
             options.AddPolicy(Policies.ManageSystem, policy => 
-                policy.RequireRole(Roles.Administrator));
-            options.AddPolicy(Policies.ViewFinancialData, policy => 
-                policy.RequireRole(Roles.Administrator));
-            options.AddPolicy(Policies.ManageRolesAndPermissions, policy => 
                 policy.RequireRole(Roles.Administrator));
         });
     }

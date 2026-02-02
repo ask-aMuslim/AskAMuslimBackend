@@ -1,7 +1,9 @@
+using AskAMuslimBackend.Application.Admins.Commands.CreateAdmin;
 using AskAMuslimBackend.Application.Admins.Commands.UpdateAdminProfile;
 using AskAMuslimBackend.Application.Admins.Queries;
 using AskAMuslimBackend.Application.Admins.Queries.GetAdminProfile;
 using AskAMuslimBackend.Application.Admins.Queries.GetAllAdmins;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -17,14 +19,19 @@ public class Admins : EndpointGroupBase
             .WithSummary("Get current admin's profile");
 
         groupBuilder.MapGet(GetAdminProfile, "{userId}")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.ViewAdmins)
             .WithName("GetAdminProfile")
             .WithSummary("Get admin profile by user ID");
 
         groupBuilder.MapGet(GetAllAdmins)
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.ViewAdmins)
             .WithName("GetAllAdmins")
             .WithSummary("Get all admins");
+
+        groupBuilder.MapPost(CreateAdmin)
+            .RequireAuthorization(Policies.ManageAdmins)
+            .WithName("CreateAdmin")
+            .WithSummary("Create a new admin, instructor, or preacher (Administrator only)");
 
         groupBuilder.MapPut(UpdateAdminProfile, "me")
             .RequireAuthorization()
@@ -47,6 +54,12 @@ public class Admins : EndpointGroupBase
     public async Task<IResult> GetAllAdmins(ISender sender)
     {
         var result = await sender.Send(new GetAllAdminsQuery());
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> CreateAdmin(ISender sender, CreateAdminCommand command)
+    {
+        var result = await sender.Send(command);
         return result.ToHttpResult();
     }
 
