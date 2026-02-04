@@ -102,7 +102,7 @@ public class ApplicationDbContextInitialiser
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             // --- Seed Identity Roles ---
-            var roles = new[] { "Admin", "Student", "Instructor", "NonMuslim", "Preacher" };
+            var roles = new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Student, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.NonMuslim, Domain.Constants.Roles.Preacher };
             foreach (var roleName in roles)
             {
                 if (!await _roleManager.RoleExistsAsync(roleName))
@@ -156,7 +156,7 @@ public class ApplicationDbContextInitialiser
                 var result = await _userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, userRole.ToString());
+                    await _userManager.AddToRoleAsync(user, GetRoleName(userRole));
                     newUsers.Add(user);
                 }
                 else
@@ -168,9 +168,12 @@ public class ApplicationDbContextInitialiser
             if (newUsers.Count > 0)
             {
                 // Create role-specific entities without saving each time; save once after.
-                foreach (var user in newUsers)
+                for (int i = 0; i < newUsers.Count; i++)
                 {
-                    await CreateRoleSpecificEntity(user.Id, user.Role);
+                    var user = newUsers[i];
+                    // First user (admin from AdminSeed) should be super admin
+                    var isSuperAdmin = i == 0 && user.Role == UserRole.Admin;
+                    await CreateRoleSpecificEntity(user.Id, user.Role, user.ReligionStatus ?? ReligiousStatus.BornMuslim, isSuperAdmin);
                 }
                 await _context.SaveChangesAsync();
             }
@@ -881,7 +884,7 @@ public class ApplicationDbContextInitialiser
         });
     }
 
-    private Task CreateRoleSpecificEntity(Guid userId, UserRole role, ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim)
+    private Task CreateRoleSpecificEntity(Guid userId, UserRole role, ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim, bool isSuperAdmin = false)
     {
         switch (role)
         {
@@ -919,7 +922,7 @@ public class ApplicationDbContextInitialiser
                         UserId = userId,
                         JoinedDate = DateTime.UtcNow,
                         IsActive = true,
-                        IsSuperAdmin = false
+                        IsSuperAdmin = isSuperAdmin
                     });
                 }
                 break;
@@ -939,5 +942,18 @@ public class ApplicationDbContextInitialiser
         }
 
         return Task.CompletedTask;
+    }
+
+    private static string GetRoleName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Admin => Domain.Constants.Roles.Administrator,
+            UserRole.Student => Domain.Constants.Roles.Student,
+            UserRole.Instructor => Domain.Constants.Roles.Instructor,
+            UserRole.Preacher => Domain.Constants.Roles.Preacher,
+            UserRole.NonMuslim => Domain.Constants.Roles.NonMuslim,
+            _ => role.ToString()
+        };
     }
 }

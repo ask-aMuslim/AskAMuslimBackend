@@ -137,7 +137,7 @@ public class IdentityService : IIdentityService
         }
 
         // Add user to role
-        await _userManager.AddToRoleAsync(user, role.ToString());
+        await _userManager.AddToRoleAsync(user, GetRoleName(role));
 
         // Create role-specific entity
         await CreateRoleSpecificEntity(user.Id, role);
@@ -326,7 +326,7 @@ public class IdentityService : IIdentityService
                 return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
             }
 
-            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+            await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
@@ -440,7 +440,7 @@ public class IdentityService : IIdentityService
                 return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
             }
 
-            await _userManager.AddToRoleAsync(user, user.Role.ToString());
+            await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
@@ -476,8 +476,8 @@ public class IdentityService : IIdentityService
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
-            new(ClaimTypes.Role, user.Role.ToString()),
-            new("role", user.Role.ToString()),
+            new(ClaimTypes.Role, GetRoleName(user.Role)),
+            new("role", GetRoleName(user.Role)),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
@@ -751,5 +751,18 @@ public class IdentityService : IIdentityService
         }
 
         return Result.Success();
+    }
+
+    private static string GetRoleName(UserRole role)
+    {
+        return role switch
+        {
+            UserRole.Admin => Domain.Constants.Roles.Administrator,
+            UserRole.Student => Domain.Constants.Roles.Student,
+            UserRole.Instructor => Domain.Constants.Roles.Instructor,
+            UserRole.Preacher => Domain.Constants.Roles.Preacher,
+            UserRole.NonMuslim => Domain.Constants.Roles.NonMuslim,
+            _ => role.ToString()
+        };
     }
 }
