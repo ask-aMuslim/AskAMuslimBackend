@@ -1,4 +1,3 @@
-using AskAMuslimBackend.Application.Admins.Commands.CreateAdmin;
 using AskAMuslimBackend.Application.Admins.Commands.UpdateAdminProfile;
 using AskAMuslimBackend.Application.Admins.Queries;
 using AskAMuslimBackend.Application.Admins.Queries.GetAdminProfile;
@@ -28,11 +27,6 @@ public class Admins : EndpointGroupBase
             .WithName("GetAllAdmins")
             .WithSummary("Get all admins");
 
-        groupBuilder.MapPost(CreateAdmin)
-            .RequireAuthorization(Policies.ManageAdmins)
-            .WithName("CreateAdmin")
-            .WithSummary("Create a new admin, instructor, or preacher (Administrator only)");
-
         groupBuilder.MapPut(UpdateAdminProfile, "me")
             .RequireAuthorization()
             .WithName("UpdateAdminProfile")
@@ -54,12 +48,6 @@ public class Admins : EndpointGroupBase
     public async Task<IResult> GetAllAdmins(ISender sender, [AsParameters] GetAllAdminsQuery query)
     {
         var result = await sender.Send(query);
-        return result.ToHttpResult();
-    }
-
-    public async Task<IResult> CreateAdmin(ISender sender, CreateAdminCommand command)
-    {
-        var result = await sender.Send(command);
         return result.ToHttpResult();
     }
 
