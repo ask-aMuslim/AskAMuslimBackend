@@ -5,8 +5,8 @@ namespace AskAMuslimBackend.Application.Students.Queries.GetStudentDashboard;
 
 public record GetStudentDashboardQuery : IRequest<Result<PaginatedList<StudentDashboardDto>>>
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public string? Country { get; init; }
 }
@@ -44,8 +44,8 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
 
         var students = await query
             .OrderBy(s => s.EnrollmentDate)
-            .Skip((request.PageNumber - 1) * request.PageSize)
-            .Take(request.PageSize)
+            .Skip(((request.PageNumber ?? 1) - 1) * (request.PageSize ?? 10))
+            .Take(request.PageSize ?? 10)
             .ToListAsync(cancellationToken);
 
         var studentDashboards = new List<StudentDashboardDto>();
@@ -107,6 +107,6 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
         var totalCount = await query.CountAsync(cancellationToken);
 
         return Result<PaginatedList<StudentDashboardDto>>.Success(
-            new PaginatedList<StudentDashboardDto>(studentDashboards, totalCount, request.PageNumber, request.PageSize));
+            new PaginatedList<StudentDashboardDto>(studentDashboards, totalCount, request.PageNumber ?? 1, request.PageSize ?? 10));
     }
 }

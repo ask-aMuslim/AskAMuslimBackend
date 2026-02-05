@@ -9,8 +9,8 @@ namespace AskAMuslimBackend.Application.InquiryRequests.Queries.GetAllInquiryReq
 public record GetAllInquiryRequestsQuery : IRequest<Result<PaginatedList<InquiryRequestDto>>>, IPaginationQuery
 {
     public MeetingInquiryRequestStatus? Status { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRequestsQuery, Result<PaginatedList<InquiryRequestDto>>>
@@ -38,7 +38,7 @@ public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRe
         var paginatedList = await query
             .OrderByDescending(ir => ir.Created)
             .ProjectTo<InquiryRequestDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<InquiryRequestDto>>.Success(paginatedList);
     }

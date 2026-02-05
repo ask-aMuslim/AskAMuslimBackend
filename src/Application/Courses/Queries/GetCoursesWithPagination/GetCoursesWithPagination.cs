@@ -8,8 +8,8 @@ namespace AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination
 public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<CourseBriefDto>>>, IPaginationQuery
 {
     public Guid? LevelId { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWithPaginationQuery, Result<PaginatedList<CourseBriefDto>>>
@@ -39,7 +39,7 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
             .OrderBy(c => c.Order)
             .ThenBy(c => c.Title)
             .ProjectTo<CourseBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<CourseBriefDto>>.Success(paginatedList);
     }

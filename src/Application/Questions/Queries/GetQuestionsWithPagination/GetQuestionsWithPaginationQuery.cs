@@ -8,8 +8,8 @@ namespace AskAMuslimBackend.Application.Questions.Queries.GetQuestionsWithPagina
 public record GetQuestionsWithPaginationQuery : IRequest<Result<PaginatedList<QuestionBriefDto>>>, IPaginationQuery
 {
     public Guid QuizId { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestionsWithPaginationQuery, Result<PaginatedList<QuestionBriefDto>>>
@@ -29,7 +29,7 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
             .Where(q => q.QuizId == request.QuizId)
             .OrderBy(q => q.Text)
             .ProjectTo<QuestionBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         
         return Result<PaginatedList<QuestionBriefDto>>.Success(paginatedList);
     }

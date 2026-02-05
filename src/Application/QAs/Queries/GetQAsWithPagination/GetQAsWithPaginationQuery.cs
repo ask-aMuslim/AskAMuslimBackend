@@ -7,8 +7,8 @@ namespace AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
 
 public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
     public bool? IsPublished { get; init; }
     public Language? Language { get; init; }
 }
@@ -56,7 +56,7 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
                     .ToList()
             });
 
-        var paginatedList = await PaginatedList<QABriefDto>.CreateAsync(projected, request.PageNumber, request.PageSize, cancellationToken);
+        var paginatedList = await PaginatedList<QABriefDto>.CreateAsync(projected, request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         return Result<PaginatedList<QABriefDto>>.Success(paginatedList);
     }
 }

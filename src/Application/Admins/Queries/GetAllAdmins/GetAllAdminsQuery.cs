@@ -8,8 +8,8 @@ namespace AskAMuslimBackend.Application.Admins.Queries.GetAllAdmins;
 
 public record GetAllAdminsQuery : IRequest<Result<PaginatedList<AdminDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Result<PaginatedList<AdminDto>>>
@@ -46,7 +46,7 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
         var paginatedList = await query
             .OrderBy(a => a.LastName)
             .ThenBy(a => a.FirstName)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<AdminDto>>.Success(paginatedList);
     }

@@ -8,8 +8,8 @@ namespace AskAMuslimBackend.Application.Students.Queries.GetAllStudents;
 
 public record GetAllStudentsQuery : IRequest<Result<PaginatedList<StudentDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, Result<PaginatedList<StudentDto>>>
@@ -42,7 +42,7 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, R
         var paginatedList = await query
             .OrderBy(s => s.LastName)
             .ThenBy(s => s.FirstName)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<StudentDto>>.Success(paginatedList);
     }

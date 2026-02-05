@@ -9,8 +9,8 @@ namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetAllMeetingReq
 public record GetAllMeetingRequestsQuery : IRequest<Result<PaginatedList<MeetingRequestDto>>>, IPaginationQuery
 {
     public MeetingInquiryRequestStatus? Status { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRequestsQuery, Result<PaginatedList<MeetingRequestDto>>>
@@ -38,7 +38,7 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
         var paginatedList = await query
             .OrderByDescending(mr => mr.Created)
             .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<MeetingRequestDto>>.Success(paginatedList);
     }

@@ -11,8 +11,8 @@ namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagina
 
 public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<Result<PaginatedList<MuslimTubeChannelBriefDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<GetMuslimTubeChannelsWithPaginationQuery, Result<PaginatedList<MuslimTubeChannelBriefDto>>>
@@ -30,7 +30,7 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
 
     public async Task<Result<PaginatedList<MuslimTubeChannelBriefDto>>> Handle(GetMuslimTubeChannelsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var key = MuslimTubeCacheKeys.Channels(request.PageNumber, request.PageSize);
+        var key = MuslimTubeCacheKeys.Channels(request.PageNumber ?? 1, request.PageSize ?? 10);
         var cached = await _cache.GetChannelsAsync(key, cancellationToken);
         if (cached != null) 
             return Result<PaginatedList<MuslimTubeChannelBriefDto>>.Success(cached);
@@ -39,7 +39,7 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
             .Where(c => !c.IsDeleted)
             .OrderBy(c => c.Name)
             .ProjectTo<MuslimTubeChannelBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         await _cache.SetChannelsAsync(key, result, cancellationToken);
         return Result<PaginatedList<MuslimTubeChannelBriefDto>>.Success(result);

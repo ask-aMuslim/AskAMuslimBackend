@@ -8,8 +8,8 @@ namespace AskAMuslimBackend.Application.Preachers.Queries.GetAllPreachers;
 
 public record GetAllPreachersQuery : IRequest<Result<PaginatedList<PreacherDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<PaginatedList<PreacherDto>>>
@@ -54,7 +54,7 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
         var paginatedList = await query
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<PreacherDto>>.Success(paginatedList);
     }

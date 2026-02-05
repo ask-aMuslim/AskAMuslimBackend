@@ -12,8 +12,8 @@ public record GetQuizzesWithPaginationQuery : IRequest<Result<PaginatedList<Quiz
     public Guid? CourseId { get; init; }
     public Guid? LessonId { get; init; }
     public QuizTargetType? TargetType { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWithPaginationQuery, Result<PaginatedList<QuizBriefDto>>>
@@ -51,7 +51,7 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
         var result = await query
             .OrderBy(q => q.Title)
             .ProjectTo<QuizBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         return Result<PaginatedList<QuizBriefDto>>.Success(result);
     }
 }

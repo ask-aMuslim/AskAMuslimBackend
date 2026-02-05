@@ -15,8 +15,8 @@ public record GetMuslimTubeVideosByChannelQuery : IRequest<Result<PaginatedList<
     public string? Search { get; init; } // title/description contains
     public DateTimeOffset? PublishedAfter { get; init; }
     public DateTimeOffset? PublishedBefore { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMuslimTubeVideosByChannelQuery, Result<PaginatedList<MuslimTubeVideoBriefDto>>>
@@ -34,7 +34,7 @@ public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMusli
 
     public async Task<Result<PaginatedList<MuslimTubeVideoBriefDto>>> Handle(GetMuslimTubeVideosByChannelQuery request, CancellationToken cancellationToken)
     {
-        var key = MuslimTubeCacheKeys.Videos(request.ChannelId, request.PageNumber, request.PageSize, request.Search, request.PublishedAfter, request.PublishedBefore);
+        var key = MuslimTubeCacheKeys.Videos(request.ChannelId, request.PageNumber ?? 1, request.PageSize ?? 10, request.Search, request.PublishedAfter, request.PublishedBefore);
         var cached = await _cache.GetVideosAsync(key, cancellationToken);
         if (cached != null) 
             return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(cached);
@@ -58,7 +58,7 @@ public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMusli
         var result = await query
             .OrderByDescending(v => v.PublishedAt)
             .ProjectTo<MuslimTubeVideoBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         await _cache.SetVideosAsync(key, result, cancellationToken);
         return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(result);

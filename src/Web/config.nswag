@@ -12,7 +12,7 @@
       "msBuildOutputPath": null,
       "verbose": false,
       "workingDirectory": null,
-      "requireParametersWithoutDefault": true,
+      "requireParametersWithoutDefault": false,
       "apiGroupNames": null,
       "defaultPropertyNameHandling": "CamelCase",
       "defaultReferenceTypeNullHandling": "Null",

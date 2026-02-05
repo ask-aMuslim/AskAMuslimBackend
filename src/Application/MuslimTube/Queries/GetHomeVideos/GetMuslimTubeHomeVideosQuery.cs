@@ -16,8 +16,8 @@ public record GetMuslimTubeHomeVideosQuery : IRequest<Result<PaginatedList<Musli
     public bool Randomize { get; init; } = false;
     public DateTimeOffset? PublishedAfter { get; init; }
     public DateTimeOffset? PublishedBefore { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTubeHomeVideosQuery, Result<PaginatedList<MuslimTubeVideoBriefDto>>>
@@ -35,7 +35,7 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
 
     public async Task<Result<PaginatedList<MuslimTubeVideoBriefDto>>> Handle(GetMuslimTubeHomeVideosQuery request, CancellationToken cancellationToken)
     {
-        var key = MuslimTubeCacheKeys.HomeVideos(request.PageNumber, request.PageSize, request.Search, request.Randomize, request.PublishedAfter, request.PublishedBefore);
+        var key = MuslimTubeCacheKeys.HomeVideos(request.PageNumber ?? 1, request.PageSize ?? 10, request.Search, request.Randomize, request.PublishedAfter, request.PublishedBefore);
         var cached = await _cache.GetVideosAsync(key, cancellationToken);
         if (cached != null) 
             return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(cached);
@@ -70,7 +70,7 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
 
         var result = await ordered
             .ProjectTo<MuslimTubeVideoBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         await _cache.SetVideosAsync(key, result, cancellationToken);
         return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(result);

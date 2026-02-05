@@ -7,8 +7,8 @@ namespace AskAMuslimBackend.Application.Tags.Queries.GetTagsWithPagination;
 
 public record GetTagsWithPaginationQuery : IRequest<Result<PaginatedList<TagBriefDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPaginationQuery, Result<PaginatedList<TagBriefDto>>>
@@ -27,7 +27,7 @@ public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPagi
         var paginatedList = await _context.Tags
             .OrderBy(c => c.Title)
             .ProjectTo<TagBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<TagBriefDto>>.Success(paginatedList);
     }

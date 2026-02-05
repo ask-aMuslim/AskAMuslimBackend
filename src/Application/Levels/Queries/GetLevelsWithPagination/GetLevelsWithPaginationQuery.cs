@@ -7,8 +7,8 @@ namespace AskAMuslimBackend.Application.Levels.Queries.GetLevelsWithPagination;
 
 public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<LevelBriefDto>>>, IPaginationQuery
 {
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
@@ -28,7 +28,7 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
             .OrderBy(l => l.Order)
             .ThenBy(l => l.Title)
             .ProjectTo<LevelBriefDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<LevelBriefDto>>.Success(paginatedList);
     }

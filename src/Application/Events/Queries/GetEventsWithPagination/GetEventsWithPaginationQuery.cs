@@ -10,8 +10,8 @@ public record GetEventsWithPaginationQuery : IRequest<Result<PaginatedList<Event
     public bool? IsPublished { get; init; }
     public DateTime? From { get; init; }
     public DateTime? To { get; init; }
-    public int PageNumber { get; init; } = 1;
-    public int PageSize { get; init; } = 10;
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
 }
 
 public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWithPaginationQuery, Result<PaginatedList<EventDto>>>
@@ -39,7 +39,7 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
         var events = await query
             .OrderBy(e => e.StartDateTime)
             .ProjectTo<EventDto>(_mapper.ConfigurationProvider)
-            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<EventDto>>.Success(events);
     }
