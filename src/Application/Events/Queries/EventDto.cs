@@ -13,12 +13,14 @@ public class EventDto
     public DateTime EndDateTime { get; init; }
     public string? MeetingLink { get; init; }
     public bool IsPublished { get; init; }
+    public int TotalRegistrations { get; init; }
 
     private class Mapping : Profile
     {
         public Mapping()
         {
-            CreateMap<Event, EventDto>();
+            CreateMap<Event, EventDto>()
+                .ForMember(d => d.TotalRegistrations, opt => opt.MapFrom(s => s.Registrations.Count));
         }
     }
 }

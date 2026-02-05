@@ -20,6 +20,7 @@ public class GetEventRegistrationsByEventQueryHandler : IRequestHandler<GetEvent
     public async Task<Result<List<EventRegistrationDto>>> Handle(GetEventRegistrationsByEventQuery request, CancellationToken cancellationToken)
     {
         var registrations = await _context.EventRegistrations
+            .Include(r => r.User)
             .Where(r => r.EventId == request.EventId)
             .ProjectTo<EventRegistrationDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);

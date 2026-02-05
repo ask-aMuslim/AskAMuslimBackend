@@ -28,7 +28,10 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
 
     public async Task<Result<PaginatedList<EventDto>>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.Events.AsNoTracking().AsQueryable();
+        var query = _context.Events
+            .Include(e => e.Registrations)
+            .AsNoTracking()
+            .AsQueryable();
 
         if (request.IsPublished.HasValue)
             query = query.Where(e => e.IsPublished == request.IsPublished.Value);
