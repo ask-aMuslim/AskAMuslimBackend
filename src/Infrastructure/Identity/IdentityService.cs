@@ -252,6 +252,11 @@ public class IdentityService : IIdentityService
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
 
+        if (!user.IsActive)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+        }
+
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
@@ -330,6 +335,11 @@ public class IdentityService : IIdentityService
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
+        }
+
+        if (!user.IsActive)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
         }
 
         var token = GenerateJwtToken(user);
@@ -444,6 +454,11 @@ public class IdentityService : IIdentityService
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
+        }
+
+        if (!user.IsActive)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
         }
 
         var token = GenerateJwtToken(user);

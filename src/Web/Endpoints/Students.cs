@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Students.Commands.UpdateStudentStatus;
 using AskAMuslimBackend.Application.Students.Queries;
 using AskAMuslimBackend.Application.Students.Queries.GetAllStudents;
 using AskAMuslimBackend.Application.Students.Queries.GetStudentProfile;
@@ -33,6 +34,11 @@ public class Students : EndpointGroupBase
             .RequireAuthorization()
             .WithName("UpdateStudentProfile")
             .WithSummary("Update current student's profile");
+
+        groupBuilder.MapPut(UpdateStudentStatus, "{id}/status")
+            .RequireAuthorization(Policies.ManageStudents)
+            .WithName("UpdateStudentStatus")
+            .WithSummary("Activate or deactivate a student (forces logout on deactivation)");
     }
 
     public async Task<IResult> GetStudentProfile(ISender sender, string userId)
@@ -55,6 +61,17 @@ public class Students : EndpointGroupBase
 
     public async Task<IResult> UpdateStudentProfile(ISender sender, UpdateStudentProfileCommand command)
     {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> UpdateStudentStatus(ISender sender, Guid id, UpdateStudentStatusCommand command)
+    {
+        if (id != command.Id)
+        {
+            return Results.BadRequest(new { error = "ID mismatch" });
+        }
+
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }

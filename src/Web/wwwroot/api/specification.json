@@ -4686,6 +4686,48 @@
         ]
       }
     },
+    "/api/Students/{id}/status": {
+      "put": {
+        "tags": [
+          "Students"
+        ],
+        "operationId": "UpdateStudentStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentStatusCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Tags": {
       "get": {
         "tags": [
@@ -6591,6 +6633,19 @@
           },
           "answerText": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateStudentStatusCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
