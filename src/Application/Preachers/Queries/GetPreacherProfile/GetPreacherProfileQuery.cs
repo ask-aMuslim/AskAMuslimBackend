@@ -44,6 +44,7 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
         var email = user?.Email ?? string.Empty;
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
+        var imageUrl = user?.ImageUrl ?? preacher.ImageUrl;
 
         return Result<PreacherDto?>.Success(new PreacherDto
         {
@@ -53,7 +54,7 @@ public class GetPreacherProfileQueryHandler : IRequestHandler<GetPreacherProfile
             FirstName = firstName,
             LastName = lastName,
             Bio = preacher.Bio,
-            ImageUrl = preacher.ImageUrl,
+            ImageUrl = imageUrl,
             Specialization = preacher.Specialization,
             PhoneNumber = preacher.PhoneNumber,
             Website = preacher.Website,

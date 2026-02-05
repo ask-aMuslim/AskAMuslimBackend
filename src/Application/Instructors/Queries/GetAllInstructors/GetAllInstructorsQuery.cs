@@ -35,6 +35,7 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
                         FirstName = u != null ? u.FirstName ?? string.Empty : string.Empty,
                         LastName = u != null ? u.LastName ?? string.Empty : string.Empty,
                         Bio = i.Bio,
+                        ImageUrl = u != null ? u.ImageUrl ?? i.ImageUrl : i.ImageUrl,
                         Specialization = i.Specialization,
                         PhoneNumber = i.PhoneNumber,
                         Website = i.Website,

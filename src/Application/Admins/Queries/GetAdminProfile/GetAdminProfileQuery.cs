@@ -43,6 +43,7 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
         var email = user?.Email ?? string.Empty;
         var firstName = user?.FirstName ?? string.Empty;
         var lastName = user?.LastName ?? string.Empty;
+        var imageUrl = user?.ImageUrl ?? admin.ImageUrl;
 
         return Result<AdminDto>.Success(new AdminDto
         {
@@ -54,7 +55,7 @@ public class GetAdminProfileQueryHandler : IRequestHandler<GetAdminProfileQuery,
             Department = admin.Department,
             PhoneNumber = admin.PhoneNumber,
             Bio = admin.Bio,
-            ImageUrl = admin.ImageUrl,
+            ImageUrl = imageUrl,
             IsSuperAdmin = admin.IsSuperAdmin,
             IsActive = admin.IsActive,
             JoinedDate = admin.JoinedDate,

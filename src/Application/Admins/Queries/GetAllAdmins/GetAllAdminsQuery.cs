@@ -33,6 +33,8 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
                         Email = u != null ? u.Email ?? string.Empty : string.Empty,
                         FirstName = u != null ? u.FirstName ?? string.Empty : string.Empty,
                         LastName = u != null ? u.LastName ?? string.Empty : string.Empty,
+                        Bio = a.Bio,
+                        ImageUrl = u != null ? u.ImageUrl ?? a.ImageUrl : a.ImageUrl,
                         Department = a.Department,
                         PhoneNumber = a.PhoneNumber,
                         IsSuperAdmin = a.IsSuperAdmin,

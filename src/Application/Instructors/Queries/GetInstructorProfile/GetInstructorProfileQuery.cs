@@ -41,6 +41,7 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
 
         // attempt to get user info
         var user = await _context.Users.FindAsync(new object[] { instructor.UserId }, cancellationToken);
+        var imageUrl = user?.ImageUrl ?? instructor.ImageUrl;
 
         return Result<InstructorDto>.Success(new InstructorDto
         {
@@ -50,7 +51,7 @@ public class GetInstructorProfileQueryHandler : IRequestHandler<GetInstructorPro
             FirstName = user?.FirstName ?? string.Empty,
             LastName = user?.LastName ?? string.Empty,
             Bio = instructor.Bio,
-            ImageUrl = instructor.ImageUrl,
+            ImageUrl = imageUrl,
             Specialization = instructor.Specialization,
             PhoneNumber = instructor.PhoneNumber,
             Website = instructor.Website,
