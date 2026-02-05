@@ -110,11 +110,25 @@ public class PermissionService : IPermissionService
         await SetUserPermissionsAsync(userId, newPermissions, null, null, cancellationToken);
     }
 
-    public Task<Permission> GetDefaultPermissionsForRoleAsync(string role)
+    public async Task<Permission> GetDefaultPermissionsForRoleAsync(string role)
     {
-        return Task.FromResult(role switch
+        if (!Enum.TryParse<UserRole>(role, out var userRole))
         {
-            "Admin" => Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 
+            return Permission.None;
+        }
+
+        var rolePermission = await _context.RolePermissions
+            .FirstOrDefaultAsync(rp => rp.Role == userRole);
+
+        if (rolePermission != null)
+        {
+            return rolePermission.Permissions;
+        }
+
+        // Fallback to default permissions if not configured in database
+        return userRole switch
+        {
+            UserRole.Admin => Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 
                        Permission.CreateAdmin | Permission.EditAdmin | Permission.DeleteAdmin | 
                        Permission.ManageAdminRoles | Permission.FullStudentAccess | Permission.FullAcademyAccess |
                        Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.ViewNotifications |
@@ -126,19 +140,19 @@ public class PermissionService : IPermissionService
                        Permission.ViewReports | Permission.ManageRolesAndPermissions |
                        Permission.ViewFinancialData | Permission.ManageSystemBackup | Permission.ViewAuditLogs,
 
-            "Instructor" => Permission.ViewEnrolledStudents | Permission.ViewStudentProgress |
+            UserRole.Instructor => Permission.ViewEnrolledStudents | Permission.ViewStudentProgress |
                             Permission.SendNotifications | Permission.ViewStudentQuestions |
                             Permission.AnswerStudentQuestions | Permission.ManageAdminNotes |
                             Permission.SendDirectEmail | Permission.ViewAllCourses | Permission.CreateCourse |
                             Permission.EditOwnCourses | Permission.ViewLessons | Permission.CreateLesson |
                             Permission.EditLesson | Permission.DeleteLesson,
 
-            "Preacher" => Permission.ViewStudentQuestions | Permission.ManageAdminNotes |
+            UserRole.Preacher => Permission.ViewStudentQuestions | Permission.ManageAdminNotes |
                           Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.FullEventAccess,
 
-            "Student" or "NonMuslim" => Permission.None,
+            UserRole.Student or UserRole.NonMuslim => Permission.None,
 
             _ => Permission.None
-        });
+        };
     }
 }

@@ -28,3 +28,15 @@ public class PermissionCategoryDto
     public string Category { get; init; } = string.Empty;
     public List<PermissionDto> Permissions { get; init; } = new();
 }
+
+public class RolePermissionsDto
+{
+    public UserRole Role { get; init; }
+    public string RoleName { get; init; } = string.Empty;
+    public Permission Permissions { get; init; }
+    public List<PermissionDto> PermissionList { get; init; } = new();
+    public DateTime? LastModifiedDate { get; init; }
+    public string? ModifiedBy { get; init; }
+    public string? Notes { get; init; }
+    public bool IsCustomized { get; init; }
+}

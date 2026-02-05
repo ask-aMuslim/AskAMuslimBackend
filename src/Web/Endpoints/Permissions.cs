@@ -1,9 +1,12 @@
 using AskAMuslimBackend.Application.Permissions;
+using AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Commands.UpdateUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetAllPermissions;
+using AskAMuslimBackend.Application.Permissions.Queries.GetRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUsersForPermissionAssignment;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -31,6 +34,16 @@ public class Permissions : EndpointGroupBase
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
             .WithName("UpdateUserPermissions")
             .WithSummary("Update permissions for a specific user (including individual Instructors and Preachers)");
+
+        groupBuilder.MapGet(GetRolePermissions, "roles/{role}")
+            .RequireAuthorization(Policies.ManageRolesAndPermissions)
+            .WithName("GetRolePermissions")
+            .WithSummary("Get permissions for a specific role");
+
+        groupBuilder.MapPut(UpdateRolePermissions, "roles/{role}")
+            .RequireAuthorization(Policies.ManageRolesAndPermissions)
+            .WithName("UpdateRolePermissions")
+            .WithSummary("Update default permissions for a specific role");
     }
 
     public async Task<IResult> GetAllPermissions(ISender sender)
@@ -51,6 +64,23 @@ public class Permissions : EndpointGroupBase
         return result.ToHttpResult();
     }
 
+
+    public async Task<IResult> GetRolePermissions(ISender sender, UserRole role)
+    {
+        var result = await sender.Send(new GetRolePermissionsQuery(role));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> UpdateRolePermissions(ISender sender, UserRole role, UpdateRolePermissionsCommand command)
+    {
+        if (role != command.Role)
+        {
+            return Results.BadRequest(new { errors = new[] { "Role mismatch" } });
+        }
+
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
     public async Task<IResult> UpdateUserPermissions(ISender sender, Guid userId, UpdateUserPermissionsCommand command)
     {
         if (userId != command.UserId)

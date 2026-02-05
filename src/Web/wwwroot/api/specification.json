@@ -3408,6 +3408,74 @@
         ]
       }
     },
+    "/api/Permissions/roles/{role}": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "GetRolePermissions",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserRole"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "UpdateRolePermissions",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserRole"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRolePermissionsCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Preachers/me": {
       "get": {
         "tags": [
@@ -6262,6 +6330,22 @@
           -9223372036854775808,
           -1
         ]
+      },
+      "UpdateRolePermissionsCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/Permission"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        }
       },
       "UpdatePreacherProfileCommand": {
         "type": "object",

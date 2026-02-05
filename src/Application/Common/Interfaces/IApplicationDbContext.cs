@@ -42,6 +42,7 @@ public interface IApplicationDbContext
     DbSet<AdminNote> AdminNotes { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<UserPermission> UserPermissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
 
     // MuslimTube
     DbSet<MuslimTubeChannel> MuslimTubeChannels { get; }

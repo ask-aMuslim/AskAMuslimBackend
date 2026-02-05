@@ -51,6 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<AdminNote> AdminNotes => Set<AdminNote>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     // MuslimTube
     public DbSet<MuslimTubeChannel> MuslimTubeChannels => Set<MuslimTubeChannel>();
