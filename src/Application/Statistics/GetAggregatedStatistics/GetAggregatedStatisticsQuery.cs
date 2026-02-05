@@ -20,8 +20,6 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
     {
         var now = DateTime.UtcNow;
         var today = now.Date;
-        var last7Days = now.AddDays(-7);
-        var last30Days = now.AddDays(-30);
         var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
 
         // User Statistics
@@ -58,14 +56,23 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
             .CountAsync(p => p.JoinedDate >= firstDayOfMonth, cancellationToken);
         var newUsersThisMonth = newStudentsThisMonth + newAdminsThisMonth + newInstructorsThisMonth + newPreachersThisMonth;
 
-        // Last login statistics
-        // Use Users.LastLoginAt (covers all roles) for last-login metrics
-        var loginToday = await _context.Users
-            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value.Date == today, cancellationToken);
-        var loginLast7Days = await _context.Users
-            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= last7Days, cancellationToken);
-        var loginLast30Days = await _context.Users
-            .CountAsync(u => u.LastLoginAt.HasValue && u.LastLoginAt.Value >= last30Days, cancellationToken);
+        // Last login statistics - daily data for last 30 days
+        var dailyLoginData = new List<DailyLoginData>();
+        for (int i = 29; i >= 0; i--)
+        {
+            var date = today.AddDays(-i);
+            var nextDate = date.AddDays(1);
+            var count = await _context.Users
+                .CountAsync(u => u.LastLoginAt.HasValue && 
+                                 u.LastLoginAt.Value.Date == date, 
+                            cancellationToken);
+            
+            dailyLoginData.Add(new DailyLoginData
+            {
+                Date = date.ToString("yyyy-MM-dd"),
+                Count = count
+            });
+        }
 
         // Course Statistics
         var totalCourses = await _context.Courses.CountAsync(cancellationToken);
@@ -119,9 +126,7 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
                 NewThisMonth = newUsersThisMonth,
                 LastLogin = new LastLoginStatistics
                 {
-                    Today = loginToday,
-                    Last7Days = loginLast7Days,
-                    Last30Days = loginLast30Days
+                    Daily = dailyLoginData
                 },
                 ByRole = new UserRoleStatistics
                 {

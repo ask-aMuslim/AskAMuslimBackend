@@ -19,9 +19,13 @@ public class UserStatistics
 
 public class LastLoginStatistics
 {
-    public int Today { get; set; }
-    public int Last7Days { get; set; }
-    public int Last30Days { get; set; }
+    public List<DailyLoginData> Daily { get; set; } = new();
+}
+
+public class DailyLoginData
+{
+    public string Date { get; set; } = string.Empty;
+    public int Count { get; set; }
 }
 
 public class UserRoleStatistics
