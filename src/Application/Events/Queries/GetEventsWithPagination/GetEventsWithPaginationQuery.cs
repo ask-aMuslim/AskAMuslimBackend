@@ -12,6 +12,7 @@ public record GetEventsWithPaginationQuery : IRequest<Result<PaginatedList<Event
     public DateTime? To { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWithPaginationQuery, Result<PaginatedList<EventDto>>>
@@ -35,6 +36,11 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
             query = query.Where(e => e.StartDateTime >= request.From.Value);
         if (request.To.HasValue)
             query = query.Where(e => e.EndDateTime <= request.To.Value);
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            query = query.Where(e => 
+                e.Title.Contains(request.SearchTerm) ||
+                (e.Description != null && e.Description.Contains(request.SearchTerm)) ||
+                (e.SpeakerName != null && e.SpeakerName.Contains(request.SearchTerm)));
 
         var events = await query
             .OrderBy(e => e.StartDateTime)

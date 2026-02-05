@@ -9,6 +9,7 @@ public record GetTagsWithPaginationQuery : IRequest<Result<PaginatedList<TagBrie
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPaginationQuery, Result<PaginatedList<TagBriefDto>>>
@@ -24,7 +25,14 @@ public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPagi
 
     public async Task<Result<PaginatedList<TagBriefDto>>> Handle(GetTagsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var paginatedList = await _context.Tags
+        var query = _context.Tags.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(t => t.Title.Contains(request.SearchTerm));
+        }
+
+        var paginatedList = await query
             .OrderBy(c => c.Title)
             .ProjectTo<TagBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);

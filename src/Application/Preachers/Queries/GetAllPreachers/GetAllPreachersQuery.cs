@@ -10,6 +10,7 @@ public record GetAllPreachersQuery : IRequest<Result<PaginatedList<PreacherDto>>
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<PaginatedList<PreacherDto>>>
@@ -50,6 +51,16 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
                         Certifications = p.Certifications,
                         Organization = p.Organization
                     };
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(p => 
+                p.Email.Contains(request.SearchTerm) ||
+                p.FirstName.Contains(request.SearchTerm) ||
+                p.LastName.Contains(request.SearchTerm) ||
+                (p.Specialization != null && p.Specialization.Contains(request.SearchTerm)) ||
+                (p.Organization != null && p.Organization.Contains(request.SearchTerm)));
+        }
 
         var paginatedList = await query
             .OrderBy(p => p.LastName)

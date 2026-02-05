@@ -10,6 +10,7 @@ public record GetAllInstructorsQuery : IRequest<Result<PaginatedList<InstructorD
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQuery, Result<PaginatedList<InstructorDto>>>
@@ -48,6 +49,15 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
                         TotalReviews = i.TotalReviews,
                         TotalCourses = i.Courses.Count
                     };
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(i => 
+                i.Email.Contains(request.SearchTerm) ||
+                i.FirstName.Contains(request.SearchTerm) ||
+                i.LastName.Contains(request.SearchTerm) ||
+                (i.Specialization != null && i.Specialization.Contains(request.SearchTerm)));
+        }
 
         var paginatedList = await query
             .OrderBy(i => i.LastName)

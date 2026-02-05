@@ -167,6 +167,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -582,6 +591,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -1289,6 +1307,15 @@
               "nullable": true
             },
             "x-position": 5
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 6
           }
         ],
         "responses": {
@@ -1458,6 +1485,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -1838,6 +1874,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -1883,6 +1928,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -2039,6 +2093,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -2253,6 +2316,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -2588,6 +2660,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -2633,7 +2714,7 @@
         "operationId": "GetHomeVideos",
         "parameters": [
           {
-            "name": "Search",
+            "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
@@ -2741,7 +2822,7 @@
             "x-position": 1
           },
           {
-            "name": "Search",
+            "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
@@ -3428,6 +3509,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -3465,13 +3555,22 @@
             "x-position": 2
           },
           {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
             "name": "IsPublished",
             "in": "query",
             "schema": {
               "type": "boolean",
               "nullable": true
             },
-            "x-position": 3
+            "x-position": 4
           },
           {
             "name": "Language",
@@ -3484,7 +3583,7 @@
                 }
               ]
             },
-            "x-position": 4
+            "x-position": 5
           }
         ],
         "responses": {
@@ -3651,6 +3750,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -3977,6 +4085,15 @@
               "nullable": true
             },
             "x-position": 6
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 7
           }
         ],
         "responses": {
@@ -4584,46 +4701,6 @@
               "nullable": true
             },
             "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
-    },
-    "/api/Students/dashboard": {
-      "get": {
-        "tags": [
-          "Students"
-        ],
-        "operationId": "GetStudentDashboard",
-        "parameters": [
-          {
-            "name": "PageNumber",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "nullable": true
-            },
-            "x-position": 1
-          },
-          {
-            "name": "PageSize",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "nullable": true
-            },
-            "x-position": 2
           },
           {
             "name": "SearchTerm",
@@ -4633,15 +4710,6 @@
               "nullable": true
             },
             "x-position": 3
-          },
-          {
-            "name": "Country",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "nullable": true
-            },
-            "x-position": 4
           }
         ],
         "responses": {
@@ -4754,6 +4822,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {

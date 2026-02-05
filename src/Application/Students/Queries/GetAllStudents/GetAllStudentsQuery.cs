@@ -10,6 +10,7 @@ public record GetAllStudentsQuery : IRequest<Result<PaginatedList<StudentDto>>>,
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, Result<PaginatedList<StudentDto>>>
@@ -38,6 +39,14 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, R
                         TotalEnrollments = s.Enrollments.Count,
                         HasProfile = _context.StudentProfiles.Any(sp => sp.StudentId == s.Id)
                     };
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(s => 
+                s.Email.Contains(request.SearchTerm) ||
+                s.FirstName.Contains(request.SearchTerm) ||
+                s.LastName.Contains(request.SearchTerm));
+        }
 
         var paginatedList = await query
             .OrderBy(s => s.LastName)

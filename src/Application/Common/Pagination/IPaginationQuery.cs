@@ -4,4 +4,5 @@ public interface IPaginationQuery
 {
     int? PageNumber { get; }
     int? PageSize { get; }
+    string? SearchTerm { get; }
 }

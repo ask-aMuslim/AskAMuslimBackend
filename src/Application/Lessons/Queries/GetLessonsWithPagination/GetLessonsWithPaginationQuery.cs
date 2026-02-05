@@ -13,6 +13,7 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
     public Guid? CourseId { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
@@ -32,6 +33,12 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
         if (request.CourseId.HasValue)
         {
             query = query.Where(l => l.CourseId == request.CourseId.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(l => 
+                l.Title.Contains(request.SearchTerm) ||
+                (l.Description != null && l.Description.Contains(request.SearchTerm)));
         }
 
         var paginatedList = await query

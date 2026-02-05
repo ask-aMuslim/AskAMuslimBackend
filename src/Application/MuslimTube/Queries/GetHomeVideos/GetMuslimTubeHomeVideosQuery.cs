@@ -12,7 +12,7 @@ namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetHomeVideos;
 
 public record GetMuslimTubeHomeVideosQuery : IRequest<Result<PaginatedList<MuslimTubeVideoBriefDto>>>, IPaginationQuery
 {
-    public string? Search { get; init; }
+    public string? SearchTerm { get; init; }
     public bool Randomize { get; init; } = false;
     public DateTimeOffset? PublishedAfter { get; init; }
     public DateTimeOffset? PublishedBefore { get; init; }
@@ -35,7 +35,7 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
 
     public async Task<Result<PaginatedList<MuslimTubeVideoBriefDto>>> Handle(GetMuslimTubeHomeVideosQuery request, CancellationToken cancellationToken)
     {
-        var key = MuslimTubeCacheKeys.HomeVideos(request.PageNumber ?? 1, request.PageSize ?? 10, request.Search, request.Randomize, request.PublishedAfter, request.PublishedBefore);
+        var key = MuslimTubeCacheKeys.HomeVideos(request.PageNumber ?? 1, request.PageSize ?? 10, request.SearchTerm, request.Randomize, request.PublishedAfter, request.PublishedBefore);
         var cached = await _cache.GetVideosAsync(key, cancellationToken);
         if (cached != null) 
             return Result<PaginatedList<MuslimTubeVideoBriefDto>>.Success(cached);
@@ -43,9 +43,9 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
         var query = _context.MuslimTubeVideos
             .Where(v => v.Channel != null && !v.Channel.IsDeleted);
 
-        if (!string.IsNullOrWhiteSpace(request.Search))
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var term = request.Search.Trim();
+            var term = request.SearchTerm.Trim();
             query = query.Where(v => v.Title.Contains(term) || (v.Description != null && v.Description.Contains(term)));
         }
         if (request.PublishedAfter.HasValue)

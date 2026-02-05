@@ -14,6 +14,7 @@ public record GetQuizzesWithPaginationQuery : IRequest<Result<PaginatedList<Quiz
     public QuizTargetType? TargetType { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWithPaginationQuery, Result<PaginatedList<QuizBriefDto>>>
@@ -46,6 +47,10 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
         if (request.TargetType.HasValue)
         {
             query = query.Where(q => q.TargetType == request.TargetType.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(q => q.Title.Contains(request.SearchTerm));
         }
 
         var result = await query

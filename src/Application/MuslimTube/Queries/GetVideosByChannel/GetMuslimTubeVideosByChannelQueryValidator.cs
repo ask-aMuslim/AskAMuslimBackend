@@ -7,7 +7,7 @@ public class GetMuslimTubeVideosByChannelQueryValidator : PaginationQueryValidat
 {
     public GetMuslimTubeVideosByChannelQueryValidator() : base()
     {
-        RuleFor(x => x.Search).MaximumLength(200).When(x => !string.IsNullOrWhiteSpace(x.Search));
+        RuleFor(x => x.SearchTerm).MaximumLength(200).When(x => !string.IsNullOrWhiteSpace(x.SearchTerm));
         RuleFor(x => x.PublishedBefore).GreaterThan(x => x.PublishedAfter!.Value).When(x => x.PublishedAfter.HasValue && x.PublishedBefore.HasValue);
     }
 }

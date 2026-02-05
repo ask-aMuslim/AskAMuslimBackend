@@ -9,6 +9,7 @@ public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefD
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
     public Language? Language { get; init; }
 }
@@ -31,6 +32,13 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
         if (request.IsPublished.HasValue)
         {
             query = query.Where(q => q.IsPublished == request.IsPublished.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(q => q.Translations.Any(t => 
+                t.QuestionText.Contains(request.SearchTerm) ||
+                t.AnswerText.Contains(request.SearchTerm)));
         }
 
         var projected = query

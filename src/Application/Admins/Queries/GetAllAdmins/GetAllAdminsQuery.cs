@@ -10,6 +10,7 @@ public record GetAllAdminsQuery : IRequest<Result<PaginatedList<AdminDto>>>, IPa
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Result<PaginatedList<AdminDto>>>
@@ -42,6 +43,15 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
                         JoinedDate = a.JoinedDate,
                         LastLoginDate = a.LastLoginDate
                     };
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(a => 
+                a.Email.Contains(request.SearchTerm) ||
+                a.FirstName.Contains(request.SearchTerm) ||
+                a.LastName.Contains(request.SearchTerm) ||
+                (a.Department != null && a.Department.Contains(request.SearchTerm)));
+        }
 
         var paginatedList = await query
             .OrderBy(a => a.LastName)

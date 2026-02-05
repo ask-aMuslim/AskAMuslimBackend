@@ -9,6 +9,7 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
@@ -24,7 +25,16 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
 
     public async Task<Result<PaginatedList<LevelBriefDto>>> Handle(GetLevelsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var paginatedList = await _context.Levels
+        var query = _context.Levels.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(l => 
+                l.Title.Contains(request.SearchTerm) ||
+                (l.Description != null && l.Description.Contains(request.SearchTerm)));
+        }
+
+        var paginatedList = await query
             .OrderBy(l => l.Order)
             .ThenBy(l => l.Title)
             .ProjectTo<LevelBriefDto>(_mapper.ConfigurationProvider)

@@ -13,6 +13,7 @@ public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<Result<Paginat
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<GetMuslimTubeChannelsWithPaginationQuery, Result<PaginatedList<MuslimTubeChannelBriefDto>>>
@@ -35,8 +36,16 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
         if (cached != null) 
             return Result<PaginatedList<MuslimTubeChannelBriefDto>>.Success(cached);
 
-        var result = await _context.MuslimTubeChannels
-            .Where(c => !c.IsDeleted)
+        var query = _context.MuslimTubeChannels.Where(c => !c.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(c => 
+                c.Name.Contains(request.SearchTerm) ||
+                (c.Description != null && c.Description.Contains(request.SearchTerm)));
+        }
+
+        var result = await query
             .OrderBy(c => c.Name)
             .ProjectTo<MuslimTubeChannelBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);

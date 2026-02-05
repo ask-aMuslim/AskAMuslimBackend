@@ -10,6 +10,7 @@ public record GetQuestionsWithPaginationQuery : IRequest<Result<PaginatedList<Qu
     public Guid QuizId { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestionsWithPaginationQuery, Result<PaginatedList<QuestionBriefDto>>>
@@ -25,8 +26,14 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
 
     public async Task<Result<PaginatedList<QuestionBriefDto>>> Handle(GetQuestionsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var paginatedList = await _context.Questions
-            .Where(q => q.QuizId == request.QuizId)
+        var query = _context.Questions.Where(q => q.QuizId == request.QuizId);
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(q => q.Text.Contains(request.SearchTerm));
+        }
+
+        var paginatedList = await query
             .OrderBy(q => q.Text)
             .ProjectTo<QuestionBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);

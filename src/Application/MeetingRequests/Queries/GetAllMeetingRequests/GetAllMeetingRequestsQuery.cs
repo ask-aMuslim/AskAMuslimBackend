@@ -11,6 +11,7 @@ public record GetAllMeetingRequestsQuery : IRequest<Result<PaginatedList<Meeting
     public MeetingInquiryRequestStatus? Status { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
 }
 
 public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRequestsQuery, Result<PaginatedList<MeetingRequestDto>>>
@@ -33,6 +34,10 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
         if (request.Status.HasValue)
         {
             query = query.Where(mr => mr.Status == request.Status.Value);
+        }
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(mr => mr.Message.Contains(request.SearchTerm));
         }
 
         var paginatedList = await query
