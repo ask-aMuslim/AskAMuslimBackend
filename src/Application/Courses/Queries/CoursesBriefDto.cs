@@ -11,6 +11,8 @@ public class CourseBriefDto
 
     public string? Description { get; init; }
 
+    public string? ThumbnailUrl { get; init; }
+
     public bool IsPublished { get; init; }
 
     public double Rating { get; init; }

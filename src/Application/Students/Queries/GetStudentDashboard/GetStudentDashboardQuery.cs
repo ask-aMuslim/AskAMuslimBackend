@@ -8,7 +8,6 @@ public record GetStudentDashboardQuery : IRequest<Result<PaginatedList<StudentDa
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
-    public string? Country { get; init; }
 }
 
 public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboardQuery, Result<PaginatedList<StudentDashboardDto>>>
@@ -29,17 +28,11 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchLower = request.SearchTerm.ToLower();
-            query = query.Where(s => 
-                _context.Users.Any(u => u.Id == s.UserId && 
-                    (u.FirstName.ToLower().Contains(searchLower) || 
+            query = query.Where(s =>
+                _context.Users.Any(u => u.Id == s.UserId &&
+                    (u.FirstName.ToLower().Contains(searchLower) ||
                      u.LastName.ToLower().Contains(searchLower) ||
                      (u.Email != null && u.Email.ToLower().Contains(searchLower)))));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Country))
-        {
-            query = query.Where(s => _context.StudentProfiles
-                .Any(sp => sp.StudentId == s.Id && sp.Country == request.Country));
         }
 
         var students = await query
@@ -53,7 +46,7 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
         foreach (var student in students)
         {
             var user = await _context.Users.FindAsync(new object[] { student.UserId }, cancellationToken);
-            
+
             var enrollments = await _context.Enrollments
                 .Where(e => e.StudentId == student.Id)
                 .Include(e => e.Course)

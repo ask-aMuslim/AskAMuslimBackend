@@ -25,11 +25,6 @@ public class Students : EndpointGroupBase
             .WithName("GetAllStudents")
             .WithSummary("Get all students (Admin only)");
 
-        groupBuilder.MapGet(GetStudentDashboard, "dashboard")
-            .RequireAuthorization(Policies.ViewAllUsers)
-            .WithName("GetStudentDashboard")
-            .WithSummary("Get student dashboard with progress tracking (Admin panel)");
-
         groupBuilder.MapPut(UpdateStudentProfile, "me")
             .RequireAuthorization()
             .WithName("UpdateStudentProfile")
@@ -47,13 +42,7 @@ public class Students : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetAllStudents(ISender sender, [AsParameters] GetAllStudentsQuery query)
-    {
-        var result = await sender.Send(query);
-        return result.ToHttpResult();
-    }
-
-    public async Task<IResult> GetStudentDashboard(ISender sender, [AsParameters] GetStudentDashboardQuery query)
+    public async Task<IResult> GetAllStudents(ISender sender, [AsParameters] GetStudentDashboardQuery query)
     {
         var result = await sender.Send(query);
         return result.ToHttpResult();
