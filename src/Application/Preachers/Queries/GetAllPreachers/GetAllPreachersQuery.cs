@@ -1,12 +1,18 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.Preachers.Queries.GetAllPreachers;
 
-public record GetAllPreachersQuery : IRequest<Result<List<PreacherDto>>>;
+public record GetAllPreachersQuery : IRequest<Result<PaginatedList<PreacherDto>>>, IPaginationQuery
+{
+    public int PageNumber { get; init; } = 1;
+    public int PageSize { get; init; } = 10;
+}
 
-public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<List<PreacherDto>>>
+public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<PaginatedList<PreacherDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,41 +22,39 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
         _context = context;
     }
 
-    public async Task<Result<List<PreacherDto>>> Handle(GetAllPreachersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<PreacherDto>>> Handle(GetAllPreachersQuery request, CancellationToken cancellationToken)
     {
-        var preachers = await _context.Preachers
-            .Where(p => p.IsActive)
-            .ToListAsync(cancellationToken);
+        var query = from p in _context.Preachers
+                    join u in _context.Users on p.UserId equals u.Id into users
+                    from u in users.DefaultIfEmpty()
+                    where p.IsActive
+                    select new PreacherDto
+                    {
+                        Id = p.Id,
+                        UserId = p.UserId,
+                        Email = u != null ? u.Email ?? string.Empty : string.Empty,
+                        FirstName = u != null ? u.FirstName ?? string.Empty : string.Empty,
+                        LastName = u != null ? u.LastName ?? string.Empty : string.Empty,
+                        Bio = p.Bio,
+                        Specialization = p.Specialization,
+                        PhoneNumber = p.PhoneNumber,
+                        Website = p.Website,
+                        LinkedInProfile = p.LinkedInProfile,
+                        YearsOfExperience = p.YearsOfExperience,
+                        IsVerified = p.IsVerified,
+                        IsActive = p.IsActive,
+                        JoinedDate = p.JoinedDate,
+                        Rating = p.Rating,
+                        TotalReviews = p.TotalReviews,
+                        Certifications = p.Certifications,
+                        Organization = p.Organization
+                    };
 
-        var result = new List<PreacherDto>();
+        var paginatedList = await query
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
+            .PaginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
 
-        foreach (var preacher in preachers)
-        {
-            var user = await _context.Users.FindAsync(new object[] { preacher.UserId }, cancellationToken);
-            
-            result.Add(new PreacherDto
-            {
-                Id = preacher.Id,
-                UserId = preacher.UserId,
-                Email = user?.Email ?? string.Empty,
-                FirstName = user?.FirstName ?? string.Empty,
-                LastName = user?.LastName ?? string.Empty,
-                Bio = preacher.Bio,
-                Specialization = preacher.Specialization,
-                PhoneNumber = preacher.PhoneNumber,
-                Website = preacher.Website,
-                LinkedInProfile = preacher.LinkedInProfile,
-                YearsOfExperience = preacher.YearsOfExperience,
-                IsVerified = preacher.IsVerified,
-                IsActive = preacher.IsActive,
-                JoinedDate = preacher.JoinedDate,
-                Rating = preacher.Rating,
-                TotalReviews = preacher.TotalReviews,
-                Certifications = preacher.Certifications,
-                Organization = preacher.Organization
-            });
-        }
-
-        return Result<List<PreacherDto>>.Success(result);
+        return Result<PaginatedList<PreacherDto>>.Success(paginatedList);
     }
 }

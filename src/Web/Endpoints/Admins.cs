@@ -51,9 +51,9 @@ public class Admins : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetAllAdmins(ISender sender)
+    public async Task<IResult> GetAllAdmins(ISender sender, [AsParameters] GetAllAdminsQuery query)
     {
-        var result = await sender.Send(new GetAllAdminsQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 

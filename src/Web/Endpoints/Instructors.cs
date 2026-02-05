@@ -43,9 +43,9 @@ public class Instructors : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetAllInstructors(ISender sender)
+    public async Task<IResult> GetAllInstructors(ISender sender, [AsParameters] GetAllInstructorsQuery query)
     {
-        var result = await sender.Send(new GetAllInstructorsQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 

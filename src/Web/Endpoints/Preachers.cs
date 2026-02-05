@@ -43,9 +43,9 @@ public class Preachers : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetAllPreachers(ISender sender)
+    public async Task<IResult> GetAllPreachers(ISender sender, [AsParameters] GetAllPreachersQuery query)
     {
-        var result = await sender.Send(new GetAllPreachersQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
