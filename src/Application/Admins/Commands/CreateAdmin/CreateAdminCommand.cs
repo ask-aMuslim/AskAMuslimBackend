@@ -54,13 +54,16 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
 {
     private readonly UserManager<Domain.Entities.User> _userManager;
     private readonly IApplicationDbContext _context;
+    private readonly IPermissionService _permissionService;
 
     public CreateAdminCommandHandler(
         UserManager<Domain.Entities.User> userManager,
-        IApplicationDbContext context)
+        IApplicationDbContext context,
+        IPermissionService permissionService)
     {
         _userManager = userManager;
         _context = context;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<Guid>> Handle(CreateAdminCommand request, CancellationToken cancellationToken)
@@ -132,6 +135,10 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Grant the user default permissions for their role
+        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(request.Role);
+        await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on user creation for role {request.Role}", cancellationToken);
 
         return Result<Guid>.Success(user.Id);
     }

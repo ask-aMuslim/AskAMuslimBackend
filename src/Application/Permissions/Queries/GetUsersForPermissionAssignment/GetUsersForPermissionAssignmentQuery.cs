@@ -1,12 +1,19 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Domain.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Permissions.Queries.GetUsersForPermissionAssignment;
 
-public record GetUsersForPermissionAssignmentQuery : IRequest<Result<List<UserForPermissionDto>>>;
+public record GetUsersForPermissionAssignmentQuery : IRequest<Result<PaginatedList<UserForPermissionDto>>>, IPaginationQuery
+{
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
+}
 
 public class UserForPermissionDto
 {
@@ -20,7 +27,7 @@ public class UserForPermissionDto
     public bool IsActive { get; init; }
 }
 
-public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUsersForPermissionAssignmentQuery, Result<List<UserForPermissionDto>>>
+public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUsersForPermissionAssignmentQuery, Result<PaginatedList<UserForPermissionDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly UserManager<Domain.Entities.User> _userManager;
@@ -33,14 +40,22 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
         _userManager = userManager;
     }
 
-    public async Task<Result<List<UserForPermissionDto>>> Handle(GetUsersForPermissionAssignmentQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<UserForPermissionDto>>> Handle(GetUsersForPermissionAssignmentQuery request, CancellationToken cancellationToken)
     {
-        // Get all users with admin roles (Administrator, Instructor, Preacher)
-        var adminRoleUsers = new List<UserForPermissionDto>();
+        // Get all active users
+        var usersQuery = _context.Users
+            .Where(u => u.IsActive);
 
-        // Get all users
-        var users = await _context.Users
-            .Where(u => u.IsActive)
+        // Apply search filter
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            usersQuery = usersQuery.Where(u => 
+                u.Email!.Contains(request.SearchTerm) ||
+                u.FirstName.Contains(request.SearchTerm) ||
+                u.LastName.Contains(request.SearchTerm));
+        }
+
+        var users = await usersQuery
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .ToListAsync(cancellationToken);
@@ -50,6 +65,8 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
             .Select(up => up.UserId)
             .ToListAsync(cancellationToken);
 
+        // Filter users with admin roles and build DTOs
+        var adminRoleUsers = new List<UserForPermissionDto>();
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
@@ -73,6 +90,21 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
             }
         }
 
-        return Result<List<UserForPermissionDto>>.Success(adminRoleUsers);
+        // Apply pagination
+        var pageNumber = request.PageNumber ?? 1;
+        var pageSize = request.PageSize ?? 10;
+        var totalCount = adminRoleUsers.Count;
+        var paginatedItems = adminRoleUsers
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        var paginatedList = new PaginatedList<UserForPermissionDto>(
+            paginatedItems,
+            totalCount,
+            pageNumber,
+            pageSize);
+
+        return Result<PaginatedList<UserForPermissionDto>>.Success(paginatedList);
     }
 }

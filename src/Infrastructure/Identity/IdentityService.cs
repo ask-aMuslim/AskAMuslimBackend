@@ -24,6 +24,7 @@ public class IdentityService : IIdentityService
     private readonly IConfiguration _configuration;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IPermissionService _permissionService;
 
     public IdentityService(
         ApplicationDbContext dbContext,
@@ -31,7 +32,8 @@ public class IdentityService : IIdentityService
         RoleManager<IdentityRole<Guid>> roleManager,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        IPermissionService permissionService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -39,6 +41,7 @@ public class IdentityService : IIdentityService
         _configuration = configuration;
         _httpClientFactory = httpClientFactory;
         _fileStorageService = fileStorageService;
+        _permissionService = permissionService;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
@@ -141,6 +144,10 @@ public class IdentityService : IIdentityService
 
         // Create role-specific entity
         await CreateRoleSpecificEntity(user.Id, role);
+
+        // Grant default permissions for the role
+        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(role.ToString());
+        await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on registration for role {role}");
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -335,7 +342,9 @@ public class IdentityService : IIdentityService
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
-        }
+            // Grant default permissions for the role
+            var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+            await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");        }
 
         if (!user.IsActive)
         {
@@ -454,6 +463,10 @@ public class IdentityService : IIdentityService
 
             // Create student entity for default role
             await CreateRoleSpecificEntity(user.Id, user.Role);
+
+            // Grant default permissions for the role
+            var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+            await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
         }
 
         if (!user.IsActive)

@@ -32,13 +32,16 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
 {
     private readonly IApplicationDbContext _context;
     private readonly UserManager<Domain.Entities.User> _userManager;
+    private readonly IPermissionService _permissionService;
 
     public UpdateModeratorRoleCommandHandler(
         IApplicationDbContext context,
-        UserManager<Domain.Entities.User> userManager)
+        UserManager<Domain.Entities.User> userManager,
+        IPermissionService permissionService)
     {
         _context = context;
         _userManager = userManager;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<Guid>> Handle(UpdateModeratorRoleCommand request, CancellationToken cancellationToken)
@@ -258,6 +261,10 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
             default:
                 return Result<Guid>.Failure(new[] { "Invalid role" });
         }
+
+        // Grant the user default permissions for their new role
+        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(request.NewRole.ToString());
+        await _permissionService.SetUserPermissionsAsync(userId.ToString(), rolePermissions, null, $"Auto-granted on role change to {request.NewRole}", cancellationToken);
 
         return Result<Guid>.Success(newEntityId);
     }

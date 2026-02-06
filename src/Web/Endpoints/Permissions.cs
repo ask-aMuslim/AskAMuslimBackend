@@ -23,7 +23,7 @@ public class Permissions : EndpointGroupBase
         groupBuilder.MapGet(GetUsersForPermissionAssignment, "users")
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
             .WithName("GetUsersForPermissionAssignment")
-            .WithSummary("Get all users (Admins, Instructors, Preachers) who can be assigned custom permissions");
+            .WithSummary("Get all users (Admins, Instructors, Preachers) who can be assigned custom permissions with pagination and search");
 
         groupBuilder.MapGet(GetUserPermissions, "{userId}")
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
@@ -52,9 +52,9 @@ public class Permissions : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetUsersForPermissionAssignment(ISender sender)
+    public async Task<IResult> GetUsersForPermissionAssignment(ISender sender, [AsParameters] GetUsersForPermissionAssignmentQuery query)
     {
-        var result = await sender.Send(new GetUsersForPermissionAssignmentQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
