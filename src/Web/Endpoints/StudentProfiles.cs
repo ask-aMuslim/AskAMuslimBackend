@@ -16,10 +16,10 @@ public class StudentProfiles : EndpointGroupBase
             .WithName("GetMyStudentProfileDetails")
             .WithSummary("Get current student's profile with religious status information");
 
-        groupBuilder.MapGet(GetStudentProfile, "{userId}")
+        groupBuilder.MapGet(GetStudentProfile, "{studentId}")
             .RequireAuthorization(Policies.ViewAllUsers)
-            .WithName("GetStudentProfileByUserId")
-            .WithSummary("Get student profile by user ID (Admin only)");
+            .WithName("GetStudentProfileByStudentId")
+            .WithSummary("Get student profile by student ID (Admin only)");
 
         groupBuilder.MapPost(CreateStudentProfile, "me")
             .RequireAuthorization()
@@ -38,9 +38,9 @@ public class StudentProfiles : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetStudentProfile(ISender sender, string userId)
+    public async Task<IResult> GetStudentProfile(ISender sender, Guid studentId)
     {
-        var result = await sender.Send(new GetStudentProfileQuery { UserId = userId });
+        var result = await sender.Send(new GetStudentProfileQuery { StudentId = studentId });
         return result.ToHttpResult();
     }
 

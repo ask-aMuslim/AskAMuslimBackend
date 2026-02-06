@@ -6,7 +6,7 @@ namespace AskAMuslimBackend.Application.StudentProfiles.Queries.GetStudentProfil
 
 public record GetStudentProfileQuery : IRequest<Result<StudentProfileDto?>>
 {
-    public string? UserId { get; init; }
+    public Guid? StudentId { get; init; }
 }
 
 public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQuery, Result<StudentProfileDto?>>
@@ -24,39 +24,59 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
 
     public async Task<Result<StudentProfileDto?>> Handle(GetStudentProfileQuery request, CancellationToken cancellationToken)
     {
-        var userIdString = request.UserId ?? _currentUser.Id;
+        Guid studentId;
         
-        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
+        if (request.StudentId.HasValue)
         {
-            return Result<StudentProfileDto?>.Failure(new[] { "Invalid user ID" });
+            // Admin looking up by studentId
+            studentId = request.StudentId.Value;
+        }
+        else
+        {
+            // Current user looking up their own profile
+            if (string.IsNullOrEmpty(_currentUser.Id) || !Guid.TryParse(_currentUser.Id, out var userId))
+            {
+                return Result<StudentProfileDto?>.Failure(new[] { "Invalid user ID" });
+            }
+
+            // Get student by current user's ID
+            var currentStudent = await _context.Students
+                .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
+            
+            if (currentStudent == null)
+            {
+                return Result<StudentProfileDto?>.Failure(new[] { "Student not found" });
+            }
+            
+            studentId = currentStudent.Id;
         }
 
-        // Get user details
-        var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
-        if (user == null)
-        {
-            return Result<StudentProfileDto?>.Failure(new[] { "User not found" });
-        }
-
-        // Get student
+        // Get student by studentId
         var student = await _context.Students
-            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == studentId, cancellationToken);
 
         if (student == null)
         {
             return Result<StudentProfileDto?>.Failure(new[] { "Student not found" });
         }
 
+        // Get user details
+        var user = await _context.Users.FindAsync(new object[] { student.UserId }, cancellationToken);
+        if (user == null)
+        {
+            return Result<StudentProfileDto?>.Failure(new[] { "User not found" });
+        }
+
         // Get or create student profile
         var profile = await _context.StudentProfiles
-            .FirstOrDefaultAsync(sp => sp.StudentId == student.Id, cancellationToken);
+            .FirstOrDefaultAsync(sp => sp.StudentId == studentId, cancellationToken);
 
         if (profile == null)
         {
             // Create a default profile
             profile = new Domain.Entities.StudentProfile
             {
-                StudentId = student.Id,
+                StudentId = studentId,
                 IsMuslim = user.ReligionStatus == ReligiousStatus.BornMuslim || user.ReligionStatus == ReligiousStatus.RevertedMuslim,
                 IsNewMuslim = user.ReligionStatus == ReligiousStatus.RevertedMuslim
             };
@@ -67,8 +87,8 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         return Result<StudentProfileDto?>.Success(new StudentProfileDto
         {
             Id = profile.Id,
-            StudentId = student.Id,
-            UserId = userId,
+            StudentId = studentId,
+            UserId = student.UserId,
             Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,

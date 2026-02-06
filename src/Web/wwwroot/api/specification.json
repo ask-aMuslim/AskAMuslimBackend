@@ -2605,6 +2605,66 @@
       }
     },
     "/api/Moderators": {
+      "get": {
+        "tags": [
+          "Moderators"
+        ],
+        "operationId": "GetAllModerators",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "RoleFilter",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserRole"
+                }
+              ]
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
       "post": {
         "tags": [
           "Moderators"
@@ -2621,6 +2681,90 @@
           },
           "required": true,
           "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Moderators/{id}/status": {
+      "put": {
+        "tags": [
+          "Moderators"
+        ],
+        "operationId": "UpdateModeratorStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModeratorStatusCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Moderators/{id}/role": {
+      "put": {
+        "tags": [
+          "Moderators"
+        ],
+        "operationId": "UpdateModeratorRole",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModeratorRoleCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
         },
         "responses": {
           "200": {
@@ -4510,7 +4654,7 @@
         ]
       }
     },
-    "/api/StudentProfiles/{userId}": {
+    "/api/StudentProfiles/{studentId}": {
       "get": {
         "tags": [
           "StudentProfiles"
@@ -4518,11 +4662,12 @@
         "operationId": "GetStudentProfile",
         "parameters": [
           {
-            "name": "userId",
+            "name": "studentId",
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "guid"
             },
             "x-position": 1
           }
@@ -5969,6 +6114,32 @@
           "imageUrl": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "UpdateModeratorStatusCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateModeratorRoleCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "newRole": {
+            "$ref": "#/components/schemas/UserRole"
           }
         }
       },
