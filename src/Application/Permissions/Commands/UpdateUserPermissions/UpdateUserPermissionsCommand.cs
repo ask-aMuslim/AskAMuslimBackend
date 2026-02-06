@@ -13,7 +13,8 @@ namespace AskAMuslimBackend.Application.Permissions.Commands.UpdateUserPermissio
 public record UpdateUserPermissionsCommand : IRequest<Result>
 {
     public Guid UserId { get; init; }
-    public Permission Permissions { get; init; }
+    public Permission? Permissions { get; init; }  // Optional: for backward compatibility
+    public List<string>? PermissionNames { get; init; }  // New: accept permission names as strings
     public string? Notes { get; init; }
 }
 
@@ -23,6 +24,10 @@ public class UpdateUserPermissionsCommandValidator : AbstractValidator<UpdateUse
     {
         RuleFor(x => x.UserId)
             .NotEmpty().WithMessage("User ID is required");
+
+        RuleFor(x => x)
+            .Must(x => x.Permissions.HasValue || (x.PermissionNames != null && x.PermissionNames.Any()))
+            .WithMessage("Either Permissions or PermissionNames must be provided");
     }
 }
 
@@ -53,6 +58,32 @@ public class UpdateUserPermissionsCommandHandler : IRequestHandler<UpdateUserPer
             return Result.Failure(new[] { "User not found" });
         }
 
+        // Convert permission names to Permission enum if provided
+        Permission permissions;
+        if (request.PermissionNames != null && request.PermissionNames.Any())
+        {
+            permissions = Permission.None;
+            foreach (var permissionName in request.PermissionNames)
+            {
+                if (Enum.TryParse<Permission>(permissionName, true, out var parsedPermission))
+                {
+                    permissions |= parsedPermission;
+                }
+                else
+                {
+                    return Result.Failure(new[] { $"Invalid permission name: {permissionName}" });
+                }
+            }
+        }
+        else if (request.Permissions.HasValue)
+        {
+            permissions = request.Permissions.Value;
+        }
+        else
+        {
+            return Result.Failure(new[] { "Either Permissions or PermissionNames must be provided" });
+        }
+
         // Get or create user permission
         var userPermission = await _context.UserPermissions
             .FirstOrDefaultAsync(up => up.UserId == request.UserId, cancellationToken);
@@ -62,7 +93,7 @@ public class UpdateUserPermissionsCommandHandler : IRequestHandler<UpdateUserPer
             userPermission = new UserPermission
             {
                 UserId = request.UserId,
-                Permissions = request.Permissions,
+                Permissions = permissions,
                 GrantedDate = DateTime.UtcNow,
                 GrantedByUserId = currentUserId,
                 Notes = request.Notes
@@ -71,7 +102,7 @@ public class UpdateUserPermissionsCommandHandler : IRequestHandler<UpdateUserPer
         }
         else
         {
-            userPermission.Permissions = request.Permissions;
+            userPermission.Permissions = permissions;
             userPermission.GrantedDate = DateTime.UtcNow;
             userPermission.GrantedByUserId = currentUserId;
             userPermission.Notes = request.Notes;

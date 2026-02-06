@@ -13,7 +13,8 @@ namespace AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissio
 public record UpdateRolePermissionsCommand : IRequest<Result>
 {
     public UserRole Role { get; init; }
-    public Permission Permissions { get; init; }
+    public Permission? Permissions { get; init; }  // Optional: for backward compatibility
+    public List<string>? PermissionNames { get; init; }  // New: accept permission names as strings
     public string? Notes { get; init; }
 }
 
@@ -23,6 +24,10 @@ public class UpdateRolePermissionsCommandValidator : AbstractValidator<UpdateRol
     {
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Invalid role");
+
+        RuleFor(x => x)
+            .Must(x => x.Permissions.HasValue || (x.PermissionNames != null && x.PermissionNames.Any()))
+            .WithMessage("Either Permissions or PermissionNames must be provided");
     }
 }
 
@@ -46,6 +51,32 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
             return Result.Failure(new[] { "Invalid current user ID" });
         }
 
+        // Convert permission names to Permission enum if provided
+        Permission permissions;
+        if (request.PermissionNames != null && request.PermissionNames.Any())
+        {
+            permissions = Permission.None;
+            foreach (var permissionName in request.PermissionNames)
+            {
+                if (Enum.TryParse<Permission>(permissionName, true, out var parsedPermission))
+                {
+                    permissions |= parsedPermission;
+                }
+                else
+                {
+                    return Result.Failure(new[] { $"Invalid permission name: {permissionName}" });
+                }
+            }
+        }
+        else if (request.Permissions.HasValue)
+        {
+            permissions = request.Permissions.Value;
+        }
+        else
+        {
+            return Result.Failure(new[] { "Either Permissions or PermissionNames must be provided" });
+        }
+
         // Get or create role permission
         var rolePermission = await _context.RolePermissions
             .FirstOrDefaultAsync(rp => rp.Role == request.Role, cancellationToken);
@@ -55,7 +86,7 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
             rolePermission = new RolePermission
             {
                 Role = request.Role,
-                Permissions = request.Permissions,
+                Permissions = permissions,
                 LastModifiedDate = DateTime.UtcNow,
                 ModifiedByUserId = currentUserId,
                 Notes = request.Notes
@@ -64,7 +95,7 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
         }
         else
         {
-            rolePermission.Permissions = request.Permissions;
+            rolePermission.Permissions = permissions;
             rolePermission.LastModifiedDate = DateTime.UtcNow;
             rolePermission.ModifiedByUserId = currentUserId;
             rolePermission.Notes = request.Notes;

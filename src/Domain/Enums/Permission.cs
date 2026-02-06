@@ -94,16 +94,18 @@ public enum Permission : long
     EditTag = 1L << 61,                         // 2305843009213693952
     DeleteTag = 1L << 62,                       // 4611686018427387904
     
-    // Settings & System
-    ViewSettings = 1L << 63,                    // 9223372036854775808 (max for long)
-    ManageSettings = 1L << 64,                  // Will use combination flags below
-    ViewReports = 1L << 65,
-    ManageRolesAndPermissions = 1L << 66,
-    ViewFinancialData = 1L << 67,
-    ManageSystemBackup = 1L << 68,
-    ViewAuditLogs = 1L << 69,
+    // Settings & System (using last bit)
+    ViewSettings = 1L << 63,                    // 9223372036854775808 (max for long, bit 63)
+    // Note: Cannot use bits beyond 63 in a long. Use composite permissions instead.
     
     // Composite Permissions (combinations for convenience)
+    ManageSettings = ViewSettings,              // Alias for ViewSettings
+    ViewReports = ViewDashboard | ViewAnalytics,
+    ManageRolesAndPermissions = ManageAdminRoles,
+    ViewFinancialData = ViewReports,
+    ManageSystemBackup = ViewSettings,
+    ViewAuditLogs = ViewSettings,
+    
     FullStudentAccess = ViewAllStudents | EditStudent | DeleteStudent | ViewStudentProgress | 
                        ViewStudentQuestions | AnswerStudentQuestions | ManageAdminNotes | 
                        SendNotifications | SendDirectEmail,
