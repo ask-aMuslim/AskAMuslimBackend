@@ -3470,6 +3470,37 @@
           "Permissions"
         ],
         "operationId": "GetUsersForPermissionAssignment",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -4663,6 +4694,36 @@
         "parameters": [
           {
             "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/StudentProfiles/user/{userId}": {
+      "get": {
+        "tags": [
+          "StudentProfiles"
+        ],
+        "operationId": "GetStudentProfileByUserId",
+        "parameters": [
+          {
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
@@ -6331,7 +6392,19 @@
             "format": "guid"
           },
           "permissions": {
-            "$ref": "#/components/schemas/Permission"
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Permission"
+              }
+            ]
+          },
+          "permissionNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           },
           "notes": {
             "type": "string",
@@ -6345,19 +6418,16 @@
         "x-enumFlags": true,
         "x-enumNames": [
           "None",
-          "ManageSettings",
           "ViewDashboard",
           "ViewAnalytics",
+          "ViewFinancialData",
           "ViewReports",
           "ViewAdmins",
-          "ManageRolesAndPermissions",
-          "ViewFinancialData",
           "CreateAdmin",
           "EditAdmin",
-          "ManageSystemBackup",
           "DeleteAdmin",
-          "ViewAuditLogs",
           "ManageAdminRoles",
+          "ManageRolesAndPermissions",
           "ViewAllStudents",
           "ViewEnrolledStudents",
           "EditStudent",
@@ -6419,23 +6489,23 @@
           "CreateTag",
           "EditTag",
           "DeleteTag",
+          "ManageSystemBackup",
+          "ViewAuditLogs",
           "ViewSettings",
+          "ManageSettings",
           "AllPermissions"
         ],
         "enum": [
           0,
           1,
-          1,
           2,
-          2,
-          4,
+          3,
+          3,
           4,
           8,
-          8,
-          16,
           16,
           32,
-          32,
+          64,
           64,
           128,
           256,
@@ -6499,6 +6569,9 @@
           2305843009213693952,
           4611686018427387904,
           -9223372036854775808,
+          -9223372036854775808,
+          -9223372036854775808,
+          -9223372036854775808,
           -1
         ]
       },
@@ -6510,7 +6583,19 @@
             "$ref": "#/components/schemas/UserRole"
           },
           "permissions": {
-            "$ref": "#/components/schemas/Permission"
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Permission"
+              }
+            ]
+          },
+          "permissionNames": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
           },
           "notes": {
             "type": "string",
