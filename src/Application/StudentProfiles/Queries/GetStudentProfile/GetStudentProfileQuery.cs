@@ -7,6 +7,7 @@ namespace AskAMuslimBackend.Application.StudentProfiles.Queries.GetStudentProfil
 public record GetStudentProfileQuery : IRequest<Result<StudentProfileDto?>>
 {
     public Guid? StudentId { get; init; }
+    public Guid? UserId { get; init; }
 }
 
 public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQuery, Result<StudentProfileDto?>>
@@ -30,6 +31,19 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         {
             // Admin looking up by studentId
             studentId = request.StudentId.Value;
+        }
+        else if (request.UserId.HasValue)
+        {
+            // Admin looking up by userId
+            var studentByUserId = await _context.Students
+                .FirstOrDefaultAsync(s => s.UserId == request.UserId.Value, cancellationToken);
+            
+            if (studentByUserId == null)
+            {
+                return Result<StudentProfileDto?>.Failure(new[] { "Student not found" });
+            }
+            
+            studentId = studentByUserId.Id;
         }
         else
         {

@@ -21,6 +21,11 @@ public class StudentProfiles : EndpointGroupBase
             .WithName("GetStudentProfileByStudentId")
             .WithSummary("Get student profile by student ID (Admin only)");
 
+        groupBuilder.MapGet(GetStudentProfileByUserId, "user/{userId}")
+            .RequireAuthorization(Policies.ViewAllUsers)
+            .WithName("GetStudentProfileByUserId")
+            .WithSummary("Get student profile by user ID (Admin only)");
+
         groupBuilder.MapPost(CreateStudentProfile, "me")
             .RequireAuthorization()
             .WithName("CreateStudentProfile")
@@ -41,6 +46,12 @@ public class StudentProfiles : EndpointGroupBase
     public async Task<IResult> GetStudentProfile(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetStudentProfileQuery { StudentId = studentId });
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetStudentProfileByUserId(ISender sender, Guid userId)
+    {
+        var result = await sender.Send(new GetStudentProfileQuery { UserId = userId });
         return result.ToHttpResult();
     }
 
