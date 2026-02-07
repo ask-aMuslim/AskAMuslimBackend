@@ -31,13 +31,16 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
 {
     private readonly IApplicationDbContext _context;
     private readonly UserManager<Domain.Entities.User> _userManager;
+    private readonly IPermissionService _permissionService;
 
     public GetUsersForPermissionAssignmentQueryHandler(
         IApplicationDbContext context,
-        UserManager<Domain.Entities.User> userManager)
+        UserManager<Domain.Entities.User> userManager,
+        IPermissionService permissionService)
     {
         _context = context;
         _userManager = userManager;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<PaginatedList<UserForPermissionDto>>> Handle(GetUsersForPermissionAssignmentQuery request, CancellationToken cancellationToken)
@@ -60,10 +63,10 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
             .ThenBy(u => u.FirstName)
             .ToListAsync(cancellationToken);
 
-        // Get user permissions
-        var userPermissions = await _context.UserPermissions
-            .Select(up => up.UserId)
-            .ToListAsync(cancellationToken);
+        // Get all user permissions for comparison
+        var allUserPermissions = await _context.UserPermissions
+            .Where(up => users.Select(u => u.Id).Contains(up.UserId))
+            .ToDictionaryAsync(up => up.UserId, up => up.Permissions, cancellationToken);
 
         // Filter users with admin roles and build DTOs
         var adminRoleUsers = new List<UserForPermissionDto>();
@@ -76,6 +79,14 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
                 roles.Contains(Roles.Instructor) || 
                 roles.Contains(Roles.Preacher))
             {
+                // Determine if user has custom permissions by comparing with role defaults
+                bool hasCustomPermissions = false;
+                if (allUserPermissions.TryGetValue(user.Id, out var userPermissions))
+                {
+                    var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+                    hasCustomPermissions = userPermissions != rolePermissions;
+                }
+
                 adminRoleUsers.Add(new UserForPermissionDto
                 {
                     UserId = user.Id,
@@ -84,7 +95,7 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
                     LastName = user.LastName ?? string.Empty,
                     FullName = $"{user.FirstName} {user.LastName}".Trim(),
                     Roles = roles.ToList(),
-                    HasCustomPermissions = userPermissions.Contains(user.Id),
+                    HasCustomPermissions = hasCustomPermissions,
                     IsActive = user.IsActive
                 });
             }
