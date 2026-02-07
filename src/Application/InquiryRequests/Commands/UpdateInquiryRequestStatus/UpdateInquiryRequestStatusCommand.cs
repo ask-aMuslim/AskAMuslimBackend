@@ -39,7 +39,7 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
         if (acceptingWithoutAssignedModerator)
         {
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
-            var isModeratorRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
+            var isModeratorRole = user != null && (user.Role == UserRole.Admin || user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
             if (!isModeratorRole)
             {
                 return Result.Failure(new[] { "Only moderators can accept unassigned inquiry requests." });

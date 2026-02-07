@@ -39,9 +39,9 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
         var acceptingWithoutAssignedModerator = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ModeratorId.HasValue;
         if (acceptingWithoutAssignedModerator)
         {
-            // Verify user role is Instructor or Preacher
+            // Verify user role is Admin, Instructor or Preacher
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
-            var isModeratorRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
+            var isModeratorRole = user != null && (user.Role == UserRole.Admin || user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
             if (!isModeratorRole)
             {
                 return Result.Failure(new[] { "Only moderators can accept unassigned meeting requests." });
