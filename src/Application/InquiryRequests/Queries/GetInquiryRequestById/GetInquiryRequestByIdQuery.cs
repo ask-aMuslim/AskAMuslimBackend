@@ -21,6 +21,7 @@ public class GetInquiryRequestByIdQueryHandler : IRequestHandler<GetInquiryReque
     {
         var data = await _context.InquiryRequests
             .Include(x => x.Requester)
+            .Include(x => x.Moderator)
             .Where(i => i.Id == request.Id)
             .ProjectTo<InquiryRequestDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);

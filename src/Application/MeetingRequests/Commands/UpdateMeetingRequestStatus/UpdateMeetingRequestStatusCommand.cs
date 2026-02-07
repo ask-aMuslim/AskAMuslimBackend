@@ -33,21 +33,21 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
 
         var guidUser = Guid.Parse(currentUserId);
         var isRequester = guidUser == entity.RequesterId;
-        var isScholar = entity.ScholarId.HasValue && guidUser == entity.ScholarId.Value;
+        var isModerator = entity.ModeratorId.HasValue && guidUser == entity.ModeratorId.Value;
 
-        // If accepting and no scholar yet, any user with scholar role can accept
-        var acceptingWithoutAssignedScholar = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ScholarId.HasValue;
-        if (acceptingWithoutAssignedScholar)
+        // If accepting and no moderator yet, any user with moderator role can accept
+        var acceptingWithoutAssignedModerator = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ModeratorId.HasValue;
+        if (acceptingWithoutAssignedModerator)
         {
             // Verify user role is Instructor or Preacher
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
-            var isScholarRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
-            if (!isScholarRole)
+            var isModeratorRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
+            if (!isModeratorRole)
             {
-                return Result.Failure(new[] { "Only scholars can accept unassigned meeting requests." });
+                return Result.Failure(new[] { "Only moderators can accept unassigned meeting requests." });
             }
 
-            entity.ScholarId = guidUser; // Claim the request
+            entity.ModeratorId = guidUser; // Claim the request
             entity.Status = MeetingInquiryRequestStatus.Accepted;
             await _context.SaveChangesAsync(cancellationToken);
             return Result.Success();
@@ -55,10 +55,10 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
 
         var allowed = request.Status switch
         {
-            MeetingInquiryRequestStatus.Accepted => isScholar,
-            MeetingInquiryRequestStatus.Rejected => isScholar,
-            MeetingInquiryRequestStatus.Cancelled => isRequester || isScholar,
-            MeetingInquiryRequestStatus.Completed => isScholar,
+            MeetingInquiryRequestStatus.Accepted => isModerator,
+            MeetingInquiryRequestStatus.Rejected => isModerator,
+            MeetingInquiryRequestStatus.Cancelled => isRequester || isModerator,
+            MeetingInquiryRequestStatus.Completed => isModerator,
             MeetingInquiryRequestStatus.Pending => false,
             _ => false
         };

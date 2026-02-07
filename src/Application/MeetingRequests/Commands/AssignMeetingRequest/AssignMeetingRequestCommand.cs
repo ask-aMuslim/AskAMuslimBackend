@@ -46,7 +46,7 @@ public class AssignMeetingRequestCommandHandler : IRequestHandler<AssignMeetingR
             return Result.Failure(new[] { "User must be an Instructor, Preacher, or Admin to be assigned as a moderator" });
         }
 
-        entity.ScholarId = request.ModeratorId;
+        entity.ModeratorId = request.ModeratorId;
         await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

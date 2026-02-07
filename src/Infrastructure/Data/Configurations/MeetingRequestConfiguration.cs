@@ -58,16 +58,16 @@ public class MeetingRequestConfiguration : IEntityTypeConfiguration<MeetingReque
         builder.Property(m => m.Response)
             .HasMaxLength(4000);
 
-        builder.HasIndex(m => new { m.ScholarId, m.ScheduledAt });
+        builder.HasIndex(m => new { m.ModeratorId, m.ScheduledAt });
 
         builder.HasOne(m => m.Requester)
             .WithMany()
             .HasForeignKey(m => m.RequesterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(m => m.Scholar)
+        builder.HasOne(m => m.Moderator)
             .WithMany()
-            .HasForeignKey(m => m.ScholarId)
+            .HasForeignKey(m => m.ModeratorId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

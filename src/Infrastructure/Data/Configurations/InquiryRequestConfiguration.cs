@@ -56,16 +56,16 @@ public class InquiryRequestConfiguration : IEntityTypeConfiguration<InquiryReque
             .HasColumnType("nvarchar(max)")
             .Metadata.SetValueComparer(languagesComparer);
 
-        builder.HasIndex(i => new { i.ScholarId, i.Created });
+        builder.HasIndex(i => new { i.ModeratorId, i.Created });
 
         builder.HasOne(i => i.Requester)
             .WithMany()
             .HasForeignKey(i => i.RequesterId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(i => i.Scholar)
+        builder.HasOne(i => i.Moderator)
             .WithMany()
-            .HasForeignKey(i => i.ScholarId)
+            .HasForeignKey(i => i.ModeratorId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

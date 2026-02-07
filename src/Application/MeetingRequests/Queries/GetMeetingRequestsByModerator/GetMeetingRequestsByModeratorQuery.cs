@@ -3,27 +3,27 @@ using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
-namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByScholar;
+namespace AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByModerator;
 
-public record GetMeetingRequestsByScholarQuery(Guid ScholarId, MeetingInquiryRequestStatus? Status = null) : IRequest<Result<List<MeetingRequestDto>>>;
+public record GetMeetingRequestsByModeratorQuery(Guid ModeratorId, MeetingInquiryRequestStatus? Status = null) : IRequest<Result<List<MeetingRequestDto>>>;
 
-public class GetMeetingRequestsByScholarQueryHandler : IRequestHandler<GetMeetingRequestsByScholarQuery, Result<List<MeetingRequestDto>>>
+public class GetMeetingRequestsByModeratorQueryHandler : IRequestHandler<GetMeetingRequestsByModeratorQuery, Result<List<MeetingRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
     private readonly IMapper _mapper;
 
-    public GetMeetingRequestsByScholarQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetMeetingRequestsByModeratorQueryHandler(IApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
 
-    public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByScholarQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByModeratorQuery request, CancellationToken cancellationToken)
     {
         var query = _context.MeetingRequests
             .Include(x => x.Requester)
             .AsQueryable()
-            .Where(m => m.ScholarId == request.ScholarId);
+            .Where(m => m.ModeratorId == request.ModeratorId);
         if (request.Status.HasValue)
         {
             query = query.Where(m => m.Status == request.Status.Value);

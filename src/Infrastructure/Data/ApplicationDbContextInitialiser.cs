@@ -750,7 +750,7 @@ public class ApplicationDbContextInitialiser
                     _context.MeetingRequests.Add(new MeetingRequest
                     {
                         RequesterId = requesterUser.Id,
-                        // No ScholarId until accepted
+                        // No ModeratorId until accepted
                         Topic = MeetingInquiryTopic.GeneralInquiry,
                         Message = "I would like to learn more about the basics of Islam.",
                         Languages = new List<Language> { Language.English },
@@ -760,7 +760,7 @@ public class ApplicationDbContextInitialiser
                     _context.MeetingRequests.Add(new MeetingRequest
                     {
                         RequesterId = requesterUser.Id,
-                        ScholarId = scholarUser.Id,
+                        ModeratorId = scholarUser.Id,
                         Topic = MeetingInquiryTopic.Quran,
                         Message = "Questions about Quranic recitation rules.",
                         Languages = new List<Language> { Language.Arabic, Language.English },
@@ -773,7 +773,7 @@ public class ApplicationDbContextInitialiser
                     _context.MeetingRequests.Add(new MeetingRequest
                     {
                         RequesterId = requesterUser.Id,
-                        ScholarId = scholarUser.Id,
+                        ModeratorId = scholarUser.Id,
                         Topic = MeetingInquiryTopic.Fiqh,
                         Message = "Clarify fasting rules during travel.",
                         Languages = new List<Language> { Language.English },
@@ -795,7 +795,7 @@ public class ApplicationDbContextInitialiser
                     _context.InquiryRequests.Add(new InquiryRequest
                     {
                         RequesterId = requesterUser.Id,
-                        // No ScholarId until accepted
+                        // No ModeratorId until accepted
                         Topic = MeetingInquiryTopic.GeneralInquiry,
                         Message = "I would like to learn more about the basics of Islam.",
                         Languages = new List<Language> { Language.English, Language.Arabic },
@@ -804,7 +804,7 @@ public class ApplicationDbContextInitialiser
                     _context.InquiryRequests.Add(new InquiryRequest
                     {
                         RequesterId = requesterUser.Id,
-                        ScholarId = scholarUser.Id,
+                        ModeratorId = scholarUser.Id,
                         Topic = MeetingInquiryTopic.Quran,
                         Message = "Questions about Quranic recitation rules.",
                         Languages = new List<Language> { Language.Arabic },

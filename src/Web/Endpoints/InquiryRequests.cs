@@ -6,7 +6,7 @@ using AskAMuslimBackend.Application.InquiryRequests.Queries;
 using AskAMuslimBackend.Application.InquiryRequests.Queries.GetAllInquiryRequests;
 using AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestById;
 using AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestsByRequester;
-using AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestsByScholar;
+using AskAMuslimBackend.Application.InquiryRequests.Queries.GetInquiryRequestsByModerator;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -20,7 +20,7 @@ public class InquiryRequests : EndpointGroupBase
         groupBuilder.MapGet(GetAll).RequireAuthorization().WithName("GetAllInquiryRequests").WithSummary("Get all inquiry requests");
         groupBuilder.MapGet(GetById, "{id}").WithName("GetInquiryRequest").WithSummary("Get inquiry request by id");
         groupBuilder.MapGet(GetByRequester, "by-requester/{requesterId}").RequireAuthorization().WithName("GetInquiryRequestsByRequester").WithSummary("Get inquiry requests for requester");
-        groupBuilder.MapGet(GetByScholar, "by-scholar/{scholarId}").RequireAuthorization().WithName("GetInquiryRequestsByScholar").WithSummary("Get inquiry requests for scholar");
+        groupBuilder.MapGet(GetByModerator, "by-moderator/{moderatorId}").RequireAuthorization().WithName("GetInquiryRequestsByModerator").WithSummary("Get inquiry requests for moderator");
         groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateInquiryRequest").WithSummary("Create inquiry request");
         groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateInquiryRequestStatus").WithSummary("Update inquiry request status");
         groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateInquiryRequestResponse").WithSummary("Set admin response on inquiry request");
@@ -45,9 +45,9 @@ public class InquiryRequests : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetByScholar(ISender sender, Guid scholarId, MeetingInquiryRequestStatus? status)
+    public async Task<IResult> GetByModerator(ISender sender, Guid moderatorId, MeetingInquiryRequestStatus? status)
     {
-        var result = await sender.Send(new GetInquiryRequestsByScholarQuery(scholarId, status));
+        var result = await sender.Send(new GetInquiryRequestsByModeratorQuery(moderatorId, status));
         return result.ToHttpResult();
     }
 

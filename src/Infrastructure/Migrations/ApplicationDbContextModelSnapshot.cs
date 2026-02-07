@@ -422,15 +422,15 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<Guid?>("ModeratorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Response")
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
-
-                    b.Property<Guid?>("ScholarId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -446,7 +446,7 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.HasIndex("RequesterId");
 
-                    b.HasIndex("ScholarId", "Created");
+                    b.HasIndex("ModeratorId", "Created");
 
                     b.ToTable("InquiryRequests", (string)null);
                 });
@@ -653,6 +653,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<Guid?>("ModeratorId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
 
@@ -662,9 +665,6 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<DateTime>("ScheduledAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("ScholarId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -680,7 +680,7 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.HasIndex("RequesterId");
 
-                    b.HasIndex("ScholarId", "ScheduledAt");
+                    b.HasIndex("ModeratorId", "ScheduledAt");
 
                     b.ToTable("MeetingRequests", (string)null);
                 });
@@ -1932,20 +1932,20 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.InquiryRequest", b =>
                 {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Scholar")
-                        .WithMany()
-                        .HasForeignKey("ScholarId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("Moderator");
 
                     b.Navigation("Requester");
-
-                    b.Navigation("Scholar");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Instructor", b =>
@@ -1970,20 +1970,20 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.MeetingRequest", b =>
                 {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Requester")
                         .WithMany()
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Scholar")
-                        .WithMany()
-                        .HasForeignKey("ScholarId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("Moderator");
 
                     b.Navigation("Requester");
-
-                    b.Navigation("Scholar");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.MuslimTubeVideo", b =>

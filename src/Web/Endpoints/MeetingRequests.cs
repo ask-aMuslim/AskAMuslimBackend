@@ -6,7 +6,7 @@ using AskAMuslimBackend.Application.MeetingRequests.Queries;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetAllMeetingRequests;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestById;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
-using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByScholar;
+using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByModerator;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -20,7 +20,7 @@ public class MeetingRequests : EndpointGroupBase
         groupBuilder.MapGet(GetAll).RequireAuthorization().WithName("GetAllMeetingRequests").WithSummary("Get all meeting requests");
         groupBuilder.MapGet(GetById, "{id}").WithName("GetMeetingRequest").WithSummary("Get meeting request by id");
         groupBuilder.MapGet(GetByRequester, "by-requester/{requesterId}").RequireAuthorization().WithName("GetMeetingRequestsByRequester").WithSummary("Get meeting requests for requester");
-        groupBuilder.MapGet(GetByScholar, "by-scholar/{scholarId}").RequireAuthorization().WithName("GetMeetingRequestsByScholar").WithSummary("Get meeting requests for scholar");
+        groupBuilder.MapGet(GetByModerator, "by-moderator/{moderatorId}").RequireAuthorization().WithName("GetMeetingRequestsByModerator").WithSummary("Get meeting requests for moderator");
         groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateMeetingRequest").WithSummary("Create meeting request");
         groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateMeetingRequestStatus").WithSummary("Update meeting request status");
         groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateMeetingRequestResponse").WithSummary("Set admin response on meeting request");
@@ -45,9 +45,9 @@ public class MeetingRequests : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetByScholar(ISender sender, Guid scholarId, MeetingInquiryRequestStatus? status)
+    public async Task<IResult> GetByModerator(ISender sender, Guid moderatorId, MeetingInquiryRequestStatus? status)
     {
-        var result = await sender.Send(new GetMeetingRequestsByScholarQuery(scholarId, status));
+        var result = await sender.Send(new GetMeetingRequestsByModeratorQuery(moderatorId, status));
         return result.ToHttpResult();
     }
 

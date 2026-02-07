@@ -21,6 +21,7 @@ public class GetMeetingRequestByIdQueryHandler : IRequestHandler<GetMeetingReque
     {
         var data = await _context.MeetingRequests
             .Include(x => x.Requester)
+            .Include(x => x.Moderator)
             .Where(m => m.Id == request.Id)
             .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(cancellationToken);

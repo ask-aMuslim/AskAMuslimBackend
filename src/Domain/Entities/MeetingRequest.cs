@@ -5,7 +5,7 @@ namespace AskAMuslimBackend.Domain.Entities;
 public class MeetingRequest : BaseAuditableEntity
 {
     public Guid RequesterId { get; set; } // Student or NonMuslim (User.Id)
-    public Guid? ScholarId { get; set; }   // Instructor or Preacher (User.Id) - set when accepted
+    public Guid? ModeratorId { get; set; }   // Instructor or Preacher (User.Id) - set when accepted
     public MeetingInquiryTopic Topic { get; set; }
     public string Message { get; set; } = string.Empty;
     public List<Language> Languages { get; set; } = new();
@@ -17,5 +17,5 @@ public class MeetingRequest : BaseAuditableEntity
 
     // Navigation (optional lightweight user references)
     public User? Requester { get; set; }
-    public User? Scholar { get; set; }
+    public User? Moderator { get; set; }
 }

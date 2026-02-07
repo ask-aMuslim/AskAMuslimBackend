@@ -33,18 +33,18 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
 
         var guidUser = Guid.Parse(currentUserId);
         var isRequester = guidUser == entity.RequesterId;
-        var isScholar = entity.ScholarId.HasValue && guidUser == entity.ScholarId.Value;
+        var isModerator = entity.ModeratorId.HasValue && guidUser == entity.ModeratorId.Value;
 
-        var acceptingWithoutAssignedScholar = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ScholarId.HasValue;
-        if (acceptingWithoutAssignedScholar)
+        var acceptingWithoutAssignedModerator = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ModeratorId.HasValue;
+        if (acceptingWithoutAssignedModerator)
         {
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
-            var isScholarRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
-            if (!isScholarRole)
+            var isModeratorRole = user != null && (user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
+            if (!isModeratorRole)
             {
-                return Result.Failure(new[] { "Only scholars can accept unassigned inquiry requests." });
+                return Result.Failure(new[] { "Only moderators can accept unassigned inquiry requests." });
             }
-            entity.ScholarId = guidUser;
+            entity.ModeratorId = guidUser;
             entity.Status = MeetingInquiryRequestStatus.Accepted;
             await _context.SaveChangesAsync(cancellationToken);
             return Result.Success();
@@ -52,10 +52,10 @@ public class UpdateInquiryRequestStatusCommandHandler : IRequestHandler<UpdateIn
 
         var allowed = request.Status switch
         {
-            MeetingInquiryRequestStatus.Accepted => isScholar,
-            MeetingInquiryRequestStatus.Rejected => isScholar,
-            MeetingInquiryRequestStatus.Cancelled => isRequester || isScholar,
-            MeetingInquiryRequestStatus.Completed => isScholar,
+            MeetingInquiryRequestStatus.Accepted => isModerator,
+            MeetingInquiryRequestStatus.Rejected => isModerator,
+            MeetingInquiryRequestStatus.Cancelled => isRequester || isModerator,
+            MeetingInquiryRequestStatus.Completed => isModerator,
             MeetingInquiryRequestStatus.Pending => false,
             _ => false
         };
