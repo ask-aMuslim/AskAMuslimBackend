@@ -11,6 +11,7 @@ public record GetAllInstructorsQuery : IRequest<Result<PaginatedList<InstructorD
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsActive { get; init; }
 }
 
 public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQuery, Result<PaginatedList<InstructorDto>>>
@@ -27,7 +28,6 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
         var query = from i in _context.Instructors.Include(i => i.Courses)
                     join u in _context.Users on i.UserId equals u.Id into users
                     from u in users.DefaultIfEmpty()
-                    where i.IsActive
                     select new InstructorDto
                     {
                         Id = i.Id,
@@ -58,6 +58,12 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
                 i.LastName.Contains(request.SearchTerm) ||
                 (i.FirstName + " " + i.LastName).Contains(request.SearchTerm) ||
                 (i.Specialization != null && i.Specialization.Contains(request.SearchTerm)));
+        }
+
+        // Apply IsActive filter if specified
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(i => i.IsActive == request.IsActive.Value);
         }
 
         var paginatedList = await query

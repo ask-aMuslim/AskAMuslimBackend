@@ -176,6 +176,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -1883,6 +1892,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -2652,6 +2670,15 @@
               ]
             },
             "x-position": 4
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -3761,6 +3788,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -4997,6 +5033,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {

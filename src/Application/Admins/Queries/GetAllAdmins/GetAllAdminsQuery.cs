@@ -11,6 +11,7 @@ public record GetAllAdminsQuery : IRequest<Result<PaginatedList<AdminDto>>>, IPa
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsActive { get; init; }
 }
 
 public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Result<PaginatedList<AdminDto>>>
@@ -52,6 +53,12 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
                 a.LastName.Contains(request.SearchTerm) ||
                 (a.FirstName + " " + a.LastName).Contains(request.SearchTerm) ||
                 (a.Department != null && a.Department.Contains(request.SearchTerm)));
+        }
+
+        // Apply IsActive filter if specified
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(a => a.IsActive == request.IsActive.Value);
         }
 
         var paginatedList = await query

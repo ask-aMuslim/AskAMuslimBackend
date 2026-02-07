@@ -7,8 +7,7 @@ public record GetStudentDashboardQuery : IRequest<Result<PaginatedList<StudentDa
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
-    public string? SearchTerm { get; init; }
-}
+    public string? SearchTerm { get; init; }    public bool? IsActive { get; init; }}
 
 public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboardQuery, Result<PaginatedList<StudentDashboardDto>>>
 {
@@ -21,9 +20,13 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
 
     public async Task<Result<PaginatedList<StudentDashboardDto>>> Handle(GetStudentDashboardQuery request, CancellationToken cancellationToken)
     {
-        var query = _context.Students
-            .Where(s => s.IsActive)
-            .AsQueryable();
+        var query = _context.Students.AsQueryable();
+
+        // Apply IsActive filter if specified, otherwise show all students
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(s => s.IsActive == request.IsActive.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

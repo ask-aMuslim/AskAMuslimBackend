@@ -11,6 +11,7 @@ public record GetAllPreachersQuery : IRequest<Result<PaginatedList<PreacherDto>>
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsActive { get; init; }
 }
 
 public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery, Result<PaginatedList<PreacherDto>>>
@@ -28,7 +29,6 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
         var query = from p in _context.Preachers
                     join u in _context.Users on p.UserId equals u.Id into users
                     from u in users.DefaultIfEmpty()
-                    where p.IsActive
                     select new PreacherDto
                     {
                         Id = p.Id,
@@ -61,6 +61,12 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
                 (p.FirstName + " " + p.LastName).Contains(request.SearchTerm) ||
                 (p.Specialization != null && p.Specialization.Contains(request.SearchTerm)) ||
                 (p.Organization != null && p.Organization.Contains(request.SearchTerm)));
+        }
+
+        // Apply IsActive filter if specified
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(p => p.IsActive == request.IsActive.Value);
         }
 
         var paginatedList = await query

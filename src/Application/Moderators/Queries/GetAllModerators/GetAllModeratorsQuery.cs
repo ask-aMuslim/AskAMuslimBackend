@@ -13,6 +13,7 @@ public record GetAllModeratorsQuery : IRequest<Result<PaginatedList<ModeratorDto
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public UserRole? RoleFilter { get; init; } // Optional: filter by specific role
+    public bool? IsActive { get; init; }
 }
 
 public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuery, Result<PaginatedList<ModeratorDto>>>
@@ -30,7 +31,6 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
         var adminsQuery = from a in _context.Admins
                           join u in _context.Users on a.UserId equals u.Id into users
                           from u in users.DefaultIfEmpty()
-                          where a.IsActive
                           select new ModeratorDto
                           {
                               Id = a.Id,
@@ -63,7 +63,6 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
         var instructorsQuery = from i in _context.Instructors.Include(i => i.Courses)
                                join u in _context.Users on i.UserId equals u.Id into users
                                from u in users.DefaultIfEmpty()
-                               where i.IsActive
                                select new ModeratorDto
                                {
                                    Id = i.Id,
@@ -96,7 +95,6 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
         var preachersQuery = from p in _context.Preachers
                              join u in _context.Users on p.UserId equals u.Id into users
                              from u in users.DefaultIfEmpty()
-                             where p.IsActive
                              select new ModeratorDto
                              {
                                  Id = p.Id,
@@ -154,6 +152,12 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
                 (m.Specialization != null && m.Specialization.Contains(request.SearchTerm)) ||
                 (m.Department != null && m.Department.Contains(request.SearchTerm)) ||
                 (m.Organization != null && m.Organization.Contains(request.SearchTerm)));
+        }
+
+        // Apply IsActive filter if specified
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(m => m.IsActive == request.IsActive.Value);
         }
 
         // Materialize the query (since Concat doesn't support all LINQ operations)
