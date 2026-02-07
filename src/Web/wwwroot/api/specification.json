@@ -4467,6 +4467,19 @@
         ]
       }
     },
+    "/api/Roles": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "operationId": "GetAll3",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Statistics": {
       "get": {
         "tags": [

@@ -1,4 +1,4 @@
-namespace AskAMuslimBackend.Application.Roles.Queries;
+namespace AskAMuslimBackend.Application.UserRoles.Queries;
 
 public class RoleDto
 {

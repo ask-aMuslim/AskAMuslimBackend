@@ -1,4 +1,4 @@
-using AskAMuslimBackend.Application.Roles.Queries.GetRoles;
+using AskAMuslimBackend.Application.UserRoles.Queries.GetRoles;
 using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;

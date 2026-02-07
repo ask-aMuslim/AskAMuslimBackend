@@ -1,7 +1,7 @@
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 
-namespace AskAMuslimBackend.Application.Roles.Queries.GetRoles;
+namespace AskAMuslimBackend.Application.UserRoles.Queries.GetRoles;
 
 public record GetRolesQuery : IRequest<Result<List<RoleDto>>>;
 
