@@ -6176,7 +6176,8 @@
             "type": "string"
           },
           "phoneNumber": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "role": {
             "type": "string"

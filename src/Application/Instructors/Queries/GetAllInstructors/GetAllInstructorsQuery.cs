@@ -56,6 +56,7 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
                 i.Email.Contains(request.SearchTerm) ||
                 i.FirstName.Contains(request.SearchTerm) ||
                 i.LastName.Contains(request.SearchTerm) ||
+                (i.FirstName + " " + i.LastName).Contains(request.SearchTerm) ||
                 (i.Specialization != null && i.Specialization.Contains(request.SearchTerm)));
         }
 

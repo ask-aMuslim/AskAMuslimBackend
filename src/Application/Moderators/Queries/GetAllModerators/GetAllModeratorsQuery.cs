@@ -150,6 +150,7 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
                 m.Email.Contains(request.SearchTerm) ||
                 m.FirstName.Contains(request.SearchTerm) ||
                 m.LastName.Contains(request.SearchTerm) ||
+                (m.FirstName + " " + m.LastName).Contains(request.SearchTerm) ||
                 (m.Specialization != null && m.Specialization.Contains(request.SearchTerm)) ||
                 (m.Department != null && m.Department.Contains(request.SearchTerm)) ||
                 (m.Organization != null && m.Organization.Contains(request.SearchTerm)));

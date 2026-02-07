@@ -50,6 +50,7 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
                 a.Email.Contains(request.SearchTerm) ||
                 a.FirstName.Contains(request.SearchTerm) ||
                 a.LastName.Contains(request.SearchTerm) ||
+                (a.FirstName + " " + a.LastName).Contains(request.SearchTerm) ||
                 (a.Department != null && a.Department.Contains(request.SearchTerm)));
         }
 

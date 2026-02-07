@@ -58,6 +58,7 @@ public class GetAllPreachersQueryHandler : IRequestHandler<GetAllPreachersQuery,
                 p.Email.Contains(request.SearchTerm) ||
                 p.FirstName.Contains(request.SearchTerm) ||
                 p.LastName.Contains(request.SearchTerm) ||
+                (p.FirstName + " " + p.LastName).Contains(request.SearchTerm) ||
                 (p.Specialization != null && p.Specialization.Contains(request.SearchTerm)) ||
                 (p.Organization != null && p.Organization.Contains(request.SearchTerm)));
         }

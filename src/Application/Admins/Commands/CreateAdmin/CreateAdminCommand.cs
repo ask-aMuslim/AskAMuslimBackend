@@ -14,7 +14,7 @@ public record CreateAdminCommand : IRequest<Result<Guid>>
     public string Password { get; init; } = string.Empty;
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
-    public string PhoneNumber { get; init; } = string.Empty;
+    public string? PhoneNumber { get; init; }
     public string Role { get; init; } = Roles.Administrator; // Administrator, Instructor, or Preacher
     public string? Bio { get; init; }
     public string? ImageUrl { get; init; }
@@ -39,9 +39,6 @@ public class CreateAdminCommandValidator : AbstractValidator<CreateAdminCommand>
         RuleFor(x => x.LastName)
             .NotEmpty().WithMessage("Last name is required")
             .MaximumLength(100).WithMessage("Last name must not exceed 100 characters");
-
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone number is required");
 
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("Role is required")

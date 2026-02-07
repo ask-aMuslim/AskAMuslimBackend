@@ -32,6 +32,7 @@ public class GetStudentDashboardQueryHandler : IRequestHandler<GetStudentDashboa
                 _context.Users.Any(u => u.Id == s.UserId &&
                     (u.FirstName.ToLower().Contains(searchLower) ||
                      u.LastName.ToLower().Contains(searchLower) ||
+                     (u.FirstName.ToLower() + " " + u.LastName.ToLower()).Contains(searchLower) ||
                      (u.Email != null && u.Email.ToLower().Contains(searchLower)))));
         }
 
