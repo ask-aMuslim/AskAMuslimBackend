@@ -67,6 +67,12 @@ public class Permissions : EndpointGroupBase
 
     public async Task<IResult> GetRolePermissions(ISender sender, UserRole role)
     {
+        // Students and NonMuslims don't have role-based permissions
+        if (role == UserRole.Student || role == UserRole.NonMuslim)
+        {
+            return Results.BadRequest(new { errors = new[] { "Cannot get permissions for Student or NonMuslim roles" } });
+        }
+
         var result = await sender.Send(new GetRolePermissionsQuery(role));
         return result.ToHttpResult();
     }
@@ -76,6 +82,12 @@ public class Permissions : EndpointGroupBase
         if (role != command.Role)
         {
             return Results.BadRequest(new { errors = new[] { "Role mismatch" } });
+        }
+
+        // Students and NonMuslims don't have role-based permissions
+        if (role == UserRole.Student || role == UserRole.NonMuslim)
+        {
+            return Results.BadRequest(new { errors = new[] { "Cannot update permissions for Student or NonMuslim roles" } });
         }
 
         var result = await sender.Send(command);
