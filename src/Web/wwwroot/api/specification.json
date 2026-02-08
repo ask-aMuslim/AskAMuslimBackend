@@ -3581,6 +3581,24 @@
         ]
       }
     },
+    "/api/Permissions/my": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "GetMyPermissions",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Permissions": {
       "get": {
         "tags": [
@@ -3753,6 +3771,17 @@
           "Permissions"
         ],
         "operationId": "UpdateRolePermissions",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserRole"
+            },
+            "x-position": 1
+          }
+        ],
         "requestBody": {
           "x-name": "command",
           "content": {
@@ -3763,7 +3792,7 @@
             }
           },
           "required": true,
-          "x-position": 1
+          "x-position": 2
         },
         "responses": {
           "200": {

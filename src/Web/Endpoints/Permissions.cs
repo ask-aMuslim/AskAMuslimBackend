@@ -17,7 +17,7 @@ public class Permissions : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetMyPermissions, "my")
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.ViewOwnPermissions)
             .WithName("GetMyPermissions")
             .WithSummary("Get permissions for the current authenticated user");
 

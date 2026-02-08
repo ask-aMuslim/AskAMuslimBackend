@@ -79,6 +79,7 @@ public abstract class Policies
     public const string ManageSettings = nameof(ManageSettings);
     public const string ViewReports = nameof(ViewReports);
     public const string ManageRolesAndPermissions = nameof(ManageRolesAndPermissions);
+    public const string ViewOwnPermissions = nameof(ViewOwnPermissions);
     public const string ViewFinancialData = nameof(ViewFinancialData);
     public const string ViewAuditLogs = nameof(ViewAuditLogs);
     

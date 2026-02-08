@@ -2,6 +2,7 @@
 using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Infrastructure.Data.Interceptors;
 using AskAMuslimBackend.Infrastructure.Identity;
@@ -12,6 +13,7 @@ using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -154,6 +156,7 @@ public static class DependencyInjection
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddTransient<IIdentityService, IdentityService>();
         builder.Services.AddScoped<IPermissionService, PermissionService>();
+        builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
         builder.Services.AddAuthorization(options =>
         {
@@ -161,139 +164,141 @@ public static class DependencyInjection
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator));
             options.AddPolicy(Policies.SuperAdminOnly, policy => policy.RequireRole(Roles.Administrator));
             
-            // Dashboard - All admin roles can view
+            // Dashboard
             options.AddPolicy(Policies.ViewDashboard, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewDashboard)));
             options.AddPolicy(Policies.ViewAnalytics, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewAnalytics)));
             
-            // Admin Management - Admin only
+            // Admin Management
             options.AddPolicy(Policies.ViewAdmins, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewAdmins)));
             options.AddPolicy(Policies.ManageAdmins, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateAdmin, Permission.EditAdmin, Permission.DeleteAdmin }, requireAll: false)));
             options.AddPolicy(Policies.ManageAdminRoles, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageAdminRoles)));
             
-            // User Management Policies - Admin only
+            // User Management Policies
             options.AddPolicy(Policies.ManageAllUsers, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewAllStudents, Permission.EditStudent, Permission.DeleteStudent }, requireAll: false)));
             options.AddPolicy(Policies.ViewAllUsers, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewAllStudents)));
             options.AddPolicy(Policies.AssignRoles, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageAdminRoles)));
             
             // Student Management Policies
             options.AddPolicy(Policies.ViewAllStudents, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewAllStudents)));
             options.AddPolicy(Policies.ViewEnrolledStudents, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewEnrolledStudents)));
             options.AddPolicy(Policies.ManageStudents, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.EditStudent, Permission.DeleteStudent }, requireAll: false)));
             options.AddPolicy(Policies.SendNotifications, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.SendNotifications)));
             options.AddPolicy(Policies.ManageAdminNotes, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageAdminNotes)));
             
             // Academy - Levels
             options.AddPolicy(Policies.ViewLevels, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewLevels)));
             options.AddPolicy(Policies.ManageLevels, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateLevel, Permission.EditLevel, Permission.DeleteLevel }, requireAll: false)));
             
             // Academy - Courses
             options.AddPolicy(Policies.ViewAllCourses, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewAllCourses)));
             options.AddPolicy(Policies.ViewOwnCourses, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewOwnCourses)));
             options.AddPolicy(Policies.ManageAllCourses, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.EditAllCourses)));
             options.AddPolicy(Policies.ManageOwnCourses, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.EditOwnCourses)));
             options.AddPolicy(Policies.CreateCourse, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.CreateCourse)));
             options.AddPolicy(Policies.PublishCourse, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.PublishCourse)));
             
             // Academy - Lessons & Quizzes
             options.AddPolicy(Policies.ViewLessons, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewLessons)));
             options.AddPolicy(Policies.ManageLessons, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateLesson, Permission.EditLesson, Permission.DeleteLesson }, requireAll: false)));
             options.AddPolicy(Policies.ViewQuizzes, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewQuizzes)));
             options.AddPolicy(Policies.ManageQuizzes, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateQuiz, Permission.EditQuiz, Permission.DeleteQuiz }, requireAll: false)));
             
             // QA Management
             options.AddPolicy(Policies.ViewQA, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewQA)));
             options.AddPolicy(Policies.ManageQA, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateQA, Permission.EditQA, Permission.DeleteQA }, requireAll: false)));
             options.AddPolicy(Policies.ApproveQA, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ApproveQA)));
             
             // MuslimTube
             options.AddPolicy(Policies.ViewMuslimTube, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewMuslimTube)));
             options.AddPolicy(Policies.ManageMuslimTube, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateVideo, Permission.EditVideo, Permission.DeleteVideo }, requireAll: false)));
             options.AddPolicy(Policies.ApproveVideos, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ApproveVideo)));
             
             // Notifications
             options.AddPolicy(Policies.ViewNotifications, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewNotifications)));
             options.AddPolicy(Policies.SendBulkNotifications, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.SendBulkNotifications)));
             
             // Meeting & Inquiry Requests
             options.AddPolicy(Policies.ViewMeetingRequests, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewMeetingRequests)));
             options.AddPolicy(Policies.ManageMeetingRequests, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageMeetingRequests)));
             options.AddPolicy(Policies.ViewInquiryRequests, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewInquiryRequests)));
             options.AddPolicy(Policies.ManageInquiryRequests, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageInquiryRequests)));
             
             // Events
             options.AddPolicy(Policies.ViewEvents, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewEvents)));
             options.AddPolicy(Policies.ManageEvents, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateEvent, Permission.EditEvent, Permission.DeleteEvent }, requireAll: false)));
             options.AddPolicy(Policies.ManageEventRegistrations, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageEventRegistrations)));
             
             // Tags
             options.AddPolicy(Policies.ViewTags, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Instructor, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewTags)));
             options.AddPolicy(Policies.ManageTags, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateTag, Permission.EditTag, Permission.DeleteTag }, requireAll: false)));
             
-            // Settings & System - Admin only
+            // Settings & System
             options.AddPolicy(Policies.ViewSettings, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings)));
             options.AddPolicy(Policies.ManageSettings, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings))); // Using ViewSettings as ManageSettings is an alias
             options.AddPolicy(Policies.ViewReports, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewDashboard, Permission.ViewAnalytics }, requireAll: false)));
             options.AddPolicy(Policies.ManageRolesAndPermissions, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ManageAdminRoles)));
+            options.AddPolicy(Policies.ViewOwnPermissions, policy => 
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewDashboard)));
             options.AddPolicy(Policies.ViewFinancialData, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewDashboard, Permission.ViewAnalytics }, requireAll: false)));
             options.AddPolicy(Policies.ViewAuditLogs, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings)));
             
             // Legacy compatibility
             options.AddPolicy(Policies.ManageContent, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewQA, Permission.ViewMuslimTube }, requireAll: false)));
             options.AddPolicy(Policies.PublishArticles, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ApproveQA, Permission.PublishCourse }, requireAll: false)));
             options.AddPolicy(Policies.ManageDawahContent, policy => 
-                policy.RequireRole(Roles.Administrator, Roles.Preacher));
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewQA, Permission.ViewMuslimTube }, requireAll: false)));
             options.AddPolicy(Policies.ManageSystem, policy => 
-                policy.RequireRole(Roles.Administrator));
+                policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings)));
         });
     }
 }
