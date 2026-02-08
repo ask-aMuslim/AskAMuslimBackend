@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Permissions;
 using AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Commands.UpdateUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetAllPermissions;
+using AskAMuslimBackend.Application.Permissions.Queries.GetMyPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUsersForPermissionAssignment;
@@ -15,6 +16,11 @@ public class Permissions : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
+        groupBuilder.MapGet(GetMyPermissions, "my")
+            .RequireAuthorization()
+            .WithName("GetMyPermissions")
+            .WithSummary("Get permissions for the current authenticated user");
+
         groupBuilder.MapGet(GetAllPermissions)
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
             .WithName("GetAllPermissions")
@@ -44,6 +50,12 @@ public class Permissions : EndpointGroupBase
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
             .WithName("UpdateRolePermissions")
             .WithSummary("Update default permissions for a specific role");
+    }
+
+    public async Task<IResult> GetMyPermissions(ISender sender)
+    {
+        var result = await sender.Send(new GetMyPermissionsQuery());
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> GetAllPermissions(ISender sender)
