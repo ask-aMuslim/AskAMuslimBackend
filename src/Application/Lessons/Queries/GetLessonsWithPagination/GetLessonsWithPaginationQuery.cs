@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
+using AskAMuslimBackend.Domain.Enums;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,8 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsPublished { get; init; }
+    public LessonType? Type { get; init; }
 }
 
 public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
@@ -30,10 +33,22 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
     public async Task<Result<PaginatedList<LessonBriefDto>>> Handle(GetLessonsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Lessons.AsNoTracking();
+        
         if (request.CourseId.HasValue)
         {
             query = query.Where(l => l.CourseId == request.CourseId.Value);
         }
+
+        if (request.IsPublished.HasValue)
+        {
+            query = query.Where(l => l.IsPublished == request.IsPublished.Value);
+        }
+
+        if (request.Type.HasValue)
+        {
+            query = query.Where(l => l.Type == request.Type.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(l => 
@@ -54,5 +69,10 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
 
 public class GetLessonsWithPaginationQueryValidator : PaginationQueryValidator<GetLessonsWithPaginationQuery>
 {
-    public GetLessonsWithPaginationQueryValidator() : base() { }
+    public GetLessonsWithPaginationQueryValidator() : base()
+    {
+        RuleFor(x => x.Type)
+            .IsInEnum()
+            .When(x => x.Type.HasValue);
+    }
 }

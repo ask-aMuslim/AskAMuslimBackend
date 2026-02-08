@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Authentication.Commands.Register;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 using AskAMuslimBackend.Application.Authentication.Commands.ForgotPassword;
+using AskAMuslimBackend.Application.Authentication.Commands.VerifyOtp;
 using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Web.Infrastructure;
@@ -54,6 +55,14 @@ public class Authentication : EndpointGroupBase
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces<Result>(StatusCodes.Status400BadRequest);
 
+        groupBuilder.MapPost(VerifyOtp, "verify-otp")
+            .AllowAnonymous()
+            .WithName("VerifyOtp")
+            .WithSummary("Verify OTP")
+            .WithDescription("Validates the OTP without consuming it. Use this to verify OTP before proceeding to password reset.")
+            .Produces<Result>(StatusCodes.Status200OK)
+            .Produces<Result>(StatusCodes.Status400BadRequest);
+
         groupBuilder.MapPost(ResetPassword, "reset-password")
             .AllowAnonymous()
             .WithName("ResetPassword")
@@ -98,6 +107,14 @@ public class Authentication : EndpointGroupBase
     public async Task<IResult> ForgotPassword(
         ISender sender,
         ForgotPasswordCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> VerifyOtp(
+        ISender sender,
+        VerifyOtpCommand command)
     {
         var result = await sender.Send(command);
         return result.ToHttpResult();

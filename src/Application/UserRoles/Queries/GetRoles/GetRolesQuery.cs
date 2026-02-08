@@ -14,7 +14,7 @@ public class GetRolesQueryHandler : IRequestHandler<GetRolesQuery, Result<List<R
             {
                 Id = (int)role,
                 Name = role.ToString()
-            })
+            }).Where(role => role.Id != (int)UserRole.Student && role.Id != (int)UserRole.NonMuslim)
             .ToList();
 
         return Task.FromResult(Result<List<RoleDto>>.Success(roles));
