@@ -46,6 +46,20 @@ public class AssignMeetingRequestCommandHandler : IRequestHandler<AssignMeetingR
             return Result.Failure(new[] { "User must be an Instructor, Preacher, or Admin to be assigned as a moderator" });
         }
 
+        // Verify that the moderator has a corresponding profile in the appropriate table
+        bool hasProfile = moderator.Role switch
+        {
+            UserRole.Admin => await _context.Admins.AnyAsync(a => a.UserId == request.ModeratorId, cancellationToken),
+            UserRole.Instructor => await _context.Instructors.AnyAsync(i => i.UserId == request.ModeratorId, cancellationToken),
+            UserRole.Preacher => await _context.Preachers.AnyAsync(p => p.UserId == request.ModeratorId, cancellationToken),
+            _ => false
+        };
+
+        if (!hasProfile)
+        {
+            return Result.Failure(new[] { $"Moderator profile not found. Please ensure the {moderator.Role} profile is created before assignment." });
+        }
+
         entity.ModeratorId = request.ModeratorId;
         await _context.SaveChangesAsync(cancellationToken);
 
