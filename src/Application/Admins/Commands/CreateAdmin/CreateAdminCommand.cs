@@ -2,8 +2,8 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 
 namespace AskAMuslimBackend.Application.Admins.Commands.CreateAdmin;
 
@@ -49,94 +49,94 @@ public class CreateAdminCommandValidator : AbstractValidator<CreateAdminCommand>
 
 public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Result<Guid>>
 {
-    private readonly UserManager<Domain.Entities.User> _userManager;
+    private readonly IIdentityService _identityService;
     private readonly IApplicationDbContext _context;
-    private readonly IPermissionService _permissionService;
 
     public CreateAdminCommandHandler(
-        UserManager<Domain.Entities.User> userManager,
-        IApplicationDbContext context,
-        IPermissionService permissionService)
+        IIdentityService identityService,
+        IApplicationDbContext context)
     {
-        _userManager = userManager;
+        _identityService = identityService;
         _context = context;
-        _permissionService = permissionService;
     }
 
     public async Task<Result<Guid>> Handle(CreateAdminCommand request, CancellationToken cancellationToken)
     {
-        // Check if user already exists
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
-        if (existingUser != null)
+        // Map role string to UserRole enum
+        var userRole = (UserRole)Enum.Parse(typeof(UserRole), request.Role, true);
+
+        // Use IdentityService to register the user
+        var result = await _identityService.RegisterUserAsync(
+            request.Email,
+            request.Password,
+            request.FirstName,
+            request.LastName,
+            userRole,
+            ReligiousStatus.BornMuslim, // Default to BornMuslim for admins
+            null, // No image file in this command
+            cancellationToken);
+
+        if (!result.Succeeded)
         {
-            return Result<Guid>.Failure(new[] { "User with this email already exists" });
+            return Result<Guid>.Failure(result.Errors);
         }
 
-        // Create user
-        var user = new Domain.Entities.User
+        // Parse the userId from the response
+        if (result.Data == null || !Guid.TryParse(result.Data.UserId, out Guid userId))
         {
-            Email = request.Email,
-            UserName = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            PhoneNumber = request.PhoneNumber,
-            IsActive = true,
-            EmailConfirmed = true // Auto-confirm admin emails
-        };
-
-        var createResult = await _userManager.CreateAsync(user, request.Password);
-        if (!createResult.Succeeded)
-        {
-            return Result<Guid>.Failure(createResult.Errors.Select(e => e.Description).ToArray());
+            return Result<Guid>.Failure(new[] { "Failed to parse user ID" });
         }
 
-        // Assign role
-        var roleResult = await _userManager.AddToRoleAsync(user, request.Role);
-        if (!roleResult.Succeeded)
+        // Update additional fields if provided (Bio, ImageUrl, PhoneNumber)
+        if (!string.IsNullOrWhiteSpace(request.Bio) || !string.IsNullOrWhiteSpace(request.ImageUrl) || !string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            // Rollback user creation if role assignment fails
-            await _userManager.DeleteAsync(user);
-            return Result<Guid>.Failure(roleResult.Errors.Select(e => e.Description).ToArray());
+            await UpdateAdditionalFields(userId, request, userRole, cancellationToken);
         }
 
-        // Create corresponding entity based on role
-        if (request.Role == Roles.Administrator)
+        return Result<Guid>.Success(userId);
+    }
+
+    private async Task UpdateAdditionalFields(Guid userId, CreateAdminCommand request, UserRole userRole, CancellationToken cancellationToken)
+    {
+        // Update user phone number if provided
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            var admin = new Domain.Entities.Admin
+            var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
+            if (user != null)
             {
-                UserId = user.Id,
-                Bio = request.Bio,
-                ImageUrl = request.ImageUrl
-            };
-            _context.Admins.Add(admin);
+                user.PhoneNumber = request.PhoneNumber;
+            }
         }
-        else if (request.Role == Roles.Instructor)
+
+        // Update role-specific entity with Bio and ImageUrl
+        if (userRole == UserRole.Admin)
         {
-            var instructor = new Domain.Entities.Instructor
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.UserId == userId, cancellationToken);
+            if (admin != null)
             {
-                UserId = user.Id,
-                Bio = request.Bio,
-                ImageUrl = request.ImageUrl
-            };
-            _context.Instructors.Add(instructor);
+                admin.Bio = request.Bio;
+                admin.ImageUrl = request.ImageUrl;
+            }
         }
-        else if (request.Role == Roles.Preacher)
+        else if (userRole == UserRole.Instructor)
         {
-            var preacher = new Domain.Entities.Preacher
+            var instructor = await _context.Instructors.FirstOrDefaultAsync(i => i.UserId == userId, cancellationToken);
+            if (instructor != null)
             {
-                UserId = user.Id,
-                Bio = request.Bio,
-                ImageUrl = request.ImageUrl
-            };
-            _context.Preachers.Add(preacher);
+                instructor.Bio = request.Bio;
+                instructor.ImageUrl = request.ImageUrl;
+            }
+        }
+        else if (userRole == UserRole.Preacher)
+        {
+            var preacher = await _context.Preachers.FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
+            if (preacher != null)
+            {
+                preacher.Bio = request.Bio;
+                preacher.ImageUrl = request.ImageUrl;
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-
-        // Grant the user default permissions for their role
-        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(request.Role);
-        await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on user creation for role {request.Role}", cancellationToken);
-
-        return Result<Guid>.Success(user.Id);
     }
 }

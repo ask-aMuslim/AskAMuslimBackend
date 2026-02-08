@@ -13,7 +13,6 @@ namespace AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissio
 public record UpdateRolePermissionsCommand : IRequest<Result>
 {
     public UserRole Role { get; init; }
-    public Permission? Permissions { get; init; }  // Optional: for backward compatibility
     public List<string>? PermissionNames { get; init; }  // New: accept permission names as strings
     public string? Notes { get; init; }
 }
@@ -24,10 +23,6 @@ public class UpdateRolePermissionsCommandValidator : AbstractValidator<UpdateRol
     {
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Invalid role");
-
-        RuleFor(x => x)
-            .Must(x => x.Permissions.HasValue || (x.PermissionNames != null && x.PermissionNames.Any()))
-            .WithMessage("Either Permissions or PermissionNames must be provided");
     }
 }
 
@@ -67,10 +62,6 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
                     return Result.Failure(new[] { $"Invalid permission name: {permissionName}" });
                 }
             }
-        }
-        else if (request.Permissions.HasValue)
-        {
-            permissions = request.Permissions.Value;
         }
         else
         {
