@@ -34,13 +34,16 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
         var guidUser = Guid.Parse(currentUserId);
         var isRequester = guidUser == entity.RequesterId;
         var isModerator = entity.ModeratorId.HasValue && guidUser == entity.ModeratorId.Value;
+        
+        // Check if user is an administrator
+        var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
+        var isAdmin = user != null && user.Role == UserRole.Admin;
 
         // If accepting and no moderator yet, any user with moderator role can accept
         var acceptingWithoutAssignedModerator = request.Status == MeetingInquiryRequestStatus.Accepted && !entity.ModeratorId.HasValue;
         if (acceptingWithoutAssignedModerator)
         {
             // Verify user role is Admin, Instructor or Preacher
-            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == guidUser, cancellationToken);
             var isModeratorRole = user != null && (user.Role == UserRole.Admin || user.Role == UserRole.Instructor || user.Role == UserRole.Preacher);
             if (!isModeratorRole)
             {
@@ -55,10 +58,10 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
 
         var allowed = request.Status switch
         {
-            MeetingInquiryRequestStatus.Accepted => isModerator,
-            MeetingInquiryRequestStatus.Rejected => isModerator,
-            MeetingInquiryRequestStatus.Cancelled => isRequester || isModerator,
-            MeetingInquiryRequestStatus.Completed => isModerator,
+            MeetingInquiryRequestStatus.Accepted => isModerator || isAdmin,
+            MeetingInquiryRequestStatus.Rejected => isModerator || isAdmin,
+            MeetingInquiryRequestStatus.Cancelled => isRequester || isModerator || isAdmin,
+            MeetingInquiryRequestStatus.Completed => isModerator || isAdmin,
             MeetingInquiryRequestStatus.Pending => false,
             _ => false
         };
