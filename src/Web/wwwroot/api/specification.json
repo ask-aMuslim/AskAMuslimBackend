@@ -3637,23 +3637,14 @@
             "JWT": []
           }
         ]
-      },
+      }
+    },
+    "/api/Permissions/roles": {
       "put": {
         "tags": [
           "Permissions"
         ],
         "operationId": "UpdateRolePermissions",
-        "parameters": [
-          {
-            "name": "role",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "$ref": "#/components/schemas/UserRole"
-            },
-            "x-position": 1
-          }
-        ],
         "requestBody": {
           "x-name": "command",
           "content": {
@@ -3664,7 +3655,7 @@
             }
           },
           "required": true,
-          "x-position": 2
+          "x-position": 1
         },
         "responses": {
           "200": {
@@ -6640,14 +6631,6 @@
         "properties": {
           "role": {
             "$ref": "#/components/schemas/UserRole"
-          },
-          "permissions": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Permission"
-              }
-            ]
           },
           "permissionNames": {
             "type": "array",
