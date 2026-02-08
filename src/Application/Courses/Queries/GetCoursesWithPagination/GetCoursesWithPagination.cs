@@ -11,6 +11,7 @@ public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<Cour
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsPublished { get; init; }
 }
 
 public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWithPaginationQuery, Result<PaginatedList<CourseBriefDto>>>
@@ -34,6 +35,11 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
         if (request.LevelId.HasValue)
         {
             query = query.Where(c => c.LevelId == request.LevelId.Value);
+        }
+
+        if (request.IsPublished.HasValue)
+        {
+            query = query.Where(c => c.IsPublished == request.IsPublished.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))

@@ -409,6 +409,48 @@
         }
       }
     },
+    "/api/Authentication/verify-otp": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "VerifyOtp",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Authentication/reset-password": {
       "post": {
         "tags": [
@@ -609,6 +651,15 @@
               "nullable": true
             },
             "x-position": 4
+          },
+          {
+            "name": "IsPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -1476,17 +1527,20 @@
             "x-position": 1
           },
           {
-            "name": "PageNumber",
+            "name": "Topic",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32",
-              "nullable": true
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MeetingInquiryTopic"
+                }
+              ]
             },
             "x-position": 2
           },
           {
-            "name": "PageSize",
+            "name": "PageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -1496,13 +1550,23 @@
             "x-position": 3
           },
           {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
               "nullable": true
             },
-            "x-position": 4
+            "x-position": 5
           }
         ],
         "responses": {
@@ -1955,6 +2019,28 @@
               "nullable": true
             },
             "x-position": 4
+          },
+          {
+            "name": "IsPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "Type",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/LessonType"
+                }
+              ]
+            },
+            "x-position": 6
           }
         ],
         "responses": {
@@ -2120,6 +2206,15 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "IsPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
           }
         ],
         "responses": {
@@ -2316,17 +2411,20 @@
             "x-position": 1
           },
           {
-            "name": "PageNumber",
+            "name": "Topic",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32",
-              "nullable": true
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/MeetingInquiryTopic"
+                }
+              ]
             },
             "x-position": 2
           },
           {
-            "name": "PageSize",
+            "name": "PageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -2336,13 +2434,23 @@
             "x-position": 3
           },
           {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
               "nullable": true
             },
-            "x-position": 4
+            "x-position": 5
           }
         ],
         "responses": {
@@ -5502,6 +5610,18 @@
           }
         }
       },
+      "VerifyOtpCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "otp": {
+            "type": "string"
+          }
+        }
+      },
       "ResetPasswordCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -5818,24 +5938,6 @@
           5
         ]
       },
-      "CreateInquiryRequestCommand": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "topic": {
-            "$ref": "#/components/schemas/MeetingInquiryTopic"
-          },
-          "message": {
-            "type": "string"
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Language"
-            }
-          }
-        }
-      },
       "MeetingInquiryTopic": {
         "type": "integer",
         "description": "",
@@ -5859,6 +5961,24 @@
           7,
           8
         ]
+      },
+      "CreateInquiryRequestCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "topic": {
+            "$ref": "#/components/schemas/MeetingInquiryTopic"
+          },
+          "message": {
+            "type": "string"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
+          }
+        }
       },
       "Language": {
         "type": "integer",
@@ -5961,6 +6081,22 @@
           }
         }
       },
+      "LessonType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Video",
+          "Article",
+          "Document",
+          "Audio"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
       "CreateLessonCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6003,22 +6139,6 @@
             "type": "boolean"
           }
         }
-      },
-      "LessonType": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Video",
-          "Article",
-          "Document",
-          "Audio"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4
-        ]
       },
       "UpdateLessonCommand": {
         "type": "object",

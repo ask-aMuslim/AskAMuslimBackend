@@ -10,6 +10,7 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
+    public bool? IsPublished { get; init; }
 }
 
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
@@ -26,6 +27,11 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
     public async Task<Result<PaginatedList<LevelBriefDto>>> Handle(GetLevelsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Levels.AsQueryable();
+
+        if (request.IsPublished.HasValue)
+        {
+            query = query.Where(l => l.IsPublished == request.IsPublished.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

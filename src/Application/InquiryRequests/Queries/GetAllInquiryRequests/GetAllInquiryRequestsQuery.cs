@@ -9,6 +9,7 @@ namespace AskAMuslimBackend.Application.InquiryRequests.Queries.GetAllInquiryReq
 public record GetAllInquiryRequestsQuery : IRequest<Result<PaginatedList<InquiryRequestDto>>>, IPaginationQuery
 {
     public MeetingInquiryRequestStatus? Status { get; init; }
+    public MeetingInquiryTopic? Topic { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
@@ -35,6 +36,12 @@ public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRe
         {
             query = query.Where(ir => ir.Status == request.Status.Value);
         }
+
+        if (request.Topic.HasValue)
+        {
+            query = query.Where(ir => ir.Topic == request.Topic.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             query = query.Where(ir => ir.Message.Contains(request.SearchTerm));
@@ -56,5 +63,9 @@ public class GetAllInquiryRequestsQueryValidator : PaginationQueryValidator<GetA
         RuleFor(x => x.Status)
             .IsInEnum()
             .When(x => x.Status.HasValue);
+
+        RuleFor(x => x.Topic)
+            .IsInEnum()
+            .When(x => x.Topic.HasValue);
     }
 }
