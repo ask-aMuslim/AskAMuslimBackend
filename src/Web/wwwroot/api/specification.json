@@ -1631,7 +1631,12 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/InquiryRequests/by-requester/{requesterId}": {
@@ -2515,7 +2520,12 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/MeetingRequests/by-requester/{requesterId}": {

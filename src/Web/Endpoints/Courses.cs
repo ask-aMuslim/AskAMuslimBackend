@@ -7,6 +7,7 @@ using AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseDetailById;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
