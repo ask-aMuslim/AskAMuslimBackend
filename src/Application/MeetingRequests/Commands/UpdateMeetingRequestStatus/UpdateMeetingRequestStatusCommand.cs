@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
@@ -8,6 +9,7 @@ namespace AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRe
 
 public record UpdateMeetingRequestStatusCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid Id { get; init; }
     public MeetingInquiryRequestStatus Status { get; init; }
 }
@@ -77,7 +79,7 @@ public class UpdateMeetingRequestStatusCommandValidator : AbstractValidator<Upda
 {
     public UpdateMeetingRequestStatusCommandValidator()
     {
-        RuleFor(x => x.Id).NotEmpty();
+        // Id is set from route parameter, no validation needed
         RuleFor(x => x.Status).IsInEnum();
     }
 }

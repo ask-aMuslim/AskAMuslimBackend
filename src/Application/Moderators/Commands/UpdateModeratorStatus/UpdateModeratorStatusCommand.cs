@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
@@ -10,6 +11,7 @@ namespace AskAMuslimBackend.Application.Moderators.Commands.UpdateModeratorStatu
 [Authorize(Policy = Policies.ManageAdmins)]
 public record UpdateModeratorStatusCommand : IRequest<Result<bool>>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid Id { get; init; }
     public bool IsActive { get; init; }
 }
@@ -18,8 +20,7 @@ public class UpdateModeratorStatusCommandValidator : AbstractValidator<UpdateMod
 {
     public UpdateModeratorStatusCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Moderator ID is required");
+        // Id is set from route parameter, no validation needed
     }
 }
 

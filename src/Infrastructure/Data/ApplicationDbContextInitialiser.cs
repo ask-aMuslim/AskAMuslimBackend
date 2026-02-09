@@ -150,12 +150,68 @@ public class ApplicationDbContextInitialiser
         };
 
             var newUsers = new List<User>();
+            var updatedUsers = new List<User>();
+            
             foreach (var (email, password, firstName, lastName, userRole, religousStatus) in userSeeds)
             {
                 var existingUser = await _userManager.FindByEmailAsync(email);
+                
                 if (existingUser != null)
                 {
-                    _logger.LogInformation("User {Email} already exists, skipping creation.", email);
+                    _logger.LogInformation("User {Email} already exists, updating credentials and info from appsettings...", email);
+                    
+                    // Update user information to match appsettings
+                    var needsUpdate = false;
+                    
+                    if (existingUser.FirstName != firstName)
+                    {
+                        _logger.LogInformation("Updating FirstName from '{OldName}' to '{NewName}'", existingUser.FirstName, firstName);
+                        existingUser.FirstName = firstName;
+                        needsUpdate = true;
+                    }
+                    
+                    if (existingUser.LastName != lastName)
+                    {
+                        _logger.LogInformation("Updating LastName from '{OldName}' to '{NewName}'", existingUser.LastName, lastName);
+                        existingUser.LastName = lastName;
+                        needsUpdate = true;
+                    }
+                    
+                    if (existingUser.Role != userRole)
+                    {
+                        _logger.LogInformation("Updating Role from '{OldRole}' to '{NewRole}'", existingUser.Role, userRole);
+                        existingUser.Role = userRole;
+                        needsUpdate = true;
+                    }
+                    
+                    if (needsUpdate)
+                    {
+                        var updateResult = await _userManager.UpdateAsync(existingUser);
+                        if (updateResult.Succeeded)
+                        {
+                            _logger.LogInformation("✅ User info updated successfully: {Email}", email);
+                        }
+                        else
+                        {
+                            _logger.LogError("❌ Failed to update user {Email}: {Errors}", email, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
+                        }
+                    }
+                    
+                    // Update password if it has changed
+                    _logger.LogInformation("Updating password for {Email} to match appsettings...", email);
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                    var passwordResult = await _userManager.ResetPasswordAsync(existingUser, token, password);
+                    
+                    if (passwordResult.Succeeded)
+                    {
+                        _logger.LogInformation("✅ Password updated successfully for: {Email}", email);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ Failed to update password for {Email}: {Errors}", email, string.Join(", ", passwordResult.Errors.Select(e => e.Description)));
+                    }
+                    
+                    updatedUsers.Add(existingUser);
                     continue;
                 }
 
@@ -202,11 +258,150 @@ public class ApplicationDbContextInitialiser
                 }
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("✅ Role-specific entities saved successfully");
+
+                // Grant SuperAdmin all permissions
+                for (int i = 0; i < newUsers.Count; i++)
+                {
+                    var user = newUsers[i];
+                    var isSuperAdmin = i == 0 && user.Role == UserRole.Admin;
+                    
+                    if (isSuperAdmin)
+                    {
+                        _logger.LogInformation("🔑 Granting all permissions to SuperAdmin: {Email}", user.Email);
+                        var userPermission = await _context.UserPermissions
+                            .FirstOrDefaultAsync(up => up.UserId == user.Id);
+
+                        if (userPermission == null)
+                        {
+                            _context.UserPermissions.Add(new UserPermission
+                            {
+                                UserId = user.Id,
+                                Permissions = Permission.AllPermissions,
+                                GrantedDate = DateTime.UtcNow,
+                                Notes = "SuperAdmin - granted all permissions on initialization"
+                            });
+                        }
+                        else
+                        {
+                            userPermission.Permissions = Permission.AllPermissions;
+                            userPermission.GrantedDate = DateTime.UtcNow;
+                            userPermission.Notes = "SuperAdmin - granted all permissions on initialization";
+                        }
+                        
+                        await _context.SaveChangesAsync();
+                        _logger.LogInformation("✅ SuperAdmin permissions granted successfully");
+                    }
+                }
             }
             else
             {
-                _logger.LogWarning("⚠️ No new users were created (they may already exist)");
+                _logger.LogWarning("⚠️ No new users were created");
             }
+
+            // Handle updated users from appsettings
+            if (updatedUsers.Count > 0)
+            {
+                _logger.LogInformation("🔧 Ensuring role-specific entities and permissions for {Count} updated users...", updatedUsers.Count);
+                
+                for (int i = 0; i < updatedUsers.Count; i++)
+                {
+                    var user = updatedUsers[i];
+                    // First user (admin from AdminSeed) should be super admin
+                    var isSuperAdmin = i == 0 && user.Role == UserRole.Admin;
+                    
+                    if (user.Role == UserRole.Admin)
+                    {
+                        var admin = await _context.Admins.FirstOrDefaultAsync(a => a.UserId == user.Id);
+                        
+                        if (admin == null)
+                        {
+                            _logger.LogInformation("Creating Admin entity for existing user {Email} (IsSuperAdmin: {IsSuperAdmin})", user.Email, isSuperAdmin);
+                            _context.Admins.Add(new Admin
+                            {
+                                UserId = user.Id,
+                                JoinedDate = DateTime.UtcNow,
+                                IsActive = true,
+                                IsSuperAdmin = isSuperAdmin
+                            });
+                            await _context.SaveChangesAsync();
+                        }
+                        else if (admin.IsSuperAdmin != isSuperAdmin)
+                        {
+                            _logger.LogInformation("Updating IsSuperAdmin for {Email} from {OldValue} to {IsSuperAdmin}", user.Email, admin.IsSuperAdmin, isSuperAdmin);
+                            admin.IsSuperAdmin = isSuperAdmin;
+                            await _context.SaveChangesAsync();
+                        }
+                        
+                        // Ensure SuperAdmin has all permissions
+                        if (isSuperAdmin)
+                        {
+                            _logger.LogInformation("🔑 Ensuring all permissions for updated SuperAdmin: {Email}", user.Email);
+                            var userPermission = await _context.UserPermissions
+                                .FirstOrDefaultAsync(up => up.UserId == user.Id);
+
+                            if (userPermission == null)
+                            {
+                                _context.UserPermissions.Add(new UserPermission
+                                {
+                                    UserId = user.Id,
+                                    Permissions = Permission.AllPermissions,
+                                    GrantedDate = DateTime.UtcNow,
+                                    Notes = "SuperAdmin - granted all permissions on credentials update"
+                                });
+                            }
+                            else if (userPermission.Permissions != Permission.AllPermissions)
+                            {
+                                userPermission.Permissions = Permission.AllPermissions;
+                                userPermission.GrantedDate = DateTime.UtcNow;
+                                userPermission.Notes = "SuperAdmin - updated to all permissions on credentials update";
+                            }
+                            
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("✅ SuperAdmin permissions ensured successfully");
+                        }
+                    }
+                }
+            }
+
+            // Ensure all existing SuperAdmins have all permissions
+            _logger.LogInformation("🔍 Checking existing SuperAdmins for permissions...");
+            var superAdmins = await _context.Admins
+                .Where(a => a.IsSuperAdmin)
+                .ToListAsync();
+
+            foreach (var superAdmin in superAdmins)
+            {
+                var userPermission = await _context.UserPermissions
+                    .FirstOrDefaultAsync(up => up.UserId == superAdmin.UserId);
+
+                var needsUpdate = false;
+                if (userPermission == null)
+                {
+                    _logger.LogInformation("🔑 Granting all permissions to existing SuperAdmin (UserId: {UserId})", superAdmin.UserId);
+                    _context.UserPermissions.Add(new UserPermission
+                    {
+                        UserId = superAdmin.UserId,
+                        Permissions = Permission.AllPermissions,
+                        GrantedDate = DateTime.UtcNow,
+                        Notes = "SuperAdmin - granted all permissions on system check"
+                    });
+                    needsUpdate = true;
+                }
+                else if (userPermission.Permissions != Permission.AllPermissions)
+                {
+                    _logger.LogInformation("🔄 Updating permissions to AllPermissions for existing SuperAdmin (UserId: {UserId})", superAdmin.UserId);
+                    userPermission.Permissions = Permission.AllPermissions;
+                    userPermission.GrantedDate = DateTime.UtcNow;
+                    userPermission.Notes = "SuperAdmin - updated to all permissions on system check";
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate)
+                {
+                    await _context.SaveChangesAsync();
+                }
+            }
+            _logger.LogInformation("✅ SuperAdmin permissions check complete");
 
             // Ensure users have required basic fields (Email, FirstName, LastName)
             var usersWithMissing = await _context.Users

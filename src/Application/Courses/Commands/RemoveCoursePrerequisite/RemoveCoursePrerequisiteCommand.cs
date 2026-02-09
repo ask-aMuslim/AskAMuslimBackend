@@ -1,11 +1,14 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.RemoveCoursePrerequisite;
 
 public record RemoveCoursePrerequisiteCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid CourseId { get; init; }
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid PrerequisiteCourseId { get; init; }
 }
 

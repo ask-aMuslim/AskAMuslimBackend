@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.StudentNotes.Commands.DeleteStudentNote;
 
-public record DeleteStudentNoteCommand(Guid Id) : IRequest<Result>;
+public record DeleteStudentNoteCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteStudentNoteCommandHandler : IRequestHandler<DeleteStudentNoteCommand, Result>
 {

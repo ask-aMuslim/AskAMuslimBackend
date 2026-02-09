@@ -1,9 +1,10 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Commands.DeleteChannel;
 
-public record DeleteMuslimTubeChannelCommand(Guid ChannelId) : IRequest<Result<bool>>;
+public record DeleteMuslimTubeChannelCommand([property: JsonIgnore] Guid ChannelId) : IRequest<Result<bool>>;
 
 public class DeleteMuslimTubeChannelCommandHandler : IRequestHandler<DeleteMuslimTubeChannelCommand, Result<bool>>
 {

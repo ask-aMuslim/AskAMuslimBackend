@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Commands.CompleteQuizAttempt;
 
@@ -13,6 +14,7 @@ public record QuizAnswerDto
 
 public record CompleteQuizAttemptCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid AttemptId { get; init; }
     public List<QuizAnswerDto> Answers { get; init; } = new();
 }

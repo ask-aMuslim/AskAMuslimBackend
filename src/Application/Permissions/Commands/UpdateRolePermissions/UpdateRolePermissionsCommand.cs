@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
@@ -12,6 +13,7 @@ namespace AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissio
 [Authorize(Policy = Policies.ManageRolesAndPermissions)]
 public record UpdateRolePermissionsCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public UserRole Role { get; init; }
     public List<string>? PermissionNames { get; init; }  // New: accept permission names as strings
     public string? Notes { get; init; }
@@ -21,8 +23,7 @@ public class UpdateRolePermissionsCommandValidator : AbstractValidator<UpdateRol
 {
     public UpdateRolePermissionsCommandValidator()
     {
-        RuleFor(x => x.Role)
-            .IsInEnum().WithMessage("Invalid role");
+        // Role is set from route parameter, no validation needed here
     }
 }
 
@@ -94,7 +95,51 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        //TODO: Need to Update Permissions of each user having this Role
+        // Update permissions for all users with this role
+        var usersWithRole = await _context.Users
+            .Where(u => u.Role == request.Role)
+            .ToListAsync(cancellationToken);
+
+        foreach (var user in usersWithRole)
+        {
+            // Check if user is SuperAdmin - they should always have AllPermissions
+            var isSuperAdmin = false;
+            if (request.Role == UserRole.Admin)
+            {
+                var admin = await _context.Admins
+                    .FirstOrDefaultAsync(a => a.UserId == user.Id, cancellationToken);
+                isSuperAdmin = admin?.IsSuperAdmin ?? false;
+            }
+
+            // SuperAdmin gets all permissions, others get role permissions
+            var userPermissionsToSet = isSuperAdmin ? Permission.AllPermissions : permissions;
+
+            // Get or create user permission record
+            var userPermission = await _context.UserPermissions
+                .FirstOrDefaultAsync(up => up.UserId == user.Id, cancellationToken);
+
+            if (userPermission == null)
+            {
+                userPermission = new UserPermission
+                {
+                    UserId = user.Id,
+                    Permissions = userPermissionsToSet,
+                    GrantedByUserId = currentUserId,
+                    GrantedDate = DateTime.UtcNow,
+                    Notes = $"Auto-synced from role {request.Role} permissions update"
+                };
+                _context.UserPermissions.Add(userPermission);
+            }
+            else
+            {
+                userPermission.Permissions = userPermissionsToSet;
+                userPermission.GrantedByUserId = currentUserId;
+                userPermission.GrantedDate = DateTime.UtcNow;
+                userPermission.Notes = $"Auto-synced from role {request.Role} permissions update";
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

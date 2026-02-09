@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
@@ -8,6 +9,7 @@ namespace AskAMuslimBackend.Application.InquiryRequests.Commands.UpdateInquiryRe
 
 public record UpdateInquiryRequestStatusCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid Id { get; init; }
     public MeetingInquiryRequestStatus Status { get; init; }
 }

@@ -2,11 +2,13 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
 
 public record UpdateCourseCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public Guid LevelId { get; init; }
     public string Title { get; init; } = string.Empty;

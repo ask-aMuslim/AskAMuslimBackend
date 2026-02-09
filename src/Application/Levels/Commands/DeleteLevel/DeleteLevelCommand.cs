@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Levels.Commands.DeleteLevel;
 
-public record DeleteLevelCommand(Guid Id) : IRequest<Result>;
+public record DeleteLevelCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Result>
 {

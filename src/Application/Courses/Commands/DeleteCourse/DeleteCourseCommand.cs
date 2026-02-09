@@ -2,10 +2,11 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.DeleteCourse;
 
-public record DeleteCourseCommand(Guid Id) : IRequest<Result>;
+public record DeleteCourseCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, Result>
 {

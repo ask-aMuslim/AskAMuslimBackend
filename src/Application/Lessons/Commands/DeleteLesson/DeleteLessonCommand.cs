@@ -1,9 +1,10 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Lessons.Commands.DeleteLesson;
 
-public record DeleteLessonCommand(Guid Id) : IRequest<Result>;
+public record DeleteLessonCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteLessonCommandHandler : IRequestHandler<DeleteLessonCommand, Result>
 {

@@ -6,7 +6,6 @@ using AskAMuslimBackend.Application.Notifications.Commands.SendNotification;
 using AskAMuslimBackend.Application.Notifications.Commands.SendRoleBasedNotification;
 using AskAMuslimBackend.Application.Notifications.Queries.GetUserNotifications;
 using AskAMuslimBackend.Domain.Constants;
-using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -17,17 +16,17 @@ public class Notifications : EndpointGroupBase
         app.MapGet(GetUserNotifications, "{userId}").RequireAuthorization();
         app.MapPost(SendNotification, "send").RequireAuthorization();
         app.MapPut(MarkAsRead, "{notificationId}/mark-read").RequireAuthorization();
-        
+
         // FCM Token Management
         app.MapPost(RegisterFcmToken, "register-token").RequireAuthorization();
-        
+
         // Admin-only bulk notification endpoints
         app.MapPost(SendBulkNotifications, "send-to-users")
             .RequireAuthorization(Policies.ManageAllUsers);
-        
+
         app.MapPost(SendRoleBasedNotification, "send-by-role")
             .RequireAuthorization(Policies.ManageAllUsers);
-        
+
         app.MapPost(SendBroadcastNotification, "broadcast")
             .RequireAuthorization(Policies.ManageAllUsers);
     }
@@ -44,9 +43,9 @@ public class Notifications : EndpointGroupBase
         return result.ToCreatedResult($"/Notifications/{result.Data}");
     }
 
-    public async Task<IResult> MarkAsRead(ISender sender, Guid notificationId)
+    public async Task<IResult> MarkAsRead(ISender sender, Guid notificationId, MarkNotificationAsReadCommand command)
     {
-        var result = await sender.Send(new MarkNotificationAsReadCommand { NotificationId = notificationId });
+        var result = await sender.Send(command with { NotificationId = notificationId });
         return result.ToHttpResult();
     }
 

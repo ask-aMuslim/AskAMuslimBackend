@@ -46,23 +46,13 @@ public class Moderators : EndpointGroupBase
 
     public async Task<IResult> UpdateModeratorStatus(ISender sender, Guid id, UpdateModeratorStatusCommand command)
     {
-        if (id != command.Id)
-        {
-            return Results.BadRequest(new { error = "ID mismatch" });
-        }
-
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> UpdateModeratorRole(ISender sender, Guid id, UpdateModeratorRoleCommand command)
     {
-        if (id != command.Id)
-        {
-            return Results.BadRequest(new { error = "ID mismatch" });
-        }
-
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 }

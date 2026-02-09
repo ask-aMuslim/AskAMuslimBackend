@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Events.Commands.DeleteEvent;
 
-public record DeleteEventCommand(Guid Id) : IRequest<Result>;
+public record DeleteEventCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand, Result>
 {

@@ -4,12 +4,14 @@ using AskAMuslimBackend.Application.Common.Security;
 using AskAMuslimBackend.Domain.Constants;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Students.Commands.UpdateStudentStatus;
 
 [Authorize(Policy = Policies.ManageStudents)]
 public record UpdateStudentStatusCommand : IRequest<Result<bool>>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public bool IsActive { get; init; }
 }
@@ -18,8 +20,6 @@ public class UpdateStudentStatusCommandValidator : AbstractValidator<UpdateStude
 {
     public UpdateStudentStatusCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Student ID is required");
     }
 }
 

@@ -59,22 +59,19 @@ public class MeetingRequests : EndpointGroupBase
 
     public async Task<IResult> UpdateStatus(ISender sender, Guid id, UpdateMeetingRequestStatusCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> UpdateResponse(ISender sender, Guid id, UpdateMeetingRequestResponseCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> Assign(ISender sender, Guid id, AssignMeetingRequestCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 }

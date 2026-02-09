@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Tags.Commands.DeleteTag;
 
-public record DeleteTagCommand(Guid Id) : IRequest<Result>;
+public record DeleteTagCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Result>
 {

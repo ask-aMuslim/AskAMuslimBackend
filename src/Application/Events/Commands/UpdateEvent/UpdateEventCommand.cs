@@ -2,11 +2,13 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Events.Commands.UpdateEvent;
 
 public record UpdateEventCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }

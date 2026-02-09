@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
@@ -10,6 +11,7 @@ namespace AskAMuslimBackend.Application.InquiryRequests.Commands.UpdateInquiryRe
 [Authorize(Roles = Roles.Administrator + ",Admin")]
 public record UpdateInquiryRequestResponseCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid Id { get; init; }
     public string Response { get; init; } = string.Empty;
 }

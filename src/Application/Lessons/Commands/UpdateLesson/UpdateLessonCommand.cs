@@ -4,11 +4,13 @@ using AskAMuslimBackend.Application.Common.Validators;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 
 public record UpdateLessonCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public Guid CourseId { get; init; }
     public string Title { get; init; } = string.Empty;

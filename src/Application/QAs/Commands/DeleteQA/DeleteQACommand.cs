@@ -1,9 +1,10 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.QAs.Commands.DeleteQA;
 
-public record DeleteQACommand(Guid Id) : IRequest<Result>;
+public record DeleteQACommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteQACommandHandler : IRequestHandler<DeleteQACommand, Result>
 {

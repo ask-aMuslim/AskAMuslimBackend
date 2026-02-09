@@ -59,22 +59,19 @@ public class InquiryRequests : EndpointGroupBase
 
     public async Task<IResult> UpdateStatus(ISender sender, Guid id, UpdateInquiryRequestStatusCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> UpdateResponse(ISender sender, Guid id, UpdateInquiryRequestResponseCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> Assign(ISender sender, Guid id, AssignInquiryRequestCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 }

@@ -1,11 +1,13 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Options.Commands.UpdateOption;
 
 public record UpdateOptionCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
     public bool IsCorrect { get; init; }

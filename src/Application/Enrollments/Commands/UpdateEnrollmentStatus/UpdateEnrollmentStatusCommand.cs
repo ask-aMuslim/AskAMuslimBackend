@@ -2,11 +2,13 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Enrollments.Commands.UpdateEnrollmentStatus;
 
 public record UpdateEnrollmentStatusCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public EnrollmentStatus Status { get; init; }
 }

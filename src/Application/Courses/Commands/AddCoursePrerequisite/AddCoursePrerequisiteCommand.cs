@@ -1,11 +1,13 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.AddCoursePrerequisite;
 
 public record AddCoursePrerequisiteCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid CourseId { get; init; }
     public Guid PrerequisiteCourseId { get; init; }
     public int Order { get; init; }

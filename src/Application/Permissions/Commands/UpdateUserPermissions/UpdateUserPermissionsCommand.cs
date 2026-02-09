@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
@@ -12,6 +13,7 @@ namespace AskAMuslimBackend.Application.Permissions.Commands.UpdateUserPermissio
 [Authorize(Policy = Policies.ManageRolesAndPermissions)]
 public record UpdateUserPermissionsCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid UserId { get; init; }
     public Permission? Permissions { get; init; }  // Optional: for backward compatibility
     public List<string>? PermissionNames { get; init; }  // New: accept permission names as strings
@@ -22,9 +24,8 @@ public class UpdateUserPermissionsCommandValidator : AbstractValidator<UpdateUse
 {
     public UpdateUserPermissionsCommandValidator()
     {
-        RuleFor(x => x.UserId)
-            .NotEmpty().WithMessage("User ID is required");
-
+        // UserId is set from route parameter, no validation needed
+        
         RuleFor(x => x)
             .Must(x => x.Permissions.HasValue || (x.PermissionNames != null && x.PermissionNames.Any()))
             .WithMessage("Either Permissions or PermissionNames must be provided");

@@ -1,10 +1,11 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.Options.Commands.DeleteOption;
 
-public record DeleteOptionCommand(Guid Id) : IRequest<Result>;
+public record DeleteOptionCommand([property: JsonIgnore] Guid Id) : IRequest<Result>;
 
 public class DeleteOptionCommandHandler : IRequestHandler<DeleteOptionCommand, Result>
 {

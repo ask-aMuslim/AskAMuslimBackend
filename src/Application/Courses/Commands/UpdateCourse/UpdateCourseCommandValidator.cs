@@ -6,9 +6,6 @@ public class UpdateCourseCommandValidator : AbstractValidator<UpdateCourseComman
 {
     public UpdateCourseCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Course Id is required.");
-
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Title is required.")
             .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");

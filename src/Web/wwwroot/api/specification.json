@@ -3324,6 +3324,18 @@
             "x-position": 1
           }
         ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkNotificationAsReadCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": ""
@@ -3763,9 +3775,7 @@
             "JWT": []
           }
         ]
-      }
-    },
-    "/api/Permissions/roles": {
+      },
       "put": {
         "tags": [
           "Permissions"
@@ -3774,7 +3784,7 @@
         "parameters": [
           {
             "name": "role",
-            "in": "query",
+            "in": "path",
             "required": true,
             "schema": {
               "$ref": "#/components/schemas/UserRole"
@@ -5722,10 +5732,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "levelId": {
             "type": "string",
             "format": "guid"
@@ -5761,10 +5767,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "courseId": {
-            "type": "string",
-            "format": "guid"
-          },
           "prerequisiteCourseId": {
             "type": "string",
             "format": "guid"
@@ -5793,10 +5795,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "status": {
             "$ref": "#/components/schemas/EnrollmentStatus"
           }
@@ -5840,10 +5838,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "status": {
             "$ref": "#/components/schemas/EventStatus"
           }
@@ -5913,10 +5907,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "title": {
             "type": "string"
           },
@@ -6031,10 +6021,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "status": {
             "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
           }
@@ -6044,10 +6030,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "response": {
             "type": "string"
           }
@@ -6057,10 +6039,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "moderatorId": {
             "type": "string",
             "format": "guid"
@@ -6173,10 +6151,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "courseId": {
             "type": "string",
             "format": "guid"
@@ -6259,10 +6233,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "title": {
             "type": "string"
           },
@@ -6308,10 +6278,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "status": {
             "$ref": "#/components/schemas/MeetingInquiryRequestStatus"
           }
@@ -6321,10 +6287,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "response": {
             "type": "string"
           }
@@ -6334,10 +6296,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "moderatorId": {
             "type": "string",
             "format": "guid"
@@ -6381,10 +6339,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "isActive": {
             "type": "boolean"
           }
@@ -6394,10 +6348,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "newRole": {
             "$ref": "#/components/schemas/UserRole"
           }
@@ -6449,6 +6399,10 @@
             }
           }
         }
+      },
+      "MarkNotificationAsReadCommand": {
+        "type": "object",
+        "additionalProperties": false
       },
       "RegisterFcmTokenCommand": {
         "type": "object",
@@ -6570,10 +6524,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "text": {
             "type": "string"
           },
@@ -6586,10 +6536,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "userId": {
-            "type": "string",
-            "format": "guid"
-          },
           "permissions": {
             "nullable": true,
             "oneOf": [
@@ -6778,9 +6724,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "role": {
-            "$ref": "#/components/schemas/UserRole"
-          },
           "permissionNames": {
             "type": "array",
             "nullable": true,
@@ -6890,10 +6833,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "isPublished": {
             "type": "boolean"
           },
@@ -6956,10 +6895,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "text": {
             "type": "string"
           }
@@ -6983,10 +6918,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "attemptId": {
-            "type": "string",
-            "format": "guid"
-          },
           "answers": {
             "type": "array",
             "items": {
@@ -7058,10 +6989,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "levelId": {
             "type": "string",
             "format": "guid",
@@ -7235,10 +7162,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "answerText": {
             "type": "string"
           }
@@ -7248,10 +7171,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "isActive": {
             "type": "boolean"
           }
@@ -7274,10 +7193,6 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "guid"
-          },
           "title": {
             "type": "string"
           },

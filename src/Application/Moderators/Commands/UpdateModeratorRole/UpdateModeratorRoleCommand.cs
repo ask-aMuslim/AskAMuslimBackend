@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Security;
@@ -11,6 +12,7 @@ namespace AskAMuslimBackend.Application.Moderators.Commands.UpdateModeratorRole;
 [Authorize(Policy = Policies.ManageAdmins)]
 public record UpdateModeratorRoleCommand : IRequest<Result<Guid>>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid Id { get; init; }
     public UserRole NewRole { get; init; }
 }
@@ -19,8 +21,7 @@ public class UpdateModeratorRoleCommandValidator : AbstractValidator<UpdateModer
 {
     public UpdateModeratorRoleCommandValidator()
     {
-        RuleFor(x => x.Id)
-            .NotEmpty().WithMessage("Moderator ID is required");
+        // Id is set from route parameter, no validation needed
 
         RuleFor(x => x.NewRole)
             .Must(role => role == UserRole.Admin || role == UserRole.Instructor || role == UserRole.Preacher)

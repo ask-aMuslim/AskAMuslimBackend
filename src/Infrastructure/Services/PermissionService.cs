@@ -22,6 +22,19 @@ public class PermissionService : IPermissionService
             return Permission.None;
         }
 
+        // Check if user is SuperAdmin - they always have all permissions
+        var user = await _context.Users.FindAsync(new object[] { userGuid }, cancellationToken);
+        if (user?.Role == UserRole.Admin)
+        {
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.UserId == userGuid, cancellationToken);
+            
+            if (admin?.IsSuperAdmin == true)
+            {
+                return Permission.AllPermissions;
+            }
+        }
+
         var userPermission = await _context.UserPermissions
             .FirstOrDefaultAsync(up => up.UserId == userGuid, cancellationToken);
 
@@ -31,7 +44,6 @@ public class PermissionService : IPermissionService
         }
 
         // If no custom permissions, get default for role
-        var user = await _context.Users.FindAsync(new object[] { userGuid }, cancellationToken);
         if (user != null)
         {
             return await GetDefaultPermissionsForRoleAsync(user.Role.ToString());

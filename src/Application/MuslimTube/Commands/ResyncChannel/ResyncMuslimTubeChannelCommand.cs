@@ -1,15 +1,15 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Commands.ResyncChannel;
 
-public record ResyncMuslimTubeChannelCommand(Guid ChannelId, int MaxVideos = 20) : IRequest<Result<int>>;
+public record ResyncMuslimTubeChannelCommand([property: JsonIgnore] Guid ChannelId, int MaxVideos = 20) : IRequest<Result<int>>;
 
 public class ResyncMuslimTubeChannelCommandValidator : AbstractValidator<ResyncMuslimTubeChannelCommand>
 {
     public ResyncMuslimTubeChannelCommandValidator()
     {
-        RuleFor(x => x.ChannelId).NotEmpty();
         RuleFor(x => x.MaxVideos).GreaterThan(0).LessThanOrEqualTo(50);
     }
 }

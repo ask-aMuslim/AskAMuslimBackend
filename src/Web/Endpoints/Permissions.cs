@@ -17,7 +17,7 @@ public class Permissions : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetMyPermissions, "my")
-            .RequireAuthorization(Policies.ViewOwnPermissions)
+            .RequireAuthorization()
             .WithName("GetMyPermissions")
             .WithSummary("Get permissions for the current authenticated user");
 
@@ -46,7 +46,7 @@ public class Permissions : EndpointGroupBase
             .WithName("GetRolePermissions")
             .WithSummary("Get permissions for a specific role");
 
-        groupBuilder.MapPut(UpdateRolePermissions, "roles")
+        groupBuilder.MapPut(UpdateRolePermissions, "roles/{role}")
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
             .WithName("UpdateRolePermissions")
             .WithSummary("Update default permissions for a specific role");
@@ -90,29 +90,19 @@ public class Permissions : EndpointGroupBase
 
     public async Task<IResult> UpdateRolePermissions(ISender sender, UserRole role, UpdateRolePermissionsCommand command)
     {
-        if (role != command.Role)
-        {
-            return Results.BadRequest(new { errors = new[] { "Role mismatch" } });
-        }
-
         // Students and NonMuslims don't have role-based permissions
         if (role == UserRole.Student || role == UserRole.NonMuslim)
         {
             return Results.BadRequest(new { errors = new[] { "Cannot update permissions for Student or NonMuslim roles" } });
         }
 
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Role = role });
         return result.ToHttpResult();
     }
 
     public async Task<IResult> UpdateUserPermissions(ISender sender, Guid userId, UpdateUserPermissionsCommand command)
     {
-        if (userId != command.UserId)
-        {
-            return Results.BadRequest(new { errors = new[] { "User ID mismatch" } });
-        }
-
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { UserId = userId });
         return result.ToHttpResult();
     }
 }

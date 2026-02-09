@@ -7,10 +7,6 @@ public class AddCoursePrerequisiteCommandValidator : AbstractValidator<AddCourse
 {
     public AddCoursePrerequisiteCommandValidator()
     {
-        RuleFor(v => v.CourseId)
-            .NotEmpty()
-            .WithMessage("Course ID is required.");
-
         RuleFor(v => v.PrerequisiteCourseId)
             .NotEmpty()
             .WithMessage("Prerequisite Course ID is required.");

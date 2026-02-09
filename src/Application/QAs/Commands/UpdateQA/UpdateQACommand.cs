@@ -3,11 +3,13 @@ using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Validators;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.QAs.Commands.UpdateQA;
 
 public record UpdateQACommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public bool IsPublished { get; init; }
     public List<UpdateQATranslationInput> Translations { get; init; } = new();

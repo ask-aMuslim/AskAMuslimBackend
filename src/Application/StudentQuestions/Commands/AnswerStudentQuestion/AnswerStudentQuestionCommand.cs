@@ -1,11 +1,13 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using FluentValidation;
+using System.Text.Json.Serialization;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Commands.AnswerStudentQuestion;
 
 public record AnswerStudentQuestionCommand : IRequest<Result>
 {
+    [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public string AnswerText { get; init; } = string.Empty;
 }

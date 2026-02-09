@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Exceptions;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
@@ -7,6 +8,7 @@ namespace AskAMuslimBackend.Application.Notifications.Commands.MarkAsRead;
 
 public record MarkNotificationAsReadCommand : IRequest<Result>
 {
+    [JsonIgnore]  // Set from route parameter, not request body
     public Guid NotificationId { get; init; }
 }
 
