@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Questions.Commands.UpdateQuestion;
 using AskAMuslimBackend.Application.Questions.Queries;
 using AskAMuslimBackend.Application.Questions.Queries.GetQuestionById;
 using AskAMuslimBackend.Application.Questions.Queries.GetQuestionsWithPagination;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -16,9 +17,18 @@ public class Questions : EndpointGroupBase
     {
         groupBuilder.MapGet(GetQuestionsWithPagination).WithName("GetQuestions").WithSummary("Get questions for a quiz");
         groupBuilder.MapGet(GetQuestionById, "{id}").WithName("GetQuestion").WithSummary("Get a question by id");
-        groupBuilder.MapPost(CreateQuestion).RequireAuthorization().WithName("CreateQuestion").WithSummary("Create a new question");
-        groupBuilder.MapPut(UpdateQuestion, "{id}").RequireAuthorization().WithName("UpdateQuestion").WithSummary("Update a question");
-        groupBuilder.MapDelete(DeleteQuestion, "{id}").RequireAuthorization().WithName("DeleteQuestion").WithSummary("Delete a question");
+        groupBuilder.MapPost(CreateQuestion)
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("CreateQuestion")
+            .WithSummary("Create a new question");
+        groupBuilder.MapPut(UpdateQuestion, "{id}")
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("UpdateQuestion")
+            .WithSummary("Update a question");
+        groupBuilder.MapDelete(DeleteQuestion, "{id}")
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("DeleteQuestion")
+            .WithSummary("Delete a question");
     }
 
     public async Task<IResult> GetQuestionsWithPagination(ISender sender, [AsParameters] GetQuestionsWithPaginationQuery query)

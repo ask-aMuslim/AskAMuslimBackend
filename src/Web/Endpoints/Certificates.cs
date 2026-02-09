@@ -13,9 +13,18 @@ public class Certificates : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetCertificate, "{id}").WithName("GetCertificate").WithSummary("Get a certificate by id");
-        groupBuilder.MapGet(GetByStudent, "by-student/{studentId}").RequireAuthorization().WithName("GetCertificatesByStudent").WithSummary("Get certificates for a student");
-        groupBuilder.MapPost(CreateCertificate).RequireAuthorization().WithName("CreateCertificate").WithSummary("Issue a new certificate");
-        groupBuilder.MapDelete(DeleteCertificate, "{id}").RequireAuthorization().WithName("DeleteCertificate").WithSummary("Delete a certificate");
+        groupBuilder.MapGet(GetByStudent, "by-student/{studentId}")
+            .RequireAuthorization()
+            .WithName("GetCertificatesByStudent")
+            .WithSummary("Get certificates for a student (own certificates or admin)");
+        groupBuilder.MapPost(CreateCertificate)
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("CreateCertificate")
+            .WithSummary("Issue a new certificate");
+        groupBuilder.MapDelete(DeleteCertificate, "{id}")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("DeleteCertificate")
+            .WithSummary("Delete a certificate");
     }
 
     public async Task<IResult> GetCertificate(ISender sender, Guid id)

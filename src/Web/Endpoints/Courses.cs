@@ -18,11 +18,26 @@ public class Courses : EndpointGroupBase
         groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id");
         groupBuilder.MapGet(GetCourseDetailById, "{id}/detail").WithName("GetCourseDetail").WithSummary("Get detailed course info with prerequisites");
         groupBuilder.MapGet(GetCourseRoadmap, "roadmap/{levelId}").WithName("GetCourseRoadmap").WithSummary("Get complete course roadmap for a level");
-        groupBuilder.MapPost(CreateCourse).RequireAuthorization().WithName("CreateCourse").WithSummary("Create a new course");
-        groupBuilder.MapPut(UpdateCourse, "{id}").RequireAuthorization().WithName("UpdateCourse").WithSummary("Update a course");
-        groupBuilder.MapDelete(DeleteCourse, "{id}").RequireAuthorization().WithName("DeleteCourse").WithSummary("Delete a course");
-        groupBuilder.MapPost(AddPrerequisite, "{id}/prerequisites").RequireAuthorization().WithName("AddCoursePrerequisite").WithSummary("Add a prerequisite to a course");
-        groupBuilder.MapDelete(RemovePrerequisite, "{id}/prerequisites/{prerequisiteId}").RequireAuthorization().WithName("RemoveCoursePrerequisite").WithSummary("Remove a prerequisite from a course");
+        groupBuilder.MapPost(CreateCourse)
+            .RequireAuthorization(Policies.CreateCourse)
+            .WithName("CreateCourse")
+            .WithSummary("Create a new course");
+        groupBuilder.MapPut(UpdateCourse, "{id}")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("UpdateCourse")
+            .WithSummary("Update a course");
+        groupBuilder.MapDelete(DeleteCourse, "{id}")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("DeleteCourse")
+            .WithSummary("Delete a course");
+        groupBuilder.MapPost(AddPrerequisite, "{id}/prerequisites")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("AddCoursePrerequisite")
+            .WithSummary("Add a prerequisite to a course");
+        groupBuilder.MapDelete(RemovePrerequisite, "{id}/prerequisites/{prerequisiteId}")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("RemoveCoursePrerequisite")
+            .WithSummary("Remove a prerequisite from a course");
     }
 
     public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)

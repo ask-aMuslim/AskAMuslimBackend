@@ -14,8 +14,14 @@ public class StudentNotes : EndpointGroupBase
     {
         groupBuilder.MapGet(GetById, "{id}").WithName("GetStudentNote").WithSummary("Get a student note by id");
         groupBuilder.MapGet(GetByLesson, "by-lesson/{lessonId}").WithName("GetStudentNotesByLesson").WithSummary("Get student notes for a lesson");
-        groupBuilder.MapPost(CreateNote).RequireAuthorization().WithName("CreateStudentNote").WithSummary("Create a new student note");
-        groupBuilder.MapDelete(DeleteNote, "{id}").RequireAuthorization().WithName("DeleteStudentNote").WithSummary("Delete a student note");
+        groupBuilder.MapPost(CreateNote)
+            .RequireAuthorization()
+            .WithName("CreateStudentNote")
+            .WithSummary("Create a new student note");
+        groupBuilder.MapDelete(DeleteNote, "{id}")
+            .RequireAuthorization()
+            .WithName("DeleteStudentNote")
+            .WithSummary("Delete a student note");
     }
 
     public async Task<IResult> GetById(ISender sender, Guid id)

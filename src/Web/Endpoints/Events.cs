@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Events.Commands.UpdateEvent;
 using AskAMuslimBackend.Application.Events.Queries;
 using AskAMuslimBackend.Application.Events.Queries.GetEventById;
 using AskAMuslimBackend.Application.Events.Queries.GetEventsWithPagination;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -16,9 +17,18 @@ public class Events : EndpointGroupBase
     {
         groupBuilder.MapGet(GetEventsWithPagination).WithName("GetEvents").WithSummary("Get events");
         groupBuilder.MapGet(GetEventById, "{id}").WithName("GetEvent").WithSummary("Get event by id");
-        groupBuilder.MapPost(CreateEvent).RequireAuthorization().WithName("CreateEvent").WithSummary("Create event");
-        groupBuilder.MapPut(UpdateEvent, "{id}").RequireAuthorization().WithName("UpdateEvent").WithSummary("Update event");
-        groupBuilder.MapDelete(DeleteEvent, "{id}").RequireAuthorization().WithName("DeleteEvent").WithSummary("Delete event");
+        groupBuilder.MapPost(CreateEvent)
+            .RequireAuthorization(Policies.ManageEvents)
+            .WithName("CreateEvent")
+            .WithSummary("Create event");
+        groupBuilder.MapPut(UpdateEvent, "{id}")
+            .RequireAuthorization(Policies.ManageEvents)
+            .WithName("UpdateEvent")
+            .WithSummary("Update event");
+        groupBuilder.MapDelete(DeleteEvent, "{id}")
+            .RequireAuthorization(Policies.ManageEvents)
+            .WithName("DeleteEvent")
+            .WithSummary("Delete event");
     }
 
     public async Task<IResult> GetEventsWithPagination(ISender sender, [AsParameters] GetEventsWithPaginationQuery query)

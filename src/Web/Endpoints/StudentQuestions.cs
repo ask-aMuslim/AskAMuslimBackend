@@ -8,6 +8,7 @@ using AskAMuslimBackend.Web.Infrastructure;
 using GetStudentQuestionsNS = AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -18,9 +19,18 @@ public class StudentQuestions : EndpointGroupBase
         groupBuilder.MapGet(GetById, "{id}").WithName("GetStudentQuestion").WithSummary("Get a student question by id");
         groupBuilder.MapGet(GetByLesson, "by-lesson/{lessonId}").WithName("GetStudentQuestionsByLesson").WithSummary("Get student questions for a lesson");
         groupBuilder.MapGet(GetByStudent, "by-student/{studentId}").WithName("GetStudentQuestionsByStudent").WithSummary("Get all questions from a student");
-        groupBuilder.MapPost(CreateQuestion).RequireAuthorization().WithName("CreateStudentQuestion").WithSummary("Create a new student question");
-        groupBuilder.MapPut(AnswerQuestion, "{id}/answer").RequireAuthorization().WithName("AnswerStudentQuestion").WithSummary("Answer a student question");
-        groupBuilder.MapDelete(DeleteQuestion, "{id}").RequireAuthorization().WithName("DeleteStudentQuestion").WithSummary("Delete a student question");
+        groupBuilder.MapPost(CreateQuestion)
+            .RequireAuthorization()
+            .WithName("CreateStudentQuestion")
+            .WithSummary("Create a new student question");
+        groupBuilder.MapPut(AnswerQuestion, "{id}/answer")
+            .RequireAuthorization(Policies.ViewAllStudents)
+            .WithName("AnswerStudentQuestion")
+            .WithSummary("Answer a student question");
+        groupBuilder.MapDelete(DeleteQuestion, "{id}")
+            .RequireAuthorization()
+            .WithName("DeleteStudentQuestion")
+            .WithSummary("Delete a student question");
     }
 
     public async Task<IResult> GetById(ISender sender, Guid id)

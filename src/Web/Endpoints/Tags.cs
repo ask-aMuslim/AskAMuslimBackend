@@ -7,6 +7,7 @@ using AskAMuslimBackend.Application.Tags.Queries.GetTagsWithPagination;
 using AskAMuslimBackend.Application.Tags.Queries.GetTagById;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -16,9 +17,18 @@ public class Tags : EndpointGroupBase
     {
         groupBuilder.MapGet(GetTagsWithPagination).WithName("GetTags").WithSummary("Get tags");
         groupBuilder.MapGet(GetTagById, "{id}").WithName("GetTag").WithSummary("Get a tag by id");
-        groupBuilder.MapPost(CreateTag).RequireAuthorization().WithName("CreateTag").WithSummary("Create a new tag");
-        groupBuilder.MapPut(UpdateTag, "{id}").RequireAuthorization().WithName("UpdateTag").WithSummary("Update a tag");
-        groupBuilder.MapDelete(DeleteTag, "{id}").RequireAuthorization().WithName("DeleteTag").WithSummary("Delete a tag");
+        groupBuilder.MapPost(CreateTag)
+            .RequireAuthorization(Policies.ManageTags)
+            .WithName("CreateTag")
+            .WithSummary("Create a new tag");
+        groupBuilder.MapPut(UpdateTag, "{id}")
+            .RequireAuthorization(Policies.ManageTags)
+            .WithName("UpdateTag")
+            .WithSummary("Update a tag");
+        groupBuilder.MapDelete(DeleteTag, "{id}")
+            .RequireAuthorization(Policies.ManageTags)
+            .WithName("DeleteTag")
+            .WithSummary("Delete a tag");
     }
 
     public async Task<IResult> GetTagsWithPagination(ISender sender, [AsParameters] GetTagsWithPaginationQuery query)

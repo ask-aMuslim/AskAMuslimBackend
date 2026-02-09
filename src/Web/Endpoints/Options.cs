@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Options.Commands.DeleteOption;
 using AskAMuslimBackend.Application.Options.Commands.UpdateOption;
 using AskAMuslimBackend.Application.Options.Queries;
 using AskAMuslimBackend.Application.Options.Queries.GetOptionsByQuestion;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -13,9 +14,18 @@ public class Options : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetOptionsByQuestion, "by-question/{questionId}").WithName("GetOptionsByQuestion").WithSummary("Get options for a question");
-        groupBuilder.MapPost(CreateOption).RequireAuthorization().WithName("CreateOption").WithSummary("Create a new option");
-        groupBuilder.MapPut(UpdateOption, "{id}").RequireAuthorization().WithName("UpdateOption").WithSummary("Update an option");
-        groupBuilder.MapDelete(DeleteOption, "{id}").RequireAuthorization().WithName("DeleteOption").WithSummary("Delete an option");
+        groupBuilder.MapPost(CreateOption)
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("CreateOption")
+            .WithSummary("Create a new option");
+        groupBuilder.MapPut(UpdateOption, "{id}")
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("UpdateOption")
+            .WithSummary("Update an option");
+        groupBuilder.MapDelete(DeleteOption, "{id}")
+            .RequireAuthorization(Policies.ManageQuizzes)
+            .WithName("DeleteOption")
+            .WithSummary("Delete an option");
     }
 
     public async Task<IResult> GetOptionsByQuestion(ISender sender, Guid questionId)

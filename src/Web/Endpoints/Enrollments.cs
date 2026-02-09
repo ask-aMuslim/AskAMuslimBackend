@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Enrollments.Queries;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentById;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByCourse;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByStudent;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -16,10 +17,22 @@ public class Enrollments : EndpointGroupBase
     {
         groupBuilder.MapGet(GetEnrollment, "{id}").WithName("GetEnrollment").WithSummary("Get an enrollment by id");
         groupBuilder.MapGet(GetByCourse, "by-course/{courseId}").WithName("GetEnrollmentsByCourse").WithSummary("Get enrollments by course id");
-        groupBuilder.MapGet(GetByStudent, "by-student/{studentId}").RequireAuthorization().WithName("GetEnrollmentsByStudent").WithSummary("Get enrollments by student id");
-        groupBuilder.MapPost(CreateEnrollment).RequireAuthorization().WithName("CreateEnrollment").WithSummary("Create a new enrollment");
-        groupBuilder.MapPut(UpdateEnrollmentStatus, "{id}/status").RequireAuthorization().WithName("UpdateEnrollmentStatus").WithSummary("Update enrollment status");
-        groupBuilder.MapDelete(DeleteEnrollment, "{id}").RequireAuthorization().WithName("DeleteEnrollment").WithSummary("Delete an enrollment");
+        groupBuilder.MapGet(GetByStudent, "by-student/{studentId}")
+            .RequireAuthorization()
+            .WithName("GetEnrollmentsByStudent")
+            .WithSummary("Get enrollments by student id (own enrollments or admin)");
+        groupBuilder.MapPost(CreateEnrollment)
+            .RequireAuthorization()
+            .WithName("CreateEnrollment")
+            .WithSummary("Create a new enrollment");
+        groupBuilder.MapPut(UpdateEnrollmentStatus, "{id}/status")
+            .RequireAuthorization()
+            .WithName("UpdateEnrollmentStatus")
+            .WithSummary("Update enrollment status");
+        groupBuilder.MapDelete(DeleteEnrollment, "{id}")
+            .RequireAuthorization(Policies.ManageAllCourses)
+            .WithName("DeleteEnrollment")
+            .WithSummary("Delete an enrollment");
     }
 
     public async Task<IResult> GetEnrollment(ISender sender, Guid id)

@@ -13,12 +13,16 @@ public class Notifications : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder app)
     {
-        app.MapGet(GetUserNotifications, "{userId}").RequireAuthorization();
-        app.MapPost(SendNotification, "send").RequireAuthorization();
-        app.MapPut(MarkAsRead, "{notificationId}/mark-read").RequireAuthorization();
+        app.MapGet(GetUserNotifications, "{userId}")
+            .RequireAuthorization(Policies.ViewNotifications);
+        app.MapPost(SendNotification, "send")
+            .RequireAuthorization(Policies.SendNotifications);
+        app.MapPut(MarkAsRead, "{notificationId}/mark-read")
+            .RequireAuthorization(Policies.ViewNotifications);
 
         // FCM Token Management
-        app.MapPost(RegisterFcmToken, "register-token").RequireAuthorization();
+        app.MapPost(RegisterFcmToken, "register-token")
+            .RequireAuthorization();
 
         // Admin-only bulk notification endpoints
         app.MapPost(SendBulkNotifications, "send-to-users")

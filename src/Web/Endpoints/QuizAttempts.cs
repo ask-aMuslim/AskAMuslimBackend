@@ -13,9 +13,18 @@ public class QuizAttempts : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetForQuiz, "by-quiz/{quizId}").WithName("GetQuizAttemptsByQuiz").WithSummary("Get quiz attempts for a quiz");
-        groupBuilder.MapGet(GetForStudent, "by-student/{studentId}").RequireAuthorization().WithName("GetQuizAttemptsByStudent").WithSummary("Get quiz attempts for a student");
-        groupBuilder.MapPost(StartAttempt).RequireAuthorization().WithName("StartQuizAttempt").WithSummary("Start a new quiz attempt");
-        groupBuilder.MapPut(CompleteAttempt, "complete/{attemptId}").RequireAuthorization().WithName("CompleteQuizAttempt").WithSummary("Complete a quiz attempt");
+        groupBuilder.MapGet(GetForStudent, "by-student/{studentId}")
+            .RequireAuthorization()
+            .WithName("GetQuizAttemptsByStudent")
+            .WithSummary("Get quiz attempts for a student (own attempts or admin)");
+        groupBuilder.MapPost(StartAttempt)
+            .RequireAuthorization()
+            .WithName("StartQuizAttempt")
+            .WithSummary("Start a new quiz attempt");
+        groupBuilder.MapPut(CompleteAttempt, "complete/{attemptId}")
+            .RequireAuthorization()
+            .WithName("CompleteQuizAttempt")
+            .WithSummary("Complete a quiz attempt");
     }
 
     public async Task<IResult> GetForQuiz(ISender sender, Guid quizId)

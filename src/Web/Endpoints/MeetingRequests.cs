@@ -10,6 +10,7 @@ using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsBy
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -17,14 +18,38 @@ public class MeetingRequests : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetAll).RequireAuthorization().WithName("GetAllMeetingRequests").WithSummary("Get all meeting requests");
-        groupBuilder.MapGet(GetById, "{id}").WithName("GetMeetingRequest").WithSummary("Get meeting request by id");
-        groupBuilder.MapGet(GetByRequester, "by-requester/{requesterId}").RequireAuthorization().WithName("GetMeetingRequestsByRequester").WithSummary("Get meeting requests for requester");
-        groupBuilder.MapGet(GetByModerator, "by-moderator/{moderatorId}").RequireAuthorization().WithName("GetMeetingRequestsByModerator").WithSummary("Get meeting requests for moderator");
-        groupBuilder.MapPost(Create).RequireAuthorization().WithName("CreateMeetingRequest").WithSummary("Create meeting request");
-        groupBuilder.MapPut(UpdateStatus, "{id}/status").RequireAuthorization().WithName("UpdateMeetingRequestStatus").WithSummary("Update meeting request status");
-        groupBuilder.MapPut(UpdateResponse, "{id}/response").RequireAuthorization().WithName("UpdateMeetingRequestResponse").WithSummary("Set admin response on meeting request");
-        groupBuilder.MapPut(Assign, "{id}/assign").RequireAuthorization().WithName("AssignMeetingRequest").WithSummary("Assign a moderator to a meeting request");
+        groupBuilder.MapGet(GetAll)
+            .RequireAuthorization(Policies.ViewMeetingRequests)
+            .WithName("GetAllMeetingRequests")
+            .WithSummary("Get all meeting requests");
+        groupBuilder.MapGet(GetById, "{id}")
+            .RequireAuthorization(Policies.ViewMeetingRequests)
+            .WithName("GetMeetingRequest")
+            .WithSummary("Get meeting request by id");
+        groupBuilder.MapGet(GetByRequester, "by-requester/{requesterId}")
+            .RequireAuthorization()
+            .WithName("GetMeetingRequestsByRequester")
+            .WithSummary("Get meeting requests for requester");
+        groupBuilder.MapGet(GetByModerator, "by-moderator/{moderatorId}")
+            .RequireAuthorization()
+            .WithName("GetMeetingRequestsByModerator")
+            .WithSummary("Get meeting requests for moderator");
+        groupBuilder.MapPost(Create)
+            .RequireAuthorization()
+            .WithName("CreateMeetingRequest")
+            .WithSummary("Create meeting request");
+        groupBuilder.MapPut(UpdateStatus, "{id}/status")
+            .RequireAuthorization(Policies.ManageMeetingRequests)
+            .WithName("UpdateMeetingRequestStatus")
+            .WithSummary("Update meeting request status");
+        groupBuilder.MapPut(UpdateResponse, "{id}/response")
+            .RequireAuthorization(Policies.ManageMeetingRequests)
+            .WithName("UpdateMeetingRequestResponse")
+            .WithSummary("Set admin response on meeting request");
+        groupBuilder.MapPut(Assign, "{id}/assign")
+            .RequireAuthorization(Policies.ManageMeetingRequests)
+            .WithName("AssignMeetingRequest")
+            .WithSummary("Assign a moderator to a meeting request");
     }
 
     public async Task<IResult> GetAll(ISender sender, [AsParameters] GetAllMeetingRequestsQuery query)

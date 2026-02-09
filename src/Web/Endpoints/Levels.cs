@@ -7,6 +7,7 @@ using AskAMuslimBackend.Application.Levels.Queries.GetLevelById;
 using AskAMuslimBackend.Application.Levels.Queries;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -16,9 +17,18 @@ public class Levels : EndpointGroupBase
     {
         groupBuilder.MapGet(GetLevelsWithPagination).WithName("GetLevels").WithSummary("Get levels lookups and lists");
         groupBuilder.MapGet(GetLevelById, "{id}").WithName("GetLevel").WithSummary("Get a level by id");
-        groupBuilder.MapPost(CreateLevel).RequireAuthorization().WithName("CreateLevel").WithSummary("Create a new level");
-        groupBuilder.MapPut(UpdateLevel, "{id}").RequireAuthorization().WithName("UpdateLevel").WithSummary("Update a level");
-        groupBuilder.MapDelete(DeleteLevel, "{id}").RequireAuthorization().WithName("DeleteLevel").WithSummary("Delete a level");
+        groupBuilder.MapPost(CreateLevel)
+            .RequireAuthorization(Policies.ManageLevels)
+            .WithName("CreateLevel")
+            .WithSummary("Create a new level");
+        groupBuilder.MapPut(UpdateLevel, "{id}")
+            .RequireAuthorization(Policies.ManageLevels)
+            .WithName("UpdateLevel")
+            .WithSummary("Update a level");
+        groupBuilder.MapDelete(DeleteLevel, "{id}")
+            .RequireAuthorization(Policies.ManageLevels)
+            .WithName("DeleteLevel")
+            .WithSummary("Delete a level");
     }
 
     public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query)

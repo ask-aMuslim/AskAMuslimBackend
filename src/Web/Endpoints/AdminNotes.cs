@@ -9,8 +9,10 @@ public class AdminNotes : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder app)
     {
-        app.MapGet(GetAdminNotes, "{studentId}").RequireAuthorization();
-        app.MapPost(CreateAdminNote).RequireAuthorization();
+        app.MapGet(GetAdminNotes, "{studentId}")
+            .RequireAuthorization(Policies.ManageAdminNotes);
+        app.MapPost(CreateAdminNote)
+            .RequireAuthorization(Policies.ManageAdminNotes);
     }
 
     public async Task<IResult> GetAdminNotes(ISender sender, Guid studentId)

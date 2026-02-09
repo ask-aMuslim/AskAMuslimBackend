@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagination
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetHomeVideos;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideoById;
 using AskAMuslimBackend.Application.MuslimTube.Queries.GetVideosByChannel;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -16,9 +17,18 @@ public class MuslimTube : EndpointGroupBase
         groupBuilder.MapGet(GetHomeVideos, "videos").WithName("GetMuslimTubeHomeVideos").WithSummary("List home videos across selected channels with search & filters");
         groupBuilder.MapGet(GetVideoById, "videos/{id:guid}").WithName("GetMuslimTubeVideo").WithSummary("Get a single video by id");
         groupBuilder.MapGet(GetVideosByChannel, "channels/{channelId:guid}/videos").WithName("GetMuslimTubeVideosByChannel").WithSummary("List videos for a selected channel with search & filters");
-        groupBuilder.MapPost(AddChannel, "channels").RequireAuthorization().WithName("AddMuslimTubeChannel").WithSummary("Admin: add a YouTube channel by URL or ID");
-        groupBuilder.MapPost(ResyncChannel, "channels/{channelId:guid}/resync").RequireAuthorization().WithName("ResyncMuslimTubeChannel").WithSummary("Admin: fetch latest videos for channel");
-        groupBuilder.MapDelete(DeleteChannel, "channels/{channelId:guid}").RequireAuthorization().WithName("DeleteMuslimTubeChannel").WithSummary("Admin: soft-delete a channel");
+        groupBuilder.MapPost(AddChannel, "channels")
+            .RequireAuthorization(Policies.ManageMuslimTube)
+            .WithName("AddMuslimTubeChannel")
+            .WithSummary("Admin: add a YouTube channel by URL or ID");
+        groupBuilder.MapPost(ResyncChannel, "channels/{channelId:guid}/resync")
+            .RequireAuthorization(Policies.ManageMuslimTube)
+            .WithName("ResyncMuslimTubeChannel")
+            .WithSummary("Admin: fetch latest videos for channel");
+        groupBuilder.MapDelete(DeleteChannel, "channels/{channelId:guid}")
+            .RequireAuthorization(Policies.ManageMuslimTube)
+            .WithName("DeleteMuslimTubeChannel")
+            .WithSummary("Admin: soft-delete a channel");
     }
 
     // GET /MuslimTube/channels

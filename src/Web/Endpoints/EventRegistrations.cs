@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.EventRegistrations.Queries;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationById;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByEvent;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByUser;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -14,12 +15,30 @@ public class EventRegistrations : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetRegistration, "{id}").RequireAuthorization().WithName("GetEventRegistration").WithSummary("Get an event registration by id");
-        groupBuilder.MapGet(GetByEvent, "by-event/{eventId}").RequireAuthorization().WithName("GetEventRegistrationsByEvent").WithSummary("Get registrations for an event");
-        groupBuilder.MapGet(GetByUser, "by-user/{userId}").RequireAuthorization().WithName("GetEventRegistrationsByUser").WithSummary("Get registrations for a user");
-        groupBuilder.MapPost(CreateRegistration).RequireAuthorization().WithName("CreateEventRegistration").WithSummary("Create a new event registration");
-        groupBuilder.MapPut(UpdateRegistrationStatus, "{id}/status").RequireAuthorization().WithName("UpdateEventRegistrationStatus").WithSummary("Update event registration status");
-        groupBuilder.MapDelete(DeleteRegistration, "{id}").RequireAuthorization().WithName("DeleteEventRegistration").WithSummary("Delete an event registration");
+        groupBuilder.MapGet(GetRegistration, "{id}")
+            .RequireAuthorization(Policies.ViewEvents)
+            .WithName("GetEventRegistration")
+            .WithSummary("Get an event registration by id");
+        groupBuilder.MapGet(GetByEvent, "by-event/{eventId}")
+            .RequireAuthorization(Policies.ViewEvents)
+            .WithName("GetEventRegistrationsByEvent")
+            .WithSummary("Get registrations for an event");
+        groupBuilder.MapGet(GetByUser, "by-user/{userId}")
+            .RequireAuthorization(Policies.ViewEvents)
+            .WithName("GetEventRegistrationsByUser")
+            .WithSummary("Get registrations for a user");
+        groupBuilder.MapPost(CreateRegistration)
+            .RequireAuthorization()
+            .WithName("CreateEventRegistration")
+            .WithSummary("Create a new event registration");
+        groupBuilder.MapPut(UpdateRegistrationStatus, "{id}/status")
+            .RequireAuthorization(Policies.ManageEventRegistrations)
+            .WithName("UpdateEventRegistrationStatus")
+            .WithSummary("Update event registration status");
+        groupBuilder.MapDelete(DeleteRegistration, "{id}")
+            .RequireAuthorization(Policies.ManageEventRegistrations)
+            .WithName("DeleteEventRegistration")
+            .WithSummary("Delete an event registration");
     }
 
     public async Task<IResult> GetRegistration(ISender sender, Guid id)

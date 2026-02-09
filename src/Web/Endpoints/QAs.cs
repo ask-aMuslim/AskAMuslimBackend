@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.QAs.Commands.UpdateQA;
 using AskAMuslimBackend.Application.QAs.Queries;
 using AskAMuslimBackend.Application.QAs.Queries.GetQAById;
 using AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -16,9 +17,18 @@ public class QAs : EndpointGroupBase
     {
         groupBuilder.MapGet(GetQAsWithPagination).WithName("GetQAs").WithSummary("Get QAs");
         groupBuilder.MapGet(GetQAById, "{id}").WithName("GetQA").WithSummary("Get QA by id");
-        groupBuilder.MapPost(CreateQA).RequireAuthorization().WithName("CreateQA").WithSummary("Create QA");
-        groupBuilder.MapPut(UpdateQA, "{id}").RequireAuthorization().WithName("UpdateQA").WithSummary("Update QA");
-        groupBuilder.MapDelete(DeleteQA, "{id}").RequireAuthorization().WithName("DeleteQA").WithSummary("Delete QA");
+        groupBuilder.MapPost(CreateQA)
+            .RequireAuthorization(Policies.ManageQA)
+            .WithName("CreateQA")
+            .WithSummary("Create QA");
+        groupBuilder.MapPut(UpdateQA, "{id}")
+            .RequireAuthorization(Policies.ManageQA)
+            .WithName("UpdateQA")
+            .WithSummary("Update QA");
+        groupBuilder.MapDelete(DeleteQA, "{id}")
+            .RequireAuthorization(Policies.ManageQA)
+            .WithName("DeleteQA")
+            .WithSummary("Delete QA");
     }
 
     public async Task<IResult> GetQAsWithPagination(ISender sender, [AsParameters] GetQAsWithPaginationQuery query)

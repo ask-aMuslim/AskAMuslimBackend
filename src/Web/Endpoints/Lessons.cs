@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Lessons.Commands.DeleteLesson;
 using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
+using AskAMuslimBackend.Domain.Constants;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -12,9 +13,18 @@ public class Lessons : EndpointGroupBase
     {
         groupBuilder.MapGet(GetLessonsWithPagination).WithName("GetLessons").WithSummary("Get lessons (optionally filtered by course)");
         groupBuilder.MapGet(GetLessonById, "{id}").WithName("GetLesson").WithSummary("Get a lesson by id");
-        groupBuilder.MapPost(CreateLesson).RequireAuthorization().WithName("CreateLesson").WithSummary("Create a new lesson");
-        groupBuilder.MapPut(UpdateLesson, "{id}").RequireAuthorization().WithName("UpdateLesson").WithSummary("Update a lesson");
-        groupBuilder.MapDelete(DeleteLesson, "{id}").RequireAuthorization().WithName("DeleteLesson").WithSummary("Delete a lesson");
+        groupBuilder.MapPost(CreateLesson)
+            .RequireAuthorization(Policies.ManageLessons)
+            .WithName("CreateLesson")
+            .WithSummary("Create a new lesson");
+        groupBuilder.MapPut(UpdateLesson, "{id}")
+            .RequireAuthorization(Policies.ManageLessons)
+            .WithName("UpdateLesson")
+            .WithSummary("Update a lesson");
+        groupBuilder.MapDelete(DeleteLesson, "{id}")
+            .RequireAuthorization(Policies.ManageLessons)
+            .WithName("DeleteLesson")
+            .WithSummary("Delete a lesson");
     }
 
     public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query)

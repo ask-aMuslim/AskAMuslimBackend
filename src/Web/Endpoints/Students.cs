@@ -18,10 +18,10 @@ public class Students : EndpointGroupBase
         groupBuilder.MapGet(GetStudentProfile, "{userId}")
             .RequireAuthorization()
             .WithName("GetStudentProfile")
-            .WithSummary("Get student profile by user ID");
+            .WithSummary("Get student profile by user ID (own profile or admin)");
 
         groupBuilder.MapGet(GetAllStudents)
-            .RequireAuthorization()
+            .RequireAuthorization(Policies.ViewAllStudents)
             .WithName("GetAllStudents")
             .WithSummary("Get all students (Admin only)");
 
