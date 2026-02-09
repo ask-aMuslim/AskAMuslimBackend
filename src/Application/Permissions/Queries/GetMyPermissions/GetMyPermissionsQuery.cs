@@ -89,14 +89,18 @@ public class GetMyPermissionsQueryHandler : IRequestHandler<GetMyPermissionsQuer
 
             var isGranted = (userPermissions & permission) == permission;
             
-            permissionList.Add(new PermissionDto
+            // Only include granted permissions
+            if (isGranted)
             {
-                Name = permission.ToString(),
-                DisplayName = GetDisplayName(permission),
-                Category = GetCategory(permission),
-                Value = (long)permission,
-                IsGranted = isGranted
-            });
+                permissionList.Add(new PermissionDto
+                {
+                    Name = permission.ToString(),
+                    DisplayName = GetDisplayName(permission),
+                    Category = GetCategory(permission),
+                    Value = (long)permission,
+                    IsGranted = isGranted
+                });
+            }
         }
 
         return permissionList.OrderBy(p => p.Category).ThenBy(p => p.DisplayName).ToList();
