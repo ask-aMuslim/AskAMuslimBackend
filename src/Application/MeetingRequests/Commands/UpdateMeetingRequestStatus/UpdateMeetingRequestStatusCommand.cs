@@ -64,7 +64,7 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
             MeetingInquiryRequestStatus.Rejected => isModerator || isAdmin,
             MeetingInquiryRequestStatus.Cancelled => isRequester || isModerator || isAdmin,
             MeetingInquiryRequestStatus.Completed => isModerator || isAdmin,
-            MeetingInquiryRequestStatus.Pending => false,
+            MeetingInquiryRequestStatus.Pending => isModerator || isAdmin,
             _ => false
         };
         if (!allowed) return Result.Failure(new[] { "Not authorised to set this status." });
