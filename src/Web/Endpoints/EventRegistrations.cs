@@ -67,12 +67,7 @@ public class EventRegistrations : EndpointGroupBase
 
     public async Task<IResult> UpdateRegistrationStatus(ISender sender, Guid id, UpdateEventRegistrationStatusCommand command)
     {
-        if (id != command.Id) 
-        {
-            return Results.BadRequest(new { errors = new[] { "ID mismatch" } });
-        }
-        
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

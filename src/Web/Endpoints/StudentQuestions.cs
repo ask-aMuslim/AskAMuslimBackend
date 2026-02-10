@@ -59,8 +59,7 @@ public class StudentQuestions : EndpointGroupBase
 
     public async Task<IResult> AnswerQuestion(ISender sender, Guid id, [FromBody] AnswerStudentQuestionCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

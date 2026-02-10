@@ -51,8 +51,7 @@ public class Events : EndpointGroupBase
 
     public async Task<IResult> UpdateEvent(ISender sender, Guid id, UpdateEventCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

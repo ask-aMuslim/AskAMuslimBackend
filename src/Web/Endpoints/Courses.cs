@@ -61,8 +61,7 @@ public class Courses : EndpointGroupBase
 
     public async Task<IResult> UpdateCourse(ISender sender, Guid id, UpdateCourseCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
@@ -86,8 +85,7 @@ public class Courses : EndpointGroupBase
 
     public async Task<IResult> AddPrerequisite(ISender sender, Guid id, AddCoursePrerequisiteCommand command)
     {
-        if (id != command.CourseId) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { CourseId = id });
         return result.ToHttpResult();
     }
 

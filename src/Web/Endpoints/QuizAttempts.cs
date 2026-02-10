@@ -47,8 +47,7 @@ public class QuizAttempts : EndpointGroupBase
 
     public async Task<IResult> CompleteAttempt(ISender sender, Guid attemptId, CompleteQuizAttemptCommand command)
     {
-        if (attemptId != command.AttemptId) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { AttemptId = attemptId });
         return result.ToHttpResult();
     }
 }

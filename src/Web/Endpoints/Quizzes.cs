@@ -51,8 +51,7 @@ public class Quizzes : EndpointGroupBase
 
     public async Task<IResult> UpdateQuiz(ISender sender, Guid id, UpdateQuizCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

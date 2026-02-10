@@ -47,8 +47,7 @@ public class Lessons : EndpointGroupBase
 
     public async Task<IResult> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

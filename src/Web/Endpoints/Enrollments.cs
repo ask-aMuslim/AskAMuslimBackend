@@ -61,12 +61,7 @@ public class Enrollments : EndpointGroupBase
 
     public async Task<IResult> UpdateEnrollmentStatus(ISender sender, Guid id, UpdateEnrollmentStatusCommand command)
     {
-        if (id != command.Id) 
-        {
-            return Results.BadRequest(new { errors = new[] { "ID mismatch" } });
-        }
-        
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

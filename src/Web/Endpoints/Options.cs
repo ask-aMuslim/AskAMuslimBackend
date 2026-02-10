@@ -42,8 +42,7 @@ public class Options : EndpointGroupBase
 
     public async Task<IResult> UpdateOption(ISender sender, Guid id, UpdateOptionCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

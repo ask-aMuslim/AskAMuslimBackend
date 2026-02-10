@@ -51,8 +51,7 @@ public class QAs : EndpointGroupBase
 
     public async Task<IResult> UpdateQA(ISender sender, Guid id, UpdateQACommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

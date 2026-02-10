@@ -56,12 +56,7 @@ public class Students : EndpointGroupBase
 
     public async Task<IResult> UpdateStudentStatus(ISender sender, Guid id, UpdateStudentStatusCommand command)
     {
-        if (id != command.Id)
-        {
-            return Results.BadRequest(new { error = "ID mismatch" });
-        }
-
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 }

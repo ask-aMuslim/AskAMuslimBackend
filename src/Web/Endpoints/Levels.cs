@@ -51,8 +51,7 @@ public class Levels : EndpointGroupBase
 
     public async Task<IResult> UpdateLevel(ISender sender, Guid id, UpdateLevelCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 

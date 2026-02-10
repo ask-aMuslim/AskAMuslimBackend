@@ -51,8 +51,7 @@ public class Tags : EndpointGroupBase
 
     public async Task<IResult> UpdateTag(ISender sender, Guid id, UpdateTagCommand command)
     {
-        if (id != command.Id) return TypedResults.BadRequest();
-        var result = await sender.Send(command);
+        var result = await sender.Send(command with { Id = id });
         return result.ToHttpResult();
     }
 
