@@ -10,6 +10,7 @@ public record GetAllMeetingRequestsQuery : IRequest<Result<PaginatedList<Meeting
 {
     public MeetingInquiryRequestStatus? Status { get; init; }
     public MeetingInquiryTopic? Topic { get; init; }
+    public bool? IsAssigned { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
@@ -40,6 +41,13 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
         if (request.Topic.HasValue)
         {
             query = query.Where(mr => mr.Topic == request.Topic.Value);
+        }
+
+        if (request.IsAssigned.HasValue)
+        {
+            query = request.IsAssigned.Value
+                ? query.Where(mr => mr.ModeratorId.HasValue)
+                : query.Where(mr => !mr.ModeratorId.HasValue);
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))

@@ -10,6 +10,7 @@ public record GetAllInquiryRequestsQuery : IRequest<Result<PaginatedList<Inquiry
 {
     public MeetingInquiryRequestStatus? Status { get; init; }
     public MeetingInquiryTopic? Topic { get; init; }
+    public bool? IsAssigned { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
@@ -40,6 +41,13 @@ public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRe
         if (request.Topic.HasValue)
         {
             query = query.Where(ir => ir.Topic == request.Topic.Value);
+        }
+
+        if (request.IsAssigned.HasValue)
+        {
+            query = request.IsAssigned.Value
+                ? query.Where(ir => ir.ModeratorId.HasValue)
+                : query.Where(ir => !ir.ModeratorId.HasValue);
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
