@@ -283,6 +283,48 @@
         }
       }
     },
+    "/api/Authentication/login/admin": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "AdminLogin",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAdminCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Authentication/login/google": {
       "post": {
         "tags": [
@@ -1540,17 +1582,16 @@
             "x-position": 2
           },
           {
-            "name": "PageNumber",
+            "name": "IsAssigned",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32",
+              "type": "boolean",
               "nullable": true
             },
             "x-position": 3
           },
           {
-            "name": "PageSize",
+            "name": "PageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -1560,13 +1601,23 @@
             "x-position": 4
           },
           {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
               "nullable": true
             },
-            "x-position": 5
+            "x-position": 6
           }
         ],
         "responses": {
@@ -2429,17 +2480,16 @@
             "x-position": 2
           },
           {
-            "name": "PageNumber",
+            "name": "IsAssigned",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32",
+              "type": "boolean",
               "nullable": true
             },
             "x-position": 3
           },
           {
-            "name": "PageSize",
+            "name": "PageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -2449,13 +2499,23 @@
             "x-position": 4
           },
           {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
               "nullable": true
             },
-            "x-position": 5
+            "x-position": 6
           }
         ],
         "responses": {
@@ -5606,6 +5666,18 @@
         }
       },
       "LoginCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginAdminCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

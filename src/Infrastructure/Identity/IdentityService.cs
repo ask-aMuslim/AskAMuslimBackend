@@ -287,6 +287,59 @@ public class IdentityService : IIdentityService
         return Result<AuthenticationResponse>.Success(authResponse);
     }
 
+    public async Task<Result<AuthenticationResponse>> LoginModeratorAsync(string email, string password)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
+        }
+
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, password);
+
+        if (!isPasswordValid)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
+        }
+
+        if (!user.IsActive)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+        }
+
+        // Check user is Admin or Moderator (Instructor or Preacher)
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Contains(Domain.Constants.Roles.Administrator) &&
+            !roles.Contains(Domain.Constants.Roles.Instructor) &&
+            !roles.Contains(Domain.Constants.Roles.Preacher))
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "You do not have permission to access the admin dashboard." });
+        }
+
+        // Update last login
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        // Generate token
+        var token = GenerateJwtToken(user);
+        var expiresAt = DateTime.UtcNow.AddHours(24);
+
+        var authResponse = new AuthenticationResponse
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
+            Token = token,
+            ExpiresAt = expiresAt
+        };
+
+        return Result<AuthenticationResponse>.Success(authResponse);
+    }
+
     // New: Google sign-in using ID token
     public async Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken)
     {

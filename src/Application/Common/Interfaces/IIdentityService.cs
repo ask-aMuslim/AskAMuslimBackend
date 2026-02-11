@@ -28,6 +28,8 @@ public interface IIdentityService
 
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
 
+    Task<Result<AuthenticationResponse>> LoginModeratorAsync(string email, string password);
+
     // New: Login or register using Google ID token
     Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken);
 

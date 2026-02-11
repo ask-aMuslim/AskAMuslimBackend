@@ -7,6 +7,7 @@ using AskAMuslimBackend.Application.Authentication.Commands.VerifyOtp;
 using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Web.Infrastructure;
+using AskAMuslimBackend.Application.Admins.Commands.LoginAdmin;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -28,6 +29,14 @@ public class Authentication : EndpointGroupBase
             .WithName("Login")
             .WithSummary("Login user")
             .WithDescription("Authenticates a user and returns a JWT token")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
+
+        groupBuilder.MapPost(AdminLogin, "login/admin")
+            .AllowAnonymous()
+            .WithName("AdminLogin")
+            .WithSummary("Admin login")
+            .WithDescription("Authenticates an admin user and returns a JWT token")
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
 
@@ -83,6 +92,14 @@ public class Authentication : EndpointGroupBase
     public async Task<IResult> Login(
         ISender sender,
         LoginCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> AdminLogin(
+        ISender sender,
+        LoginAdminCommand command)
     {
         var result = await sender.Send(command);
         return result.ToHttpResult();
