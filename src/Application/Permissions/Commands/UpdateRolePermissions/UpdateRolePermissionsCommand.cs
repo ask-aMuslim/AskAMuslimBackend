@@ -31,13 +31,16 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly IPermissionService _permissionService;
 
     public UpdateRolePermissionsCommandHandler(
         IApplicationDbContext context,
-        IUser currentUser)
+        IUser currentUser,
+        IPermissionService permissionService)
     {
         _context = context;
         _currentUser = currentUser;
+        _permissionService = permissionService;
     }
 
     public async Task<Result> Handle(UpdateRolePermissionsCommand request, CancellationToken cancellationToken)
@@ -102,7 +105,7 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
 
         foreach (var user in usersWithRole)
         {
-            // Check if user is SuperAdmin - they should always have AllPermissions
+            // Check if user is SuperAdmin - SKIP them, they keep AllPermissions
             var isSuperAdmin = false;
             if (request.Role == UserRole.Admin)
             {
@@ -111,10 +114,13 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
                 isSuperAdmin = admin?.IsSuperAdmin ?? false;
             }
 
-            // SuperAdmin gets all permissions, others get role permissions
-            var userPermissionsToSet = isSuperAdmin ? Permission.AllPermissions : permissions;
+            // Skip SuperAdmins - they always keep AllPermissions
+            if (isSuperAdmin)
+            {
+                continue;
+            }
 
-            // Get or create user permission record
+            // Update regular users with new role permissions
             var userPermission = await _context.UserPermissions
                 .FirstOrDefaultAsync(up => up.UserId == user.Id, cancellationToken);
 
@@ -123,7 +129,7 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
                 userPermission = new UserPermission
                 {
                     UserId = user.Id,
-                    Permissions = userPermissionsToSet,
+                    Permissions = permissions,
                     GrantedByUserId = currentUserId,
                     GrantedDate = DateTime.UtcNow,
                     Notes = $"Auto-synced from role {request.Role} permissions update"
@@ -132,7 +138,7 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
             }
             else
             {
-                userPermission.Permissions = userPermissionsToSet;
+                userPermission.Permissions = permissions;
                 userPermission.GrantedByUserId = currentUserId;
                 userPermission.GrantedDate = DateTime.UtcNow;
                 userPermission.Notes = $"Auto-synced from role {request.Role} permissions update";
@@ -140,6 +146,9 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Invalidate cache for this role so next request fetches fresh data
+        _permissionService.InvalidateRolePermissionsCache(request.Role.ToString());
 
         return Result.Success();
     }

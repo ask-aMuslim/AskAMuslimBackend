@@ -35,9 +35,13 @@ public class Notifications : EndpointGroupBase
             .RequireAuthorization(Policies.ManageAllUsers);
     }
 
-    public async Task<IResult> GetUserNotifications(ISender sender, Guid userId, [AsParameters] GetUserNotificationsQuery query)
+    public async Task<IResult> GetUserNotifications(ISender sender, Guid userId, bool unreadOnly = false)
     {
-        var result = await sender.Send(query with { UserId = userId });
+        var result = await sender.Send(new GetUserNotificationsQuery
+        {
+            UserId = userId,
+            UnreadOnly = unreadOnly
+        });
         return result.ToHttpResult();
     }
 
@@ -77,4 +81,3 @@ public class Notifications : EndpointGroupBase
         return result.ToHttpResult();
     }
 }
-

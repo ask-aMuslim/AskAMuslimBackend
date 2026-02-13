@@ -2,7 +2,6 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Permissions.Queries.GetMyPermissions;
 
@@ -13,15 +12,18 @@ public class GetMyPermissionsQueryHandler : IRequestHandler<GetMyPermissionsQuer
     private readonly IApplicationDbContext _context;
     private readonly UserManager<Domain.Entities.User> _userManager;
     private readonly IUser _user;
+    private readonly IPermissionService _permissionService;
 
     public GetMyPermissionsQueryHandler(
         IApplicationDbContext context,
         UserManager<Domain.Entities.User> userManager,
-        IUser user)
+        IUser user,
+        IPermissionService permissionService)
     {
         _context = context;
         _userManager = userManager;
         _user = user;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<List<PermissionCategoryDto>>> Handle(GetMyPermissionsQuery request, CancellationToken cancellationToken)
@@ -39,11 +41,9 @@ public class GetMyPermissionsQueryHandler : IRequestHandler<GetMyPermissionsQuer
             return Result<List<PermissionCategoryDto>>.Failure(new[] { "User not found" });
         }
 
-        var userPermission = await _context.UserPermissions
-            .Where(up => up.UserId == userId)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var userPermissions = userPermission?.Permissions ?? Permission.None;
+        // Use PermissionService which properly handles SuperAdmin check
+        // SuperAdmins will automatically receive AllPermissions regardless of UserPermissions table
+        var userPermissions = await _permissionService.GetUserPermissionsAsync(_user.Id!, cancellationToken);
 
         var permissions = new List<PermissionCategoryDto>
         {

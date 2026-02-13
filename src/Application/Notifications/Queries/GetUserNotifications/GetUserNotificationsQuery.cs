@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 
@@ -6,8 +5,8 @@ namespace AskAMuslimBackend.Application.Notifications.Queries.GetUserNotificatio
 
 public record GetUserNotificationsQuery : IRequest<Result<List<NotificationDto>>>
 {
-    [JsonIgnore]  // Set from route parameter, not request body
     public Guid UserId { get; init; }
+
     public bool UnreadOnly { get; init; } = false;
 }
 

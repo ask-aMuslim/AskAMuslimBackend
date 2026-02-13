@@ -3,16 +3,21 @@ using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AskAMuslimBackend.Infrastructure.Services;
 
 public class PermissionService : IPermissionService
 {
     private readonly ApplicationDbContext _context;
+    private readonly IMemoryCache _cache;
+    private static readonly TimeSpan RolePermissionsCacheDuration = TimeSpan.FromMinutes(30);
+    private const string CacheKeyPrefix = "RolePermissions_";
 
-    public PermissionService(ApplicationDbContext context)
+    public PermissionService(ApplicationDbContext context, IMemoryCache cache)
     {
         _context = context;
+        _cache = cache;
     }
 
     public async Task<Permission> GetUserPermissionsAsync(string userId, CancellationToken cancellationToken = default)
@@ -22,20 +27,19 @@ public class PermissionService : IPermissionService
             return Permission.None;
         }
 
-        // Check if user is SuperAdmin - they always have all permissions
-        var user = await _context.Users.FindAsync(new object[] { userGuid }, cancellationToken);
-        if (user?.Role == UserRole.Admin)
+        // Get user info
+        var user = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userGuid, cancellationToken);
+
+        if (user == null)
         {
-            var admin = await _context.Admins
-                .FirstOrDefaultAsync(a => a.UserId == userGuid, cancellationToken);
-            
-            if (admin?.IsSuperAdmin == true)
-            {
-                return Permission.AllPermissions;
-            }
+            return Permission.None;
         }
 
+        // Check UserPermissions table - this is the source of truth
         var userPermission = await _context.UserPermissions
+            .AsNoTracking()
             .FirstOrDefaultAsync(up => up.UserId == userGuid, cancellationToken);
 
         if (userPermission != null)
@@ -44,12 +48,7 @@ public class PermissionService : IPermissionService
         }
 
         // If no custom permissions, get default for role
-        if (user != null)
-        {
-            return await GetDefaultPermissionsForRoleAsync(user.Role.ToString());
-        }
-
-        return Permission.None;
+        return await GetDefaultPermissionsForRoleAsync(user.Role.ToString());
     }
 
     public async Task<bool> HasPermissionAsync(string userId, Permission permission, CancellationToken cancellationToken = default)
@@ -129,15 +128,43 @@ public class PermissionService : IPermissionService
             return Permission.None;
         }
 
-        var rolePermission = await _context.RolePermissions
-            .FirstOrDefaultAsync(rp => rp.Role == userRole);
-
-        if (rolePermission != null)
+        // Try to get from cache first
+        var cacheKey = $"{CacheKeyPrefix}{role}";
+        if (_cache.TryGetValue<Permission>(cacheKey, out var cachedPermissions))
         {
-            return rolePermission.Permissions;
+            return cachedPermissions;
         }
 
-        // Fallback to default permissions if not configured in database
+        // Not in cache, query database
+        var rolePermission = await _context.RolePermissions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(rp => rp.Role == userRole);
+
+        Permission permissions;
+        if (rolePermission != null)
+        {
+            permissions = rolePermission.Permissions;
+        }
+        else
+        {
+            // Fallback to default permissions if not configured in database
+            permissions = GetHardcodedDefaultPermissions(userRole);
+        }
+
+        // Cache the result
+        _cache.Set(cacheKey, permissions, RolePermissionsCacheDuration);
+
+        return permissions;
+    }
+
+    public void InvalidateRolePermissionsCache(string role)
+    {
+        var cacheKey = $"{CacheKeyPrefix}{role}";
+        _cache.Remove(cacheKey);
+    }
+
+    private static Permission GetHardcodedDefaultPermissions(UserRole userRole)
+    {
         return userRole switch
         {
             UserRole.Admin => Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 

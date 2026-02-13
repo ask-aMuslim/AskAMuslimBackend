@@ -95,8 +95,18 @@ public class IdentityService : IIdentityService
         UserRole role,
         ReligiousStatus religiousStatus = ReligiousStatus.BornMuslim,
         IFormFile? image = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool allowAdminCreation = false)
     {
+        // SECURITY: Prevent Admin role registration through public registration
+        // Admins can only be created via:
+        // 1. Database seeding (creates SuperAdmin)
+        // 2. CreateAdminCommand by existing admin (creates regular Admin) - uses allowAdminCreation=true
+        if (role == UserRole.Admin && !allowAdminCreation)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Cannot register as Admin. Admins must be created by existing administrators." });
+        }
+
         // Check if user already exists
         var existingUser = await _userManager.FindByEmailAsync(email);
         if (existingUser != null)
@@ -142,10 +152,11 @@ public class IdentityService : IIdentityService
         // Add user to role
         await _userManager.AddToRoleAsync(user, GetRoleName(role));
 
-        // Create role-specific entity
-        await CreateRoleSpecificEntity(user.Id, role);
+        // Create role-specific entity (regular users, NOT SuperAdmin)
+        // SuperAdmins are only created through database seeding, not registration
+        await CreateRoleSpecificEntity(user.Id, role, isSuperAdmin: false);
 
-        // Grant default permissions for the role
+        // Grant default role permissions (regular users get role-based permissions)
         var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(role.ToString());
         await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on registration for role {role}");
 
@@ -194,14 +205,14 @@ public class IdentityService : IIdentityService
         };
     }
 
-    private Admin CreateAdmin(Guid userId)
+    private Admin CreateAdmin(Guid userId, bool isSuperAdmin = false)
     {
         return new Admin
         {
             UserId = userId,
             JoinedDate = DateTime.UtcNow,
             IsActive = true,
-            IsSuperAdmin = false
+            IsSuperAdmin = isSuperAdmin
         };
     }
 
@@ -216,8 +227,10 @@ public class IdentityService : IIdentityService
         };
     }
 
-    private async Task CreateRoleSpecificEntity(Guid userId, UserRole role)
+    private async Task<bool> CreateRoleSpecificEntity(Guid userId, UserRole role, bool isSuperAdmin = false)
     {
+        bool createdAsSuperAdmin = false;
+        
         switch (role)
         {
             case UserRole.Student:
@@ -230,7 +243,8 @@ public class IdentityService : IIdentityService
                 break;
 
             case UserRole.Admin:
-                _dbContext.Admins.Add(CreateAdmin(userId));
+                _dbContext.Admins.Add(CreateAdmin(userId, isSuperAdmin));
+                createdAsSuperAdmin = isSuperAdmin;
                 break;
 
             case UserRole.Preacher:
@@ -239,6 +253,7 @@ public class IdentityService : IIdentityService
         }
 
         await _dbContext.SaveChangesAsync();
+        return createdAsSuperAdmin;
     }
 
     #endregion Role Specific Entity Creation
@@ -267,6 +282,9 @@ public class IdentityService : IIdentityService
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
+
+        // Ensure SuperAdmins have AllPermissions in database
+        await EnsureSuperAdminPermissions(user.Id);
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -320,6 +338,9 @@ public class IdentityService : IIdentityService
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
+
+        // Ensure SuperAdmins have AllPermissions in database
+        await EnsureSuperAdminPermissions(user.Id);
 
         // Generate token
         var token = GenerateJwtToken(user);
@@ -393,8 +414,9 @@ public class IdentityService : IIdentityService
 
             await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
 
-            // Create student entity for default role
-            await CreateRoleSpecificEntity(user.Id, user.Role);
+            // Create student entity for default role (not SuperAdmin)
+            await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
+            
             // Grant default permissions for the role
             var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
             await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
@@ -404,6 +426,13 @@ public class IdentityService : IIdentityService
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
         }
+
+        // Update last login
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        // Ensure SuperAdmins have AllPermissions in database
+        await EnsureSuperAdminPermissions(user.Id);
 
         var token = GenerateJwtToken(user);
         var expiresAt = DateTime.UtcNow.AddHours(24);
@@ -515,8 +544,8 @@ public class IdentityService : IIdentityService
 
             await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
 
-            // Create student entity for default role
-            await CreateRoleSpecificEntity(user.Id, user.Role);
+            // Create student entity for default role (not SuperAdmin)
+            await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
 
             // Grant default permissions for the role
             var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
@@ -527,6 +556,13 @@ public class IdentityService : IIdentityService
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
         }
+
+        // Update last login
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        // Ensure SuperAdmins have AllPermissions in database
+        await EnsureSuperAdminPermissions(user.Id);
 
         var token = GenerateJwtToken(user);
         var expiresAt = DateTime.UtcNow.AddHours(24);
@@ -626,109 +662,21 @@ public class IdentityService : IIdentityService
             }
         }
 
-        // Fallback to role-based authorization
-        //TODO: Check this policyRoleMap => We currently get them from Database, not hardcoded, in case the superAdmin updated policy (Permission) for a specific Role
-        var policyRoleMap = new Dictionary<string, string[]>
-        {
-            // System Policies
-            { Domain.Constants.Policies.CanPurge, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.SuperAdminOnly, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Dashboard
-            { Domain.Constants.Policies.ViewDashboard, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ViewAnalytics, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Admin Management
-            { Domain.Constants.Policies.ViewAdmins, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageAdmins, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageAdminRoles, new[] { Domain.Constants.Roles.Administrator } },
-
-            // User Management Policies
-            { Domain.Constants.Policies.ManageAllUsers, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ViewAllUsers, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.AssignRoles, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Student Management Policies
-            { Domain.Constants.Policies.ViewAllStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ViewEnrolledStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageStudents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.SendNotifications, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageAdminNotes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
-
-            // Academy - Levels
-            { Domain.Constants.Policies.ViewLevels, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageLevels, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Academy - Courses
-            { Domain.Constants.Policies.ViewAllCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ViewOwnCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageAllCourses, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageOwnCourses, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.CreateCourse, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.PublishCourse, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Academy - Lessons & Quizzes
-            { Domain.Constants.Policies.ViewLessons, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageLessons, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ViewQuizzes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-            { Domain.Constants.Policies.ManageQuizzes, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor } },
-
-            // QA Management
-            { Domain.Constants.Policies.ViewQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ApproveQA, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-
-            // MuslimTube
-            { Domain.Constants.Policies.ViewMuslimTube, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageMuslimTube, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ApproveVideos, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-
-            // Notifications
-            { Domain.Constants.Policies.ViewNotifications, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.SendBulkNotifications, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Meeting & Inquiry Requests
-            { Domain.Constants.Policies.ViewMeetingRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageMeetingRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ViewInquiryRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageInquiryRequests, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-
-            // Events
-            { Domain.Constants.Policies.ViewEvents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageEvents, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageEventRegistrations, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-
-            // Tags
-            { Domain.Constants.Policies.ViewTags, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Instructor, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageTags, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Settings & System
-            { Domain.Constants.Policies.ViewSettings, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageSettings, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ViewReports, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ManageRolesAndPermissions, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ViewFinancialData, new[] { Domain.Constants.Roles.Administrator } },
-            { Domain.Constants.Policies.ViewAuditLogs, new[] { Domain.Constants.Roles.Administrator } },
-
-            // Legacy compatibility
-            { Domain.Constants.Policies.ManageContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.PublishArticles, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageDawahContent, new[] { Domain.Constants.Roles.Administrator, Domain.Constants.Roles.Preacher } },
-            { Domain.Constants.Policies.ManageSystem, new[] { Domain.Constants.Roles.Administrator } }
-        };
-
-        // Check if policy exists and user has any of the required roles
-        if (policyRoleMap.TryGetValue(policyName, out var requiredRoles))
-        {
-            return userRoles.Any(role => requiredRoles.Contains(role));
-        }
-
-        // If policy is not found, deny access by default
-        return false;
+        // Check role-based permissions from database (RolePermission table)
+        // This allows super admins to update role permissions dynamically
+        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+        
+        // Check if the role's permissions satisfy the policy requirement
+        var hasRolePermission = CheckPermissionForPolicy(policyName, rolePermissions);
+        
+        return hasRolePermission;
     }
 
     private bool CheckPermissionForPolicy(string policyName, Domain.Enums.Permission userPermissions)
     {
+        // NOTE: This policyPermissionMap is intentionally hardcoded and different from the removed policyRoleMap.
+        // It maps policy names (strings) to Permission enum flags, which is a technical mapping that should remain static.
+        // Role-to-permission mappings are now database-driven via RolePermission table.
         // Map policies to permission flags
         var policyPermissionMap = new Dictionary<string, Domain.Enums.Permission>
         {
@@ -834,6 +782,37 @@ public class IdentityService : IIdentityService
         }
 
         return Result.Success();
+    }
+
+    private async Task EnsureSuperAdminPermissions(Guid userId)
+    {
+        var admin = await _dbContext.Admins
+            .FirstOrDefaultAsync(a => a.UserId == userId);
+            
+        if (admin?.IsSuperAdmin == true)
+        {
+            var userPermission = await _dbContext.UserPermissions
+                .FirstOrDefaultAsync(up => up.UserId == userId);
+                
+            if (userPermission == null)
+            {
+                _dbContext.UserPermissions.Add(new UserPermission
+                {
+                    UserId = userId,
+                    Permissions = Permission.AllPermissions,
+                    GrantedDate = DateTime.UtcNow,
+                    Notes = "SuperAdmin - auto-synced on login"
+                });
+                await _dbContext.SaveChangesAsync();
+            }
+            else if (userPermission.Permissions != Permission.AllPermissions)
+            {
+                userPermission.Permissions = Permission.AllPermissions;
+                userPermission.GrantedDate = DateTime.UtcNow;
+                userPermission.Notes = "SuperAdmin - auto-synced on login";
+                await _dbContext.SaveChangesAsync();
+            }
+        }
     }
 
     private static string GetRoleName(UserRole role)

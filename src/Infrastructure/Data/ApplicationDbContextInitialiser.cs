@@ -403,6 +403,78 @@ public class ApplicationDbContextInitialiser
             }
             _logger.LogInformation("✅ SuperAdmin permissions check complete");
 
+            // --- Seed RolePermissions for default role permissions ---
+            _logger.LogInformation("🔐 Seeding default role permissions...");
+            var rolePermissionsToSeed = new List<(UserRole Role, Permission Permissions, string Notes)>
+            {
+                (
+                    UserRole.Admin,
+                    Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 
+                    Permission.CreateAdmin | Permission.EditAdmin | Permission.DeleteAdmin | 
+                    Permission.ManageAdminRoles | Permission.FullStudentAccess | Permission.FullAcademyAccess |
+                    Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.ViewNotifications |
+                    Permission.SendBulkNotifications | Permission.CreateNotificationTemplate |
+                    Permission.ViewMeetingRequests | Permission.ManageMeetingRequests |
+                    Permission.ViewInquiryRequests | Permission.ManageInquiryRequests |
+                    Permission.FullEventAccess | Permission.ViewTags | Permission.CreateTag | 
+                    Permission.EditTag | Permission.DeleteTag | Permission.ViewSettings | 
+                    Permission.ViewReports | Permission.ManageRolesAndPermissions |
+                    Permission.ViewFinancialData | Permission.ManageSystemBackup | Permission.ViewAuditLogs,
+                    "Default permissions for Administrator role"
+                ),
+                (
+                    UserRole.Instructor,
+                    Permission.ViewEnrolledStudents | Permission.ViewStudentProgress |
+                    Permission.SendNotifications | Permission.ViewStudentQuestions |
+                    Permission.AnswerStudentQuestions | Permission.ManageAdminNotes |
+                    Permission.SendDirectEmail | Permission.ViewAllCourses | Permission.CreateCourse |
+                    Permission.EditOwnCourses | Permission.ViewLessons | Permission.CreateLesson |
+                    Permission.EditLesson | Permission.DeleteLesson,
+                    "Default permissions for Instructor role"
+                ),
+                (
+                    UserRole.Preacher,
+                    Permission.ViewStudentQuestions | Permission.ManageAdminNotes |
+                    Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.FullEventAccess,
+                    "Default permissions for Preacher role"
+                ),
+                (
+                    UserRole.Student,
+                    Permission.None,
+                    "Default permissions for Student role (no special permissions)"
+                ),
+                (
+                    UserRole.NonMuslim,
+                    Permission.None,
+                    "Default permissions for NonMuslim role (no special permissions)"
+                )
+            };
+
+            foreach (var (role, permissions, notes) in rolePermissionsToSeed)
+            {
+                var existingRolePermission = await _context.RolePermissions
+                    .FirstOrDefaultAsync(rp => rp.Role == role);
+
+                if (existingRolePermission == null)
+                {
+                    _logger.LogInformation("Creating default permissions for role: {Role}", role);
+                    _context.RolePermissions.Add(new RolePermission
+                    {
+                        Role = role,
+                        Permissions = permissions,
+                        LastModifiedDate = DateTime.UtcNow,
+                        Notes = notes
+                    });
+                }
+                else
+                {
+                    _logger.LogInformation("Role permissions already exist for: {Role} (skipping)", role);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("✅ Role permissions seeding complete");
+
             // Ensure users have required basic fields (Email, FirstName, LastName)
             var usersWithMissing = await _context.Users
                 .Where(u => string.IsNullOrWhiteSpace(u.Email) || string.IsNullOrWhiteSpace(u.FirstName) || string.IsNullOrWhiteSpace(u.LastName))

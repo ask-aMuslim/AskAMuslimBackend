@@ -12,4 +12,5 @@ public interface IPermissionService
     Task AddPermissionsAsync(string userId, Permission permissions, string? grantedByUserId = null, CancellationToken cancellationToken = default);
     Task RemovePermissionsAsync(string userId, Permission permissions, CancellationToken cancellationToken = default);
     Task<Permission> GetDefaultPermissionsForRoleAsync(string role);
+    void InvalidateRolePermissionsCache(string role);
 }

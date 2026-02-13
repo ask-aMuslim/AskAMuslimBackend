@@ -4,27 +4,27 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Permissions.Queries.GetAllPermissions;
 
-public record GetAllPermissionsQuery : IRequest<Result<List<PermissionCategoryDto>>>;
+public record GetAllPermissionsQuery : IRequest<Result<List<PermissionCategoryDefinitionDto>>>;
 
-public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<List<PermissionCategoryDto>>>
+public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<List<PermissionCategoryDefinitionDto>>>
 {
-    public Task<Result<List<PermissionCategoryDto>>> Handle(GetAllPermissionsQuery request, CancellationToken cancellationToken)
+    public Task<Result<List<PermissionCategoryDefinitionDto>>> Handle(GetAllPermissionsQuery request, CancellationToken cancellationToken)
     {
-        var permissions = new List<PermissionCategoryDto>
+        var permissions = new List<PermissionCategoryDefinitionDto>
         {
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Dashboard",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewDashboard), DisplayName = "View Dashboard", Category = "Dashboard", Value = (long)Permission.ViewDashboard },
                     new() { Name = nameof(Permission.ViewAnalytics), DisplayName = "View Analytics", Category = "Dashboard", Value = (long)Permission.ViewAnalytics }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Admin Management",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewAdmins), DisplayName = "View Admins", Category = "Admin Management", Value = (long)Permission.ViewAdmins },
                     new() { Name = nameof(Permission.CreateAdmin), DisplayName = "Create Admin", Category = "Admin Management", Value = (long)Permission.CreateAdmin },
@@ -33,10 +33,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ManageAdminRoles), DisplayName = "Manage Admin Roles", Category = "Admin Management", Value = (long)Permission.ManageAdminRoles }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Student Management",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewAllStudents), DisplayName = "View All Students", Category = "Student Management", Value = (long)Permission.ViewAllStudents },
                     new() { Name = nameof(Permission.ViewEnrolledStudents), DisplayName = "View Enrolled Students", Category = "Student Management", Value = (long)Permission.ViewEnrolledStudents },
@@ -50,10 +50,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.SendDirectEmail), DisplayName = "Send Direct Email", Category = "Student Management", Value = (long)Permission.SendDirectEmail }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Academy - Levels",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewLevels), DisplayName = "View Levels", Category = "Academy - Levels", Value = (long)Permission.ViewLevels },
                     new() { Name = nameof(Permission.CreateLevel), DisplayName = "Create Level", Category = "Academy - Levels", Value = (long)Permission.CreateLevel },
@@ -61,10 +61,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.DeleteLevel), DisplayName = "Delete Level", Category = "Academy - Levels", Value = (long)Permission.DeleteLevel }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Academy - Courses",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewAllCourses), DisplayName = "View All Courses", Category = "Academy - Courses", Value = (long)Permission.ViewAllCourses },
                     new() { Name = nameof(Permission.ViewOwnCourses), DisplayName = "View Own Courses", Category = "Academy - Courses", Value = (long)Permission.ViewOwnCourses },
@@ -75,10 +75,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.PublishCourse), DisplayName = "Publish Course", Category = "Academy - Courses", Value = (long)Permission.PublishCourse }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Academy - Lessons",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewLessons), DisplayName = "View Lessons", Category = "Academy - Lessons", Value = (long)Permission.ViewLessons },
                     new() { Name = nameof(Permission.CreateLesson), DisplayName = "Create Lesson", Category = "Academy - Lessons", Value = (long)Permission.CreateLesson },
@@ -86,10 +86,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.DeleteLesson), DisplayName = "Delete Lesson", Category = "Academy - Lessons", Value = (long)Permission.DeleteLesson }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Academy - Quizzes",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewQuizzes), DisplayName = "View Quizzes", Category = "Academy - Quizzes", Value = (long)Permission.ViewQuizzes },
                     new() { Name = nameof(Permission.CreateQuiz), DisplayName = "Create Quiz", Category = "Academy - Quizzes", Value = (long)Permission.CreateQuiz },
@@ -98,10 +98,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ViewQuizResults), DisplayName = "View Quiz Results", Category = "Academy - Quizzes", Value = (long)Permission.ViewQuizResults }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "QA Management",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewQA), DisplayName = "View QA", Category = "QA Management", Value = (long)Permission.ViewQA },
                     new() { Name = nameof(Permission.CreateQA), DisplayName = "Create QA", Category = "QA Management", Value = (long)Permission.CreateQA },
@@ -110,10 +110,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ApproveQA), DisplayName = "Approve QA", Category = "QA Management", Value = (long)Permission.ApproveQA }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "MuslimTube",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewMuslimTube), DisplayName = "View MuslimTube", Category = "MuslimTube", Value = (long)Permission.ViewMuslimTube },
                     new() { Name = nameof(Permission.CreateVideo), DisplayName = "Create Video", Category = "MuslimTube", Value = (long)Permission.CreateVideo },
@@ -122,20 +122,20 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ApproveVideo), DisplayName = "Approve Video", Category = "MuslimTube", Value = (long)Permission.ApproveVideo }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Notifications",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewNotifications), DisplayName = "View Notifications", Category = "Notifications", Value = (long)Permission.ViewNotifications },
                     new() { Name = nameof(Permission.SendBulkNotifications), DisplayName = "Send Bulk Notifications", Category = "Notifications", Value = (long)Permission.SendBulkNotifications },
                     new() { Name = nameof(Permission.CreateNotificationTemplate), DisplayName = "Create Notification Template", Category = "Notifications", Value = (long)Permission.CreateNotificationTemplate }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Meeting & Inquiry Requests",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewMeetingRequests), DisplayName = "View Meeting Requests", Category = "Meeting & Inquiry Requests", Value = (long)Permission.ViewMeetingRequests },
                     new() { Name = nameof(Permission.ManageMeetingRequests), DisplayName = "Manage Meeting Requests", Category = "Meeting & Inquiry Requests", Value = (long)Permission.ManageMeetingRequests },
@@ -143,10 +143,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ManageInquiryRequests), DisplayName = "Manage Inquiry Requests", Category = "Meeting & Inquiry Requests", Value = (long)Permission.ManageInquiryRequests }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Events",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewEvents), DisplayName = "View Events", Category = "Events", Value = (long)Permission.ViewEvents },
                     new() { Name = nameof(Permission.CreateEvent), DisplayName = "Create Event", Category = "Events", Value = (long)Permission.CreateEvent },
@@ -155,10 +155,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.ManageEventRegistrations), DisplayName = "Manage Event Registrations", Category = "Events", Value = (long)Permission.ManageEventRegistrations }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Tags",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewTags), DisplayName = "View Tags", Category = "Tags", Value = (long)Permission.ViewTags },
                     new() { Name = nameof(Permission.CreateTag), DisplayName = "Create Tag", Category = "Tags", Value = (long)Permission.CreateTag },
@@ -166,10 +166,10 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
                     new() { Name = nameof(Permission.DeleteTag), DisplayName = "Delete Tag", Category = "Tags", Value = (long)Permission.DeleteTag }
                 }
             },
-            new PermissionCategoryDto
+            new PermissionCategoryDefinitionDto
             {
                 Category = "Settings & System",
-                Permissions = new List<PermissionDto>
+                Permissions = new List<PermissionDefinitionDto>
                 {
                     new() { Name = nameof(Permission.ViewSettings), DisplayName = "View Settings", Category = "Settings & System", Value = (long)Permission.ViewSettings },
                     new() { Name = nameof(Permission.ManageSettings), DisplayName = "Manage Settings", Category = "Settings & System", Value = (long)Permission.ManageSettings },
@@ -182,6 +182,6 @@ public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQu
             }
         };
 
-        return Task.FromResult(Result<List<PermissionCategoryDto>>.Success(permissions));
+        return Task.FromResult(Result<List<PermissionCategoryDefinitionDto>>.Success(permissions));
     }
 }

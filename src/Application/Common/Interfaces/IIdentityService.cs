@@ -24,7 +24,8 @@ public interface IIdentityService
         UserRole role,
         ReligiousStatus religiousStatus = ReligiousStatus.NonMuslim,
         IFormFile? image = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        bool allowAdminCreation = false);
 
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
 

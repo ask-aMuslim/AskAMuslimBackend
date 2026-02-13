@@ -11,6 +11,14 @@ public class PermissionDto
     public bool IsGranted { get; init; }
 }
 
+public class PermissionDefinitionDto
+{
+    public string Name { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public long Value { get; init; }
+}
+
 public class UserPermissionsDto
 {
     public Guid UserId { get; init; }
@@ -27,6 +35,12 @@ public class PermissionCategoryDto
 {
     public string Category { get; init; } = string.Empty;
     public List<PermissionDto> Permissions { get; init; } = new();
+}
+
+public class PermissionCategoryDefinitionDto
+{
+    public string Category { get; init; } = string.Empty;
+    public List<PermissionDefinitionDto> Permissions { get; init; } = new();
 }
 
 public class RolePermissionsDto

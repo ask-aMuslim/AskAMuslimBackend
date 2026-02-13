@@ -3315,23 +3315,13 @@
             "x-position": 1
           },
           {
-            "name": "userId",
-            "in": "path",
-            "required": true,
+            "name": "unreadOnly",
+            "in": "query",
             "schema": {
-              "type": "string",
-              "format": "guid"
+              "type": "boolean",
+              "default": false
             },
             "x-position": 2
-          },
-          {
-            "name": "UnreadOnly",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "boolean"
-            },
-            "x-position": 3
           }
         ],
         "responses": {
@@ -3669,6 +3659,24 @@
           "Permissions"
         ],
         "operationId": "GetMyPermissions",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Permissions/diagnostic": {
+      "get": {
+        "tags": [
+          "Permissions"
+        ],
+        "operationId": "DiagnostPermissions",
         "responses": {
           "200": {
             "description": ""

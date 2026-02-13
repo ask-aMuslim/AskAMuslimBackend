@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.Permissions.Commands.UpdateRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Commands.UpdateUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetAllPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetMyPermissions;
+using AskAMuslimBackend.Application.Permissions.Queries.DiagnostPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetRolePermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUserPermissions;
 using AskAMuslimBackend.Application.Permissions.Queries.GetUsersForPermissionAssignment;
@@ -20,6 +21,11 @@ public class Permissions : EndpointGroupBase
             .RequireAuthorization()
             .WithName("GetMyPermissions")
             .WithSummary("Get permissions for the current authenticated user");
+
+        groupBuilder.MapGet(DiagnostPermissions, "diagnostic")
+            .RequireAuthorization()
+            .WithName("DiagnostPermissions")
+            .WithSummary("Diagnostic endpoint to troubleshoot permission issues");
 
         groupBuilder.MapGet(GetAllPermissions)
             .RequireAuthorization(Policies.ManageRolesAndPermissions)
@@ -55,6 +61,12 @@ public class Permissions : EndpointGroupBase
     public async Task<IResult> GetMyPermissions(ISender sender)
     {
         var result = await sender.Send(new GetMyPermissionsQuery());
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> DiagnostPermissions(ISender sender)
+    {
+        var result = await sender.Send(new DiagnostPermissionsQuery());
         return result.ToHttpResult();
     }
 

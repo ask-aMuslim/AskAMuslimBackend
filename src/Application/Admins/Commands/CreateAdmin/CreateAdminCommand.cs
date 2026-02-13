@@ -66,6 +66,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         var userRole = (UserRole)Enum.Parse(typeof(UserRole), request.Role, true);
 
         // Use IdentityService to register the user
+        // allowAdminCreation: true - This command is protected by Policies.ManageAdmins
         var result = await _identityService.RegisterUserAsync(
             request.Email,
             request.Password,
@@ -74,7 +75,8 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
             userRole,
             ReligiousStatus.BornMuslim, // Default to BornMuslim for admins
             null, // No image file in this command
-            cancellationToken);
+            cancellationToken,
+            allowAdminCreation: true); // ← Allow admin creation (authorized by policy)
 
         if (!result.Succeeded)
         {
