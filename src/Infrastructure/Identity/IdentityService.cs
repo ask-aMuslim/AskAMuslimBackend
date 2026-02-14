@@ -426,7 +426,7 @@ public class IdentityService : IIdentityService
                     Email = email,
                     FirstName = firstName,
                     LastName = lastName,
-                    Role = UserRole.Student, // default role, adjust as needed
+                    Role = UserRole.NonMuslim, // OAuth users default to NonMuslim role
                     ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
                     ImageUrl = imageUrl,
                     EmailConfirmed = true,
@@ -636,7 +636,7 @@ public class IdentityService : IIdentityService
                     Email = email,
                     FirstName = firstName,
                     LastName = lastName,
-                    Role = UserRole.Student,
+                    Role = UserRole.NonMuslim, // OAuth users default to NonMuslim role
                     ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
                     ImageUrl = imageUrl,
                     EmailConfirmed = true,
