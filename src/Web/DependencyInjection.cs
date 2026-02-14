@@ -33,9 +33,15 @@ public static class DependencyInjection
         {
             options.AddDefaultPolicy(policy =>
             {
-                policy.AllowAnyOrigin()
+                policy.WithOrigins(
+                          "https://aam-web.ask-a-muslim.com",
+                          "https://adminpanel.ask-a-muslim.com",
+                          "http://localhost:4200",
+                          "http://localhost:4201"
+                      )
                       .AllowAnyMethod()
-                      .AllowAnyHeader();
+                      .AllowAnyHeader()
+                      .AllowCredentials();
             });
         });
 
