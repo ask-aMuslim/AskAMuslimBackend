@@ -235,20 +235,37 @@ public class IdentityService : IIdentityService
         {
             case UserRole.Student:
             case UserRole.NonMuslim:
-                _dbContext.Students.Add(CreateStudent(userId));
+                // Check if student already exists to avoid duplicate errors
+                var existingStudent = await _dbContext.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+                if (existingStudent == null)
+                {
+                    _dbContext.Students.Add(CreateStudent(userId));
+                }
                 break;
 
             case UserRole.Instructor:
-                _dbContext.Instructors.Add(CreateInstructor(userId));
+                var existingInstructor = await _dbContext.Instructors.FirstOrDefaultAsync(i => i.UserId == userId);
+                if (existingInstructor == null)
+                {
+                    _dbContext.Instructors.Add(CreateInstructor(userId));
+                }
                 break;
 
             case UserRole.Admin:
-                _dbContext.Admins.Add(CreateAdmin(userId, isSuperAdmin));
-                createdAsSuperAdmin = isSuperAdmin;
+                var existingAdmin = await _dbContext.Admins.FirstOrDefaultAsync(a => a.UserId == userId);
+                if (existingAdmin == null)
+                {
+                    _dbContext.Admins.Add(CreateAdmin(userId, isSuperAdmin));
+                    createdAsSuperAdmin = isSuperAdmin;
+                }
                 break;
 
             case UserRole.Preacher:
-                _dbContext.Preachers.Add(CreatePreacher(userId));
+                var existingPreacher = await _dbContext.Preachers.FirstOrDefaultAsync(p => p.UserId == userId);
+                if (existingPreacher == null)
+                {
+                    _dbContext.Preachers.Add(CreatePreacher(userId));
+                }
                 break;
         }
 
@@ -465,7 +482,12 @@ public class IdentityService : IIdentityService
         catch (Exception ex)
         {
             // Catch any unexpected errors to prevent 500 errors
-            return Result<AuthenticationResponse>.Failure(new[] { $"An error occurred during Google authentication: {ex.Message}" });
+            // Include inner exception details for database errors
+            var errorMessage = ex.InnerException != null
+                ? $"An error occurred during Google authentication: {ex.Message} | Inner: {ex.InnerException.Message}"
+                : $"An error occurred during Google authentication: {ex.Message}";
+
+            return Result<AuthenticationResponse>.Failure(new[] { errorMessage });
         }
     }
 
@@ -668,7 +690,12 @@ public class IdentityService : IIdentityService
         catch (Exception ex)
         {
             // Catch any unexpected errors to prevent 500 errors
-            return Result<AuthenticationResponse>.Failure(new[] { $"An error occurred during Facebook authentication: {ex.Message}" });
+            // Include inner exception details for database errors
+            var errorMessage = ex.InnerException != null
+                ? $"An error occurred during Facebook authentication: {ex.Message} | Inner: {ex.InnerException.Message}"
+                : $"An error occurred during Facebook authentication: {ex.Message}";
+
+            return Result<AuthenticationResponse>.Failure(new[] { errorMessage });
         }
     }
 
