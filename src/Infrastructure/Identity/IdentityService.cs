@@ -434,7 +434,9 @@ public class IdentityService : IIdentityService
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await _userManager.CreateAsync(user);
+                // Generate a random password for OAuth users (they won't use it)
+                var randomPassword = GenerateRandomPassword();
+                var result = await _userManager.CreateAsync(user, randomPassword);
                 if (!result.Succeeded)
                 {
                     return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
@@ -642,7 +644,9 @@ public class IdentityService : IIdentityService
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var result = await _userManager.CreateAsync(user);
+                // Generate a random password for OAuth users (they won't use it)
+                var randomPassword = GenerateRandomPassword();
+                var result = await _userManager.CreateAsync(user, randomPassword);
                 if (!result.Succeeded)
                 {
                     return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
@@ -943,5 +947,21 @@ public class IdentityService : IIdentityService
             UserRole.NonMuslim => Domain.Constants.Roles.NonMuslim,
             _ => role.ToString()
         };
+    }
+
+    /// <summary>
+    /// Generates a cryptographically secure random password for OAuth users.
+    /// OAuth users don't use passwords but Identity requires PasswordHash.
+    /// </summary>
+    private static string GenerateRandomPassword()
+    {
+        const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*";
+        var random = new Random();
+        var chars = new char[32];
+        for (int i = 0; i < chars.Length; i++)
+        {
+            chars[i] = validChars[random.Next(validChars.Length)];
+        }
+        return new string(chars);
     }
 }
