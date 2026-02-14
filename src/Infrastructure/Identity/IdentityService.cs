@@ -541,7 +541,8 @@ public class IdentityService : IIdentityService
             // Step 2: fetch user profile
             var fields = "id,name,first_name,last_name,email";
             // email permission might not be granted; handle null email.
-            var meUri = $"https://graph.facebook.com/v18.0/me?fields={fields}&access_token={accessToken}";
+            // Using latest Graph API version
+            var meUri = $"https://graph.facebook.com/me?fields={fields}&access_token={accessToken}";
             HttpResponseMessage meResp;
             try
             {
