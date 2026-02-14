@@ -25,6 +25,7 @@ public class IdentityService : IIdentityService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IFileStorageService _fileStorageService;
     private readonly IPermissionService _permissionService;
+    private readonly ITokenBlacklistService _tokenBlacklistService;
 
     public IdentityService(
         ApplicationDbContext dbContext,
@@ -33,7 +34,8 @@ public class IdentityService : IIdentityService
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         IFileStorageService fileStorageService,
-        IPermissionService permissionService)
+        IPermissionService permissionService,
+        ITokenBlacklistService tokenBlacklistService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
@@ -42,6 +44,7 @@ public class IdentityService : IIdentityService
         _httpClientFactory = httpClientFactory;
         _fileStorageService = fileStorageService;
         _permissionService = permissionService;
+        _tokenBlacklistService = tokenBlacklistService;
     }
 
     public async Task<string?> GetUserNameAsync(string userId)
@@ -963,5 +966,23 @@ public class IdentityService : IIdentityService
             chars[i] = validChars[random.Next(validChars.Length)];
         }
         return new string(chars);
+    }
+
+    public async Task<Result> LogoutAsync(string tokenId, DateTime tokenExpiration)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tokenId))
+            {
+                return Result.Failure(new[] { "Invalid token." });
+            }
+
+            await _tokenBlacklistService.BlacklistTokenAsync(tokenId, tokenExpiration);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(new[] { $"Logout failed: {ex.Message}" });
+        }
     }
 }

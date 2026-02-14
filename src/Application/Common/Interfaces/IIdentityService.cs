@@ -36,4 +36,11 @@ public interface IIdentityService
 
     // New: Login or register using Facebook access token
     Task<Result<AuthenticationResponse>> LoginWithFacebookAsync(string accessToken);
+
+    /// <summary>
+    /// Logs out a user by blacklisting their current JWT token.
+    /// </summary>
+    /// <param name="tokenId">The JTI (JWT ID) claim from the user's token.</param>
+    /// <param name="tokenExpiration">The expiration time of the token.</param>
+    Task<Result> LogoutAsync(string tokenId, DateTime tokenExpiration);
 }

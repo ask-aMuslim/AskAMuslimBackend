@@ -5,9 +5,11 @@ using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 using AskAMuslimBackend.Application.Authentication.Commands.ForgotPassword;
 using AskAMuslimBackend.Application.Authentication.Commands.VerifyOtp;
 using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
+using AskAMuslimBackend.Application.Authentication.Commands.Logout;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Web.Infrastructure;
 using AskAMuslimBackend.Application.Admins.Commands.LoginAdmin;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -79,6 +81,12 @@ public class Authentication : EndpointGroupBase
             .WithDescription("Validates the OTP and resets the user's password")
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces<Result>(StatusCodes.Status400BadRequest);
+
+        groupBuilder.MapPost(Logout, "logout")
+            .WithName("Logout")
+            .WithSummary("Logout user")
+            .WithDescription("Logs out the current user. For JWT-based authentication, the client should also remove the token.")
+            .Produces<Result>(StatusCodes.Status200OK);
     }
 
     public async Task<IResult> Register(
@@ -141,6 +149,49 @@ public class Authentication : EndpointGroupBase
         ISender sender,
         ResetPasswordCommand command)
     {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> Logout(
+        HttpContext httpContext,
+        ISender sender)
+    {
+        // Verify user is authenticated
+        if (httpContext.User.Identity?.IsAuthenticated != true)
+        {
+            return Results.Unauthorized();
+        }
+
+        // Extract the JTI (JWT ID) claim from the current user's token
+        var jtiClaim = httpContext.User.FindFirst(JwtRegisteredClaimNames.Jti);
+        if (jtiClaim == null)
+        {
+            var error = Result.Failure(new[] { "Invalid token: missing JTI claim." });
+            return error.ToHttpResult();
+        }
+
+        // Extract the expiration claim to determine how long to blacklist the token
+        var expClaim = httpContext.User.FindFirst(JwtRegisteredClaimNames.Exp);
+        DateTime tokenExpiration;
+
+        if (expClaim != null && long.TryParse(expClaim.Value, out var exp))
+        {
+            // Convert Unix timestamp to DateTime
+            tokenExpiration = DateTimeOffset.FromUnixTimeSeconds(exp).UtcDateTime;
+        }
+        else
+        {
+            // Default to 24 hours from now if we can't determine expiration
+            tokenExpiration = DateTime.UtcNow.AddHours(24);
+        }
+
+        var command = new LogoutCommand
+        {
+            TokenId = jtiClaim.Value,
+            TokenExpiration = tokenExpiration
+        };
+
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
