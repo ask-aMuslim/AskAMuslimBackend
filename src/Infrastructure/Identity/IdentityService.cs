@@ -364,231 +364,311 @@ public class IdentityService : IIdentityService
     // New: Google sign-in using ID token
     public async Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken)
     {
-        var googleClientId = _configuration["Authentication:Google:ClientId"];
-        var androidClientId = _configuration["Authentication:Google:AndroidClientId"];
-
-        if (string.IsNullOrWhiteSpace(googleClientId))
-        {
-            return Result<AuthenticationResponse>.Failure(new[] { "Google ClientId not configured." });
-        }
-
-        // Support multiple client IDs (Web and Android)
-        var validAudiences = new List<string> { googleClientId };
-        if (!string.IsNullOrWhiteSpace(androidClientId))
-        {
-            validAudiences.Add(androidClientId);
-        }
-
-        GoogleJsonWebSignature.Payload payload;
         try
         {
-            var validationSettings = new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = validAudiences
-            };
-            payload = await GoogleJsonWebSignature.ValidateAsync(idToken, validationSettings);
-        }
-        catch (InvalidJwtException ex)
-        {
-            return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Google token: {ex.Message}" });
-        }
+            var googleClientId = _configuration["Authentication:Google:ClientId"];
+            var androidClientId = _configuration["Authentication:Google:AndroidClientId"];
 
-        var email = payload.Email;
-        var firstName = payload.GivenName ?? string.Empty;
-        var lastName = payload.FamilyName ?? string.Empty;
-        var imageUrl = payload.Picture; // Google profile picture
-
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            user = new User
+            if (string.IsNullOrWhiteSpace(googleClientId))
             {
-                UserName = email,
-                Email = email,
-                FirstName = firstName,
-                LastName = lastName,
-                Role = UserRole.Student, // default role, adjust as needed
-                ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
-                ImageUrl = imageUrl,
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await _userManager.CreateAsync(user);
-            if (!result.Succeeded)
-            {
-                return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+                return Result<AuthenticationResponse>.Failure(new[] { "Google ClientId not configured." });
             }
 
-            await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
+            // Support multiple client IDs (Web and Android)
+            var validAudiences = new List<string> { googleClientId };
+            if (!string.IsNullOrWhiteSpace(androidClientId))
+            {
+                validAudiences.Add(androidClientId);
+            }
 
-            // Create student entity for default role (not SuperAdmin)
-            await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var validationSettings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = validAudiences
+                };
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken, validationSettings);
+            }
+            catch (InvalidJwtException ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Google token: {ex.Message}" });
+            }
 
-            // Grant default permissions for the role
-            var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
-            await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
+            var email = payload.Email;
+            var firstName = payload.GivenName ?? string.Empty;
+            var lastName = payload.FamilyName ?? string.Empty;
+            var imageUrl = payload.Picture; // Google profile picture
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = UserRole.Student, // default role, adjust as needed
+                    ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
+                    ImageUrl = imageUrl,
+                    EmailConfirmed = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+                }
+
+                await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
+
+                // Create student entity for default role (not SuperAdmin)
+                await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
+
+                // Grant default permissions for the role
+                var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+                await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Google login for role {user.Role}");
+            }
+
+            if (!user.IsActive)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+            }
+
+            // Update last login
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            // Ensure SuperAdmins have AllPermissions in database
+            await EnsureSuperAdminPermissions(user.Id);
+
+            var token = GenerateJwtToken(user);
+            var expiresAt = DateTime.UtcNow.AddHours(24);
+
+            var authResponse = new AuthenticationResponse
+            {
+                UserId = user.Id.ToString(),
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role,
+                ReligiousStatus = user.ReligionStatus,
+                Token = token,
+                ExpiresAt = expiresAt
+            };
+
+            return Result<AuthenticationResponse>.Success(authResponse);
         }
-
-        if (!user.IsActive)
+        catch (Exception ex)
         {
-            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+            // Catch any unexpected errors to prevent 500 errors
+            return Result<AuthenticationResponse>.Failure(new[] { $"An error occurred during Google authentication: {ex.Message}" });
         }
-
-        // Update last login
-        user.LastLoginAt = DateTime.UtcNow;
-        await _userManager.UpdateAsync(user);
-
-        // Ensure SuperAdmins have AllPermissions in database
-        await EnsureSuperAdminPermissions(user.Id);
-
-        var token = GenerateJwtToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
-
-        var authResponse = new AuthenticationResponse
-        {
-            UserId = user.Id.ToString(),
-            Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Role = user.Role,
-            ReligiousStatus = user.ReligionStatus,
-            Token = token,
-            ExpiresAt = expiresAt
-        };
-
-        return Result<AuthenticationResponse>.Success(authResponse);
     }
 
     // New: Facebook sign-in using access token
     public async Task<Result<AuthenticationResponse>> LoginWithFacebookAsync(string accessToken)
     {
-        var appId = _configuration["Authentication:Facebook:AppId"];
-        var appSecret = _configuration["Authentication:Facebook:AppSecret"];
-        if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(appSecret))
+        try
         {
-            return Result<AuthenticationResponse>.Failure(new[] { "Facebook AppId/AppSecret not configured." });
-        }
-
-        // Validate token and get user info from Graph API
-        // Using app access token to debug the provided user token
-        var appAccessToken = $"{appId}|{appSecret}";
-        var http = _httpClientFactory.CreateClient();
-
-        // Step 1: debug_token to validate
-        var debugUri = $"https://graph.facebook.com/debug_token?input_token={accessToken}&access_token={appAccessToken}";
-        var debugResponse = await http.GetAsync(debugUri);
-        if (!debugResponse.IsSuccessStatusCode)
-        {
-            return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook token (debug call failed)." });
-        }
-
-        using var debugDoc = JsonDocument.Parse(await debugResponse.Content.ReadAsStringAsync());
-        var dataEl = debugDoc.RootElement.GetProperty("data");
-        var isValid = dataEl.GetProperty("is_valid").GetBoolean();
-        if (!isValid)
-        {
-            return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook token." });
-        }
-
-        var userId = dataEl.TryGetProperty("user_id", out var userIdProp) ? userIdProp.GetString() : null;
-
-        // Step 2: fetch user profile
-        var fields = "id,name,first_name,last_name,email";
-        // email permission might not be granted; handle null email.
-        var meUri = $"https://graph.facebook.com/v18.0/me?fields={fields}&access_token={accessToken}";
-        var meResp = await http.GetAsync(meUri);
-        if (!meResp.IsSuccessStatusCode)
-        {
-            return Result<AuthenticationResponse>.Failure(new[] { "Unable to fetch Facebook user profile." });
-        }
-
-        using var meDoc = JsonDocument.Parse(await meResp.Content.ReadAsStringAsync());
-        var email = meDoc.RootElement.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
-        var firstName = meDoc.RootElement.TryGetProperty("first_name", out var fnProp) ? fnProp.GetString() : null;
-        var lastName = meDoc.RootElement.TryGetProperty("last_name", out var lnProp) ? lnProp.GetString() : null;
-        var fbId = meDoc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetString() : userId;
-
-        // Extract Facebook profile picture
-        string? imageUrl = null;
-        if (!string.IsNullOrWhiteSpace(fbId))
-        {
-            // Facebook profile picture URL format
-            imageUrl = $"https://graph.facebook.com/{fbId}/picture?type=large";
-        }
-
-        // Fallback email if not present: create a synthetic email based on FB id and app domain
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            var audience = _configuration["JwtSettings:Audience"] ?? "askamuslim.local";
-            email = $"fb_{fbId}@{audience}";
-        }
-
-        firstName ??= "";
-        lastName ??= "";
-
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            user = new User
+            var appId = _configuration["Authentication:Facebook:AppId"];
+            var appSecret = _configuration["Authentication:Facebook:AppSecret"];
+            if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(appSecret))
             {
-                UserName = email,
-                Email = email,
-                FirstName = firstName,
-                LastName = lastName,
-                Role = UserRole.Student,
-                ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
-                ImageUrl = imageUrl,
-                EmailConfirmed = true,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            var result = await _userManager.CreateAsync(user);
-            if (!result.Succeeded)
-            {
-                return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+                return Result<AuthenticationResponse>.Failure(new[] { "Facebook AppId/AppSecret not configured." });
             }
 
-            await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
+            // Validate token and get user info from Graph API
+            // Using app access token to debug the provided user token
+            var appAccessToken = $"{appId}|{appSecret}";
+            var http = _httpClientFactory.CreateClient();
 
-            // Create student entity for default role (not SuperAdmin)
-            await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
+            // Step 1: debug_token to validate
+            var debugUri = $"https://graph.facebook.com/debug_token?input_token={accessToken}&access_token={appAccessToken}";
+            HttpResponseMessage debugResponse;
+            try
+            {
+                debugResponse = await http.GetAsync(debugUri);
+            }
+            catch (HttpRequestException ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Failed to connect to Facebook API: {ex.Message}" });
+            }
+            catch (TaskCanceledException)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Facebook API request timed out." });
+            }
 
-            // Grant default permissions for the role
-            var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
-            await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
+            if (!debugResponse.IsSuccessStatusCode)
+            {
+                var errorContent = await debugResponse.Content.ReadAsStringAsync();
+                return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Facebook token (debug call failed): {errorContent}" });
+            }
+
+            JsonDocument debugDoc;
+            try
+            {
+                var debugContent = await debugResponse.Content.ReadAsStringAsync();
+                debugDoc = JsonDocument.Parse(debugContent);
+            }
+            catch (JsonException ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Failed to parse Facebook debug token response: {ex.Message}" });
+            }
+
+            using (debugDoc)
+            {
+                if (!debugDoc.RootElement.TryGetProperty("data", out var dataEl))
+                {
+                    return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook debug token response format." });
+                }
+
+                if (!dataEl.TryGetProperty("is_valid", out var isValidProp))
+                {
+                    return Result<AuthenticationResponse>.Failure(new[] { "Facebook debug token response missing 'is_valid' field." });
+                }
+
+                var isValid = isValidProp.GetBoolean();
+                if (!isValid)
+                {
+                    return Result<AuthenticationResponse>.Failure(new[] { "Invalid Facebook token." });
+                }
+            }
+
+            // Step 2: fetch user profile
+            var fields = "id,name,first_name,last_name,email";
+            // email permission might not be granted; handle null email.
+            var meUri = $"https://graph.facebook.com/v18.0/me?fields={fields}&access_token={accessToken}";
+            HttpResponseMessage meResp;
+            try
+            {
+                meResp = await http.GetAsync(meUri);
+            }
+            catch (HttpRequestException ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Failed to fetch Facebook user profile: {ex.Message}" });
+            }
+            catch (TaskCanceledException)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Facebook user profile request timed out." });
+            }
+
+            if (!meResp.IsSuccessStatusCode)
+            {
+                var errorContent = await meResp.Content.ReadAsStringAsync();
+                return Result<AuthenticationResponse>.Failure(new[] { $"Unable to fetch Facebook user profile: {errorContent}" });
+            }
+
+            JsonDocument meDoc;
+            string? email, firstName, lastName, fbId;
+            try
+            {
+                var meContent = await meResp.Content.ReadAsStringAsync();
+                meDoc = JsonDocument.Parse(meContent);
+
+                email = meDoc.RootElement.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
+                firstName = meDoc.RootElement.TryGetProperty("first_name", out var fnProp) ? fnProp.GetString() : null;
+                lastName = meDoc.RootElement.TryGetProperty("last_name", out var lnProp) ? lnProp.GetString() : null;
+                fbId = meDoc.RootElement.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                meDoc.Dispose();
+            }
+            catch (JsonException ex)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { $"Failed to parse Facebook user profile: {ex.Message}" });
+            }
+
+            // Extract Facebook profile picture
+            string? imageUrl = null;
+            if (!string.IsNullOrWhiteSpace(fbId))
+            {
+                // Facebook profile picture URL format
+                imageUrl = $"https://graph.facebook.com/{fbId}/picture?type=large";
+            }
+
+            // Fallback email if not present: create a synthetic email based on FB id and app domain
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                if (string.IsNullOrWhiteSpace(fbId))
+                {
+                    return Result<AuthenticationResponse>.Failure(new[] { "Facebook user ID not available." });
+                }
+                var audience = _configuration["JwtSettings:Audience"] ?? "askamuslim.local";
+                email = $"fb_{fbId}@{audience}";
+            }
+
+            firstName ??= "";
+            lastName ??= "";
+
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Role = UserRole.Student,
+                    ReligionStatus = ReligiousStatus.NonMuslim, // default for OAuth users
+                    ImageUrl = imageUrl,
+                    EmailConfirmed = true,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user);
+                if (!result.Succeeded)
+                {
+                    return Result<AuthenticationResponse>.Failure(result.Errors.Select(e => e.Description));
+                }
+
+                await _userManager.AddToRoleAsync(user, GetRoleName(user.Role));
+
+                // Create student entity for default role (not SuperAdmin)
+                await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
+
+                // Grant default permissions for the role
+                var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
+                await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
+            }
+
+            if (!user.IsActive)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+            }
+
+            // Update last login
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            // Ensure SuperAdmins have AllPermissions in database
+            await EnsureSuperAdminPermissions(user.Id);
+
+            var token = GenerateJwtToken(user);
+            var expiresAt = DateTime.UtcNow.AddHours(24);
+
+            var authResponse = new AuthenticationResponse
+            {
+                UserId = user.Id.ToString(),
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role,
+                ReligiousStatus = user.ReligionStatus,
+                Token = token,
+                ExpiresAt = expiresAt
+            };
+
+            return Result<AuthenticationResponse>.Success(authResponse);
         }
-
-        if (!user.IsActive)
+        catch (Exception ex)
         {
-            return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
+            // Catch any unexpected errors to prevent 500 errors
+            return Result<AuthenticationResponse>.Failure(new[] { $"An error occurred during Facebook authentication: {ex.Message}" });
         }
-
-        // Update last login
-        user.LastLoginAt = DateTime.UtcNow;
-        await _userManager.UpdateAsync(user);
-
-        // Ensure SuperAdmins have AllPermissions in database
-        await EnsureSuperAdminPermissions(user.Id);
-
-        var token = GenerateJwtToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
-
-        var authResponse = new AuthenticationResponse
-        {
-            UserId = user.Id.ToString(),
-            Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Role = user.Role,
-            ReligiousStatus = user.ReligionStatus,
-            Token = token,
-            ExpiresAt = expiresAt
-        };
-
-        return Result<AuthenticationResponse>.Success(authResponse);
     }
 
     private string GenerateJwtToken(User user)
