@@ -230,7 +230,7 @@ public class IdentityService : IIdentityService
     private async Task<bool> CreateRoleSpecificEntity(Guid userId, UserRole role, bool isSuperAdmin = false)
     {
         bool createdAsSuperAdmin = false;
-        
+
         switch (role)
         {
             case UserRole.Student:
@@ -365,9 +365,18 @@ public class IdentityService : IIdentityService
     public async Task<Result<AuthenticationResponse>> LoginWithGoogleAsync(string idToken)
     {
         var googleClientId = _configuration["Authentication:Google:ClientId"];
+        var androidClientId = _configuration["Authentication:Google:AndroidClientId"];
+
         if (string.IsNullOrWhiteSpace(googleClientId))
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Google ClientId not configured." });
+        }
+
+        // Support multiple client IDs (Web and Android)
+        var validAudiences = new List<string> { googleClientId };
+        if (!string.IsNullOrWhiteSpace(androidClientId))
+        {
+            validAudiences.Add(androidClientId);
         }
 
         GoogleJsonWebSignature.Payload payload;
@@ -375,7 +384,7 @@ public class IdentityService : IIdentityService
         {
             var validationSettings = new GoogleJsonWebSignature.ValidationSettings
             {
-                Audience = new List<string> { googleClientId }
+                Audience = validAudiences
             };
             payload = await GoogleJsonWebSignature.ValidateAsync(idToken, validationSettings);
         }
@@ -416,7 +425,7 @@ public class IdentityService : IIdentityService
 
             // Create student entity for default role (not SuperAdmin)
             await CreateRoleSpecificEntity(user.Id, user.Role, isSuperAdmin: false);
-            
+
             // Grant default permissions for the role
             var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
             await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on Facebook login for role {user.Role}");
@@ -665,10 +674,10 @@ public class IdentityService : IIdentityService
         // Check role-based permissions from database (RolePermission table)
         // This allows super admins to update role permissions dynamically
         var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(user.Role.ToString());
-        
+
         // Check if the role's permissions satisfy the policy requirement
         var hasRolePermission = CheckPermissionForPolicy(policyName, rolePermissions);
-        
+
         return hasRolePermission;
     }
 
@@ -788,12 +797,12 @@ public class IdentityService : IIdentityService
     {
         var admin = await _dbContext.Admins
             .FirstOrDefaultAsync(a => a.UserId == userId);
-            
+
         if (admin?.IsSuperAdmin == true)
         {
             var userPermission = await _dbContext.UserPermissions
                 .FirstOrDefaultAsync(up => up.UserId == userId);
-                
+
             if (userPermission == null)
             {
                 _dbContext.UserPermissions.Add(new UserPermission
