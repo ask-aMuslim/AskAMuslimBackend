@@ -81,3 +81,5 @@ The issue stemmed from an inconsistency between:
 When `.ToString()` was called on `UserRole.Admin`, it produced "Admin" instead of the expected "Administrator", causing all authorization checks to fail.
 
 The fix introduces a proper mapping function (`GetRoleName()`) that consistently maps enum values to the correct role constants throughout the application.
+
+
