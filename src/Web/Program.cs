@@ -36,6 +36,7 @@ app.UseSwaggerUi(settings =>
 });
 
 app.UseAuthentication();
+app.UseJwtBlacklist(); // Must be after UseAuthentication() and before UseAuthorization()
 app.UseAuthorization();
 
 // Add Hangfire Dashboard (admin-only access)
