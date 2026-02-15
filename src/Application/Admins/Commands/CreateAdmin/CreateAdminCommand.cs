@@ -166,7 +166,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         {
             var adminPanelUrl = _configuration["AdminPanel:Url"] ?? "https://admin.ask-a-muslim.com";
             var subject = $"Welcome to Ask A Muslim - {role} Access";
-            var body = GenerateWelcomeEmailHtml(firstName, role, password, adminPanelUrl);
+            var body = GenerateWelcomeEmailHtml(firstName, role, email, password, adminPanelUrl);
 
             await _emailService.SendEmailAsync(email, subject, body, isHtml: true);
         }
@@ -177,7 +177,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         }
     }
 
-    private static string GenerateWelcomeEmailHtml(string firstName, string role, string password, string adminPanelUrl)
+    private static string GenerateWelcomeEmailHtml(string firstName, string role, string email, string password, string adminPanelUrl)
     {
         return $@"
 <!DOCTYPE html>
@@ -290,7 +290,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
             </div>
 
             <div class=""info-box"">
-                <strong>📧 Your Login Email:</strong> Your registered email address will be used to log in.
+                <strong>📧 Your Login Email:</strong> <code style=""background-color: #e7f3ff; padding: 5px 10px; border-radius: 4px; font-size: 14px; color: #084298; font-weight: 600;"">{email}</code>
                 <br><br>
                 <strong>🔐 Your Password:</strong> <code style=""background-color: #fff3cd; padding: 5px 10px; border-radius: 4px; font-size: 14px; color: #856404; font-weight: 600;"">{password}</code>
                 <br><br>
