@@ -49,17 +49,20 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
     private readonly IApplicationDbContext _context;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
+    private readonly IPermissionService _permissionService;
 
     public CreateAdminCommandHandler(
         IIdentityService identityService,
         IApplicationDbContext context,
         IEmailService emailService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IPermissionService permissionService)
     {
         _identityService = identityService;
         _context = context;
         _emailService = emailService;
         _configuration = configuration;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<ModeratorCreatedResponse>> Handle(CreateAdminCommand request, CancellationToken cancellationToken)
@@ -93,6 +96,22 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         {
             return Result<ModeratorCreatedResponse>.Failure(new[] { "Failed to parse user ID" });
         }
+
+        // Get the super admin user ID to track who granted the permissions
+        var adminEmail = _configuration["AdminSeed:Email"] ?? "administrator@ask-a-muslim.com";
+        var superAdmin = await _context.Users
+            .Where(u => u.Email == adminEmail)
+            .Select(u => new { u.Id })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // Ensure the user has the correct role permissions
+        // This is critical for moderators to have proper access rights
+        var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(userRole.ToString());
+        await _permissionService.SetUserPermissionsAsync(
+            userId.ToString(), 
+            rolePermissions, 
+            superAdmin?.Id.ToString(), 
+            $"Permissions granted for {request.Role} role on moderator creation");
 
         // Update additional fields if provided (Bio, ImageUrl, PhoneNumber)
         if (!string.IsNullOrWhiteSpace(request.Bio) || !string.IsNullOrWhiteSpace(request.ImageUrl) || !string.IsNullOrWhiteSpace(request.PhoneNumber))
