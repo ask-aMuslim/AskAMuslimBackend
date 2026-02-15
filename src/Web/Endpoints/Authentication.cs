@@ -6,6 +6,7 @@ using AskAMuslimBackend.Application.Authentication.Commands.ForgotPassword;
 using AskAMuslimBackend.Application.Authentication.Commands.VerifyOtp;
 using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 using AskAMuslimBackend.Application.Authentication.Commands.Logout;
+using AskAMuslimBackend.Application.Authentication.Commands.RefreshToken;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Web.Infrastructure;
 using AskAMuslimBackend.Application.Admins.Commands.LoginAdmin;
@@ -87,6 +88,14 @@ public class Authentication : EndpointGroupBase
             .WithSummary("Logout user")
             .WithDescription("Logs out the current user. For JWT-based authentication, the client should also remove the token.")
             .Produces<Result>(StatusCodes.Status200OK);
+
+        groupBuilder.MapPost(RefreshToken, "refresh-token")
+            .AllowAnonymous()
+            .WithName("RefreshToken")
+            .WithSummary("Refresh access token")
+            .WithDescription("Exchanges a valid refresh token for a new access token and refresh token")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
     }
 
     public async Task<IResult> Register(
@@ -192,6 +201,14 @@ public class Authentication : EndpointGroupBase
             TokenExpiration = tokenExpiration
         };
 
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> RefreshToken(
+        ISender sender,
+        RefreshTokenCommand command)
+    {
         var result = await sender.Send(command);
         return result.ToHttpResult();
     }
