@@ -346,17 +346,22 @@ public class IdentityService : IIdentityService
         {
             var googleClientId = _configuration["Authentication:Google:ClientId"];
             var androidClientId = _configuration["Authentication:Google:AndroidClientId"];
+            var androidWebClientId = _configuration["Authentication:Google:AndroidWebClientId"];
 
             if (string.IsNullOrWhiteSpace(googleClientId))
             {
                 return Result<AuthenticationResponse>.Failure(new[] { "Google ClientId not configured." });
             }
 
-            // Support multiple client IDs (Web and Android)
+            // Support multiple client IDs (Web, Android, and Android Web Client)
             var validAudiences = new List<string> { googleClientId };
             if (!string.IsNullOrWhiteSpace(androidClientId))
             {
                 validAudiences.Add(androidClientId);
+            }
+            if (!string.IsNullOrWhiteSpace(androidWebClientId))
+            {
+                validAudiences.Add(androidWebClientId);
             }
 
             GoogleJsonWebSignature.Payload payload;
