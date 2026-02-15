@@ -68,7 +68,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
         var password = GenerateRandomPassword();
 
         // Map role string to UserRole enum
-        var userRole = (UserRole)Enum.Parse(typeof(UserRole), request.Role, true);
+        var userRole = MapRoleToUserRole(request.Role);
 
         // Use IdentityService to register the user
         // allowAdminCreation: true - This command is protected by Policies.ManageAdmins
@@ -317,6 +317,17 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
     </div>
 </body>
 </html>";
+    }
+
+    private static UserRole MapRoleToUserRole(string role)
+    {
+        return role switch
+        {
+            Roles.Administrator => UserRole.Admin,
+            Roles.Instructor => UserRole.Instructor,
+            Roles.Preacher => UserRole.Preacher,
+            _ => throw new ArgumentException($"Invalid role: {role}")
+        };
     }
 
     private static string GenerateRandomPassword()
