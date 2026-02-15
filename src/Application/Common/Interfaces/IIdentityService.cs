@@ -43,4 +43,11 @@ public interface IIdentityService
     /// <param name="tokenId">The JTI (JWT ID) claim from the user's token.</param>
     /// <param name="tokenExpiration">The expiration time of the token.</param>
     Task<Result> LogoutAsync(string tokenId, DateTime tokenExpiration);
+
+    /// <summary>
+    /// Refreshes an access token using a valid refresh token.
+    /// </summary>
+    /// <param name="refreshToken">The refresh token.</param>
+    /// <returns>A new authentication response with new access and refresh tokens.</returns>
+    Task<Result<AuthenticationResponse>> RefreshTokenAsync(string refreshToken);
 }

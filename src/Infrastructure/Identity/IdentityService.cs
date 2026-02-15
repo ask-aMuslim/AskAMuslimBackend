@@ -163,24 +163,8 @@ public class IdentityService : IIdentityService
         var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(role.ToString());
         await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on registration for role {role}");
 
-        // Generate token
-        var token = GenerateJwtToken(user);
-
-        // Get token expiration from appsettings.json
-        var tokenExpirationHours = _configuration.GetValue<int>("JwtSettings:TokenExpirationHours", 24);
-        var expiresAt = DateTime.UtcNow.AddHours(tokenExpirationHours);
-
-        var authResponse = new AuthenticationResponse
-        {
-            UserId = user.Id.ToString(),
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Role = user.Role,
-            ReligiousStatus = user.ReligionStatus,
-            Token = token,
-            ExpiresAt = expiresAt
-        };
+        // Generate tokens and response
+        var authResponse = await CreateAuthenticationResponseAsync(user);
 
         return Result<AuthenticationResponse>.Success(authResponse);
     }
@@ -306,21 +290,8 @@ public class IdentityService : IIdentityService
         // Ensure SuperAdmins have AllPermissions in database
         await EnsureSuperAdminPermissions(user.Id);
 
-        // Generate token
-        var token = GenerateJwtToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
-
-        var authResponse = new AuthenticationResponse
-        {
-            UserId = user.Id.ToString(),
-            Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Role = user.Role,
-            ReligiousStatus = user.ReligionStatus,
-            Token = token,
-            ExpiresAt = expiresAt
-        };
+        // Generate tokens and response
+        var authResponse = await CreateAuthenticationResponseAsync(user);
 
         return Result<AuthenticationResponse>.Success(authResponse);
     }
@@ -362,21 +333,8 @@ public class IdentityService : IIdentityService
         // Ensure SuperAdmins have AllPermissions in database
         await EnsureSuperAdminPermissions(user.Id);
 
-        // Generate token
-        var token = GenerateJwtToken(user);
-        var expiresAt = DateTime.UtcNow.AddHours(24);
-
-        var authResponse = new AuthenticationResponse
-        {
-            UserId = user.Id.ToString(),
-            Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Role = user.Role,
-            ReligiousStatus = user.ReligionStatus,
-            Token = token,
-            ExpiresAt = expiresAt
-        };
+        // Generate tokens and response
+        var authResponse = await CreateAuthenticationResponseAsync(user);
 
         return Result<AuthenticationResponse>.Success(authResponse);
     }
@@ -467,20 +425,8 @@ public class IdentityService : IIdentityService
             // Ensure SuperAdmins have AllPermissions in database
             await EnsureSuperAdminPermissions(user.Id);
 
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddHours(24);
-
-            var authResponse = new AuthenticationResponse
-            {
-                UserId = user.Id.ToString(),
-                Email = user.Email ?? string.Empty,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Role = user.Role,
-                ReligiousStatus = user.ReligionStatus,
-                Token = token,
-                ExpiresAt = expiresAt
-            };
+            // Generate tokens and response
+            var authResponse = await CreateAuthenticationResponseAsync(user);
 
             return Result<AuthenticationResponse>.Success(authResponse);
         }
@@ -677,20 +623,8 @@ public class IdentityService : IIdentityService
             // Ensure SuperAdmins have AllPermissions in database
             await EnsureSuperAdminPermissions(user.Id);
 
-            var token = GenerateJwtToken(user);
-            var expiresAt = DateTime.UtcNow.AddHours(24);
-
-            var authResponse = new AuthenticationResponse
-            {
-                UserId = user.Id.ToString(),
-                Email = user.Email ?? string.Empty,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Role = user.Role,
-                ReligiousStatus = user.ReligionStatus,
-                Token = token,
-                ExpiresAt = expiresAt
-            };
+            // Generate tokens and response
+            var authResponse = await CreateAuthenticationResponseAsync(user);
 
             return Result<AuthenticationResponse>.Success(authResponse);
         }
@@ -984,5 +918,104 @@ public class IdentityService : IIdentityService
         {
             return Result.Failure(new[] { $"Logout failed: {ex.Message}" });
         }
+    }
+
+    public async Task<Result<AuthenticationResponse>> RefreshTokenAsync(string refreshToken)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Refresh token is required." });
+            }
+
+            // Find user by refresh token
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Invalid refresh token." });
+            }
+
+            // Check if refresh token is expired
+            if (user.RefreshTokenExpiryTime == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Refresh token has expired. Please log in again." });
+            }
+
+            // Check if user is active
+            if (!user.IsActive)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated." });
+            }
+
+            // Generate new tokens (token rotation)
+            var newJwtToken = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            var refreshTokenExpiryDays = _configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7);
+            var tokenExpirationHours = _configuration.GetValue<int>("JwtSettings:TokenExpirationHours", 24);
+
+            // Update user with new refresh token
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userManager.UpdateAsync(user);
+
+            var authResponse = new AuthenticationResponse
+            {
+                UserId = user.Id.ToString(),
+                Email = user.Email ?? string.Empty,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role,
+                ReligiousStatus = user.ReligionStatus,
+                Token = newJwtToken,
+                ExpiresAt = DateTime.UtcNow.AddHours(tokenExpirationHours),
+                RefreshToken = newRefreshToken,
+                RefreshTokenExpiresAt = user.RefreshTokenExpiryTime.Value
+            };
+
+            return Result<AuthenticationResponse>.Success(authResponse);
+        }
+        catch (Exception ex)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { $"Token refresh failed: {ex.Message}" });
+        }
+    }
+
+    private static string GenerateRefreshToken()
+    {
+        var randomBytes = new byte[64];
+        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes);
+    }
+
+    private async Task<AuthenticationResponse> CreateAuthenticationResponseAsync(User user)
+    {
+        var token = GenerateJwtToken(user);
+        var refreshToken = GenerateRefreshToken();
+        var tokenExpirationHours = _configuration.GetValue<int>("JwtSettings:TokenExpirationHours", 24);
+        var refreshTokenExpiryDays = _configuration.GetValue<int>("JwtSettings:RefreshTokenExpirationDays", 7);
+
+        // Save refresh token to user
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenExpiryDays);
+        await _userManager.UpdateAsync(user);
+
+        return new AuthenticationResponse
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role,
+            ReligiousStatus = user.ReligionStatus,
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddHours(tokenExpirationHours),
+            RefreshToken = refreshToken,
+            RefreshTokenExpiresAt = user.RefreshTokenExpiryTime.Value
+        };
     }
 }
