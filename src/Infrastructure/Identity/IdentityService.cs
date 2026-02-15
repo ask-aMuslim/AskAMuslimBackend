@@ -375,22 +375,7 @@ public class IdentityService : IIdentityService
             }
             catch (InvalidJwtException ex)
             {
-                // Decode token to see actual audience for debugging
-                try
-                {
-                    var handler = new JwtSecurityTokenHandler();
-                    var jwtToken = handler.ReadJwtToken(idToken);
-                    var actualAudience = jwtToken.Audiences.FirstOrDefault();
-                    return Result<AuthenticationResponse>.Failure(new[] {
-                        $"Invalid Google token: {ex.Message}",
-                        $"Expected audiences: {string.Join(", ", validAudiences)}",
-                        $"Actual audience in token: {actualAudience}"
-                    });
-                }
-                catch
-                {
-                    return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Google token: {ex.Message}" });
-                }
+                return Result<AuthenticationResponse>.Failure(new[] { $"Invalid Google token: {ex.Message}" });
             }
 
             var email = payload.Email;
