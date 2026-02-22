@@ -10,6 +10,7 @@ public record GetAllReportsQuery : IRequest<Result<PaginatedList<ReportDto>>>, I
 {
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
     public ReportStatus? Status { get; init; }
     public ReportType? ReportType { get; init; }
     public ReportReason? Reason { get; init; }

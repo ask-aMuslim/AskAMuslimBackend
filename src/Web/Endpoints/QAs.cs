@@ -6,8 +6,10 @@ using AskAMuslimBackend.Application.QAs.Queries;
 using AskAMuslimBackend.Application.QAs.Queries.GetQAById;
 using AskAMuslimBackend.Application.QAs.Queries.GetQAsWithPagination;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Domain.Enums;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -31,8 +33,22 @@ public class QAs : EndpointGroupBase
             .WithSummary("Delete QA");
     }
 
-    public async Task<IResult> GetQAsWithPagination(ISender sender, [AsParameters] GetQAsWithPaginationQuery query)
+    public async Task<IResult> GetQAsWithPagination(
+        ISender sender, 
+        int? pageNumber = 1, 
+        int? pageSize = 10, 
+        string? searchTerm = null,
+        bool? isPublished = null,
+        Language? language = null)
     {
+        var query = new GetQAsWithPaginationQuery
+        {
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            SearchTerm = searchTerm,
+            IsPublished = isPublished,
+            Language = language
+        };
         var result = await sender.Send(query);
         return result.ToHttpResult();
     }

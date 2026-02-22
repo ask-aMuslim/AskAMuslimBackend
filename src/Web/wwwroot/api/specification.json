@@ -4092,27 +4092,29 @@
         "operationId": "GetQAsWithPagination",
         "parameters": [
           {
-            "name": "PageNumber",
+            "name": "pageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
               "format": "int32",
+              "default": 1,
               "nullable": true
             },
             "x-position": 1
           },
           {
-            "name": "PageSize",
+            "name": "pageSize",
             "in": "query",
             "schema": {
               "type": "integer",
               "format": "int32",
+              "default": 10,
               "nullable": true
             },
             "x-position": 2
           },
           {
-            "name": "SearchTerm",
+            "name": "searchTerm",
             "in": "query",
             "schema": {
               "type": "string",
@@ -4121,7 +4123,7 @@
             "x-position": 3
           },
           {
-            "name": "IsPublished",
+            "name": "isPublished",
             "in": "query",
             "schema": {
               "type": "boolean",
@@ -4130,13 +4132,17 @@
             "x-position": 4
           },
           {
-            "name": "Language",
+            "name": "language",
             "in": "query",
             "schema": {
-              "nullable": true,
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/Language"
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Language"
+                    }
+                  ]
                 }
               ]
             },
@@ -4769,6 +4775,232 @@
             "x-position": 1
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Reports": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "operationId": "GetAllReports",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReportStatus"
+                }
+              ]
+            },
+            "x-position": 4
+          },
+          {
+            "name": "ReportType",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReportType"
+                }
+              ]
+            },
+            "x-position": 5
+          },
+          {
+            "name": "Reason",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReportReason"
+                }
+              ]
+            },
+            "x-position": 6
+          },
+          {
+            "name": "ReportedByUserId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "guid",
+              "nullable": true
+            },
+            "x-position": 7
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Reports"
+        ],
+        "operationId": "CreateReport",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Reports/{id}": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "operationId": "GetReportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Reports"
+        ],
+        "operationId": "DeleteReport",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Reports/{id}/status": {
+      "put": {
+        "tags": [
+          "Reports"
+        ],
+        "operationId": "UpdateReportStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReportStatusCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": ""
@@ -7178,6 +7410,106 @@
           "totalMarks": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "ReportStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "UnderReview",
+          "Resolved",
+          "Dismissed"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "ReportType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "QA",
+          "Video",
+          "Question",
+          "Comment",
+          "User",
+          "Course",
+          "Event",
+          "Other"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          99
+        ]
+      },
+      "ReportReason": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "InappropriateContent",
+          "Spam",
+          "Harassment",
+          "Misinformation",
+          "OffensiveLanguage",
+          "Copyright",
+          "Privacy",
+          "Other"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          99
+        ]
+      },
+      "CreateReportCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reportType": {
+            "$ref": "#/components/schemas/ReportType"
+          },
+          "reportedContentId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateReportStatusCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReportStatus"
+          },
+          "reviewNotes": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
