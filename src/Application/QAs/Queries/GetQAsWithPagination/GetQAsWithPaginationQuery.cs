@@ -12,6 +12,7 @@ public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefD
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
     public Language? Language { get; init; }
+    public List<Guid>? TagIds { get; init; }
 }
 
 public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, Result<PaginatedList<QABriefDto>>>
@@ -39,6 +40,11 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
             query = query.Where(q => q.Translations.Any(t => 
                 t.QuestionText.Contains(request.SearchTerm) ||
                 t.AnswerText.Contains(request.SearchTerm)));
+        }
+
+        if (request.TagIds != null && request.TagIds.Any())
+        {
+            query = query.Where(q => q.QATags.Any(qt => request.TagIds.Contains(qt.TagId)));
         }
 
         var projected = query
