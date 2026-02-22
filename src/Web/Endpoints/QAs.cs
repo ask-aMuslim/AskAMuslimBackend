@@ -39,7 +39,8 @@ public class QAs : EndpointGroupBase
         int? pageSize = 10, 
         string? searchTerm = null,
         bool? isPublished = null,
-        Language? language = null)
+        Language? language = null,
+        [FromQuery] List<Guid>? tagIds = null)
     {
         var query = new GetQAsWithPaginationQuery
         {
@@ -47,7 +48,8 @@ public class QAs : EndpointGroupBase
             PageSize = pageSize,
             SearchTerm = searchTerm,
             IsPublished = isPublished,
-            Language = language
+            Language = language,
+            TagIds = tagIds
         };
         var result = await sender.Send(query);
         return result.ToHttpResult();
