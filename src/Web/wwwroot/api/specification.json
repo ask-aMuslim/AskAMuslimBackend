@@ -4147,6 +4147,21 @@
               ]
             },
             "x-position": 5
+          },
+          {
+            "name": "tagIds",
+            "in": "query",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "format": "guid"
+              }
+            },
+            "x-position": 6
           }
         ],
         "responses": {
