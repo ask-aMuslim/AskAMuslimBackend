@@ -40,7 +40,7 @@ public class QAs : EndpointGroupBase
         string? searchTerm = null,
         bool? isPublished = null,
         Language? language = null,
-        [FromQuery] List<Guid>? tagIds = null)
+        [FromQuery] Guid[]? tagIds = null)
     {
         var query = new GetQAsWithPaginationQuery
         {
@@ -49,7 +49,7 @@ public class QAs : EndpointGroupBase
             SearchTerm = searchTerm,
             IsPublished = isPublished,
             Language = language,
-            TagIds = tagIds
+            TagIds = tagIds?.ToList()
         };
         var result = await sender.Send(query);
         return result.ToHttpResult();
