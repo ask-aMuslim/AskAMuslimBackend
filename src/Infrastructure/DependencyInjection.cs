@@ -159,6 +159,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<IPermissionService, PermissionService>();
         builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
         builder.Services.AddAuthorization(options =>
         {
             // System Policies - Admin only

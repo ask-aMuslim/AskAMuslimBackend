@@ -32,6 +32,7 @@ public interface IApplicationDbContext
     DbSet<InquiryRequest> InquiryRequests { get; }
     DbSet<Event> Events { get; }
     DbSet<EventRegistration> EventRegistrations { get; }
+    DbSet<Report> Reports { get; }
 
     // User Management
     DbSet<Student> Students { get; }
