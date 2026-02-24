@@ -59,7 +59,7 @@ public class GetAllReportsQueryHandler : IRequestHandler<GetAllReportsQuery, Res
             {
                 Id = r.Id,
                 ReportType = r.ReportType,
-                ReportedContentId = r.ReportedContentId,
+                ReportedContentId = r.ReportedContentId ?? Guid.Empty,
                 Reason = r.Reason,
                 Description = r.Description,
                 Status = r.Status,
@@ -75,9 +75,9 @@ public class GetAllReportsQueryHandler : IRequestHandler<GetAllReportsQuery, Res
             });
 
         var paginatedList = await PaginatedList<ReportDto>.CreateAsync(
-            projected, 
-            request.PageNumber ?? 1, 
-            request.PageSize ?? 10, 
+            projected,
+            request.PageNumber ?? 1,
+            request.PageSize ?? 10,
             cancellationToken);
 
         return Result<PaginatedList<ReportDto>>.Success(paginatedList);

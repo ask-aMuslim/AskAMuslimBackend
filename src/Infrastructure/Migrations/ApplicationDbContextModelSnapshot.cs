@@ -1243,7 +1243,7 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<Guid>("ReportedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ReportedContentId")
+                    b.Property<Guid?>("ReportedContentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReviewNotes")
