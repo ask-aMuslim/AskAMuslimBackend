@@ -1209,6 +1209,67 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("QuizAttemptAnswers");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Report", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReportType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ReportedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReportedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ReportedContentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReviewNotes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportedById");
+
+                    b.HasIndex("ReviewedById");
+
+                    b.ToTable("Reports");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.RolePermission", b =>
                 {
                     b.Property<int>("Id")
@@ -2135,6 +2196,21 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("QuizAttempt");
 
                     b.Navigation("SelectedOption");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Report", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "ReportedBy")
+                        .WithMany()
+                        .HasForeignKey("ReportedById");
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedById");
+
+                    b.Navigation("ReportedBy");
+
+                    b.Navigation("ReviewedBy");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Student", b =>
