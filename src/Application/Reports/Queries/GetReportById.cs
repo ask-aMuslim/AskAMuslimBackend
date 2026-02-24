@@ -32,7 +32,7 @@ public class GetReportByIdQueryHandler : IRequestHandler<GetReportByIdQuery, Res
         {
             Id = report.Id,
             ReportType = report.ReportType,
-            ReportedContentId = report.ReportedContentId,
+            ReportedContentId = report.ReportedContentId ?? Guid.Empty,
             Reason = report.Reason,
             Description = report.Description,
             Status = report.Status,

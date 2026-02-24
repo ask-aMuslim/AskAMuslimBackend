@@ -10,7 +10,7 @@ namespace AskAMuslimBackend.Application.Reports.Commands;
 public record CreateReportCommand : IRequest<Result<Guid>>
 {
     public ReportType ReportType { get; init; }
-    public Guid ReportedContentId { get; init; }
+    public Guid? ReportedContentId { get; init; }
     public ReportReason Reason { get; init; }
     public string Description { get; init; } = string.Empty;
 }
@@ -36,8 +36,8 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         // Check if user already reported this content
         var existingReport = await _context.Reports
             .AsNoTracking()
-            .FirstOrDefaultAsync(r => 
-                r.ReportedContentId == request.ReportedContentId && 
+            .FirstOrDefaultAsync(r =>
+                r.ReportedContentId == request.ReportedContentId &&
                 r.ReportType == request.ReportType &&
                 r.ReportedByUserId == userId &&
                 r.Status == ReportStatus.Pending,
@@ -51,7 +51,7 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         var report = new Report
         {
             ReportType = request.ReportType,
-            ReportedContentId = request.ReportedContentId,
+            ReportedContentId = request.ReportedContentId ?? Guid.Empty,
             Reason = request.Reason,
             Description = request.Description,
             Status = ReportStatus.Pending,
@@ -72,10 +72,6 @@ public class CreateReportCommandValidator : AbstractValidator<CreateReportComman
         RuleFor(x => x.ReportType)
             .IsInEnum()
             .WithMessage("Invalid report type.");
-
-        RuleFor(x => x.ReportedContentId)
-            .NotEmpty()
-            .WithMessage("Reported content ID is required.");
 
         RuleFor(x => x.Reason)
             .IsInEnum()
