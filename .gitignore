@@ -484,4 +484,4 @@ $RECYCLE.BIN/
 
 # appsettings.json for security
 appsettings.*.json
-/src/Web/appsettings.json
+/src/Web/appsettings.Development.json
