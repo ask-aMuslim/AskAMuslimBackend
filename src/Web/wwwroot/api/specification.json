@@ -1226,6 +1226,36 @@
         ]
       }
     },
+    "/api/Enrollments/{studentId}": {
+      "get": {
+        "tags": [
+          "Enrollments"
+        ],
+        "operationId": "GetUnCompletedEnrollments",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/EventRegistrations/{id}": {
       "get": {
         "tags": [
