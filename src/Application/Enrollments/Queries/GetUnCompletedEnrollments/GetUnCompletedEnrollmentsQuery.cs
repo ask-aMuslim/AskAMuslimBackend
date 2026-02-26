@@ -4,31 +4,19 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Enrollments.Queries.GetUnCompletedEnrollments;
 
-public record GetUnCompletedEnrollmentsQuery : IRequest<Result<List<EnrollmentDto>>>
-{
-    [System.Text.Json.Serialization.JsonIgnore]
-    public Guid? StudentId { get; set; }
-}
+public record GetUnCompletedEnrollmentsQuery(Guid StudentId) : IRequest<Result<List<EnrollmentDto>>>;
 
 public class GetUnCompletedEnrollmentsQueryHandler : IRequestHandler<GetUnCompletedEnrollmentsQuery, Result<List<EnrollmentDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IMapper _mapper;
-    public GetUnCompletedEnrollmentsQueryHandler(IApplicationDbContext context, IMapper mapper, ICurrentUserService currentUserService)
+    public GetUnCompletedEnrollmentsQueryHandler(IApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
-        _currentUserService = currentUserService;
     }
     public async Task<Result<List<EnrollmentDto>>> Handle(GetUnCompletedEnrollmentsQuery request, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId;
-        request.StudentId = userId;
-
-        if(userId == null)
-            return Result<List<EnrollmentDto>>.Failure(new string[] { "Unauthorized" });
- 
         var enrollments = await _context.Enrollments
             .Where(e => e.StudentId == request.StudentId && e.Status == EnrollmentStatus.Active)
             .OrderByDescending(e => e.EnrolledAt)

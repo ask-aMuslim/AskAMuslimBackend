@@ -34,7 +34,7 @@ public class Enrollments : EndpointGroupBase
             .RequireAuthorization(Policies.ManageAllCourses)
             .WithName("DeleteEnrollment")
             .WithSummary("Delete an enrollment");
-        groupBuilder.MapGet(GetUnCompletedEnrollments)
+        groupBuilder.MapGet(GetUnCompletedEnrollments, "{studentId}")
             .WithName("MyUcompletedCourses")
             .WithSummary("Get uncompleted enrollments for the current user")
             .RequireAuthorization();
@@ -76,9 +76,9 @@ public class Enrollments : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetUnCompletedEnrollments(ISender sender)
+    public async Task<IResult> GetUnCompletedEnrollments(ISender sender, Guid studentId)
     {
-        var result = await sender.Send(new GetUnCompletedEnrollmentsQuery());
+        var result = await sender.Send(new GetUnCompletedEnrollmentsQuery(studentId));
         return result.ToHttpResult();
     }
 }

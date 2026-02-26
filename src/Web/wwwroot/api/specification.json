@@ -1182,22 +1182,6 @@
             "JWT": []
           }
         ]
-      },
-      "get": {
-        "tags": [
-          "Enrollments"
-        ],
-        "operationId": "GetUnCompletedEnrollments",
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
       }
     },
     "/api/Enrollments/{id}/status": {
@@ -1230,6 +1214,36 @@
           "required": true,
           "x-position": 2
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Enrollments/{studentId}": {
+      "get": {
+        "tags": [
+          "Enrollments"
+        ],
+        "operationId": "GetUnCompletedEnrollments",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
