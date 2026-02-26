@@ -1182,6 +1182,22 @@
             "JWT": []
           }
         ]
+      },
+      "get": {
+        "tags": [
+          "Enrollments"
+        ],
+        "operationId": "GetUnCompletedEnrollments",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/Enrollments/{id}/status": {

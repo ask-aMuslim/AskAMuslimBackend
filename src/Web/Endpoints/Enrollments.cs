@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Enrollments.Queries;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentById;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByCourse;
 using AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByStudent;
+using AskAMuslimBackend.Application.Enrollments.Queries.GetUnCompletedEnrollments;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -33,6 +34,10 @@ public class Enrollments : EndpointGroupBase
             .RequireAuthorization(Policies.ManageAllCourses)
             .WithName("DeleteEnrollment")
             .WithSummary("Delete an enrollment");
+        groupBuilder.MapGet(GetUnCompletedEnrollments)
+            .WithName("MyUcompletedCourses")
+            .WithSummary("Get uncompleted enrollments for the current user")
+            .RequireAuthorization();
     }
 
     public async Task<IResult> GetEnrollment(ISender sender, Guid id)
@@ -68,6 +73,12 @@ public class Enrollments : EndpointGroupBase
     public async Task<IResult> DeleteEnrollment(ISender sender, Guid id)
     {
         var result = await sender.Send(new DeleteEnrollmentCommand(id));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetUnCompletedEnrollments(ISender sender)
+    {
+        var result = await sender.Send(new GetUnCompletedEnrollmentsQuery());
         return result.ToHttpResult();
     }
 }
