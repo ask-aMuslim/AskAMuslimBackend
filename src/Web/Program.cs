@@ -1,6 +1,5 @@
 using AskAMuslimBackend.Infrastructure.Data;
 using Hangfire;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
