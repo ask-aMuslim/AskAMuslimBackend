@@ -1223,7 +1223,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTimeOffset>("LastModified")
                         .HasColumnType("datetimeoffset");
@@ -1237,9 +1238,6 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<int>("ReportType")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("ReportedById")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid>("ReportedByUserId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1247,13 +1245,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ReviewNotes")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ReviewedByUserId")
                         .HasColumnType("uniqueidentifier");
@@ -1263,9 +1259,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReportedById");
+                    b.HasIndex("ReportedByUserId");
 
-                    b.HasIndex("ReviewedById");
+                    b.HasIndex("ReviewedByUserId");
 
                     b.ToTable("Reports");
                 });
@@ -2202,11 +2198,14 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "ReportedBy")
                         .WithMany()
-                        .HasForeignKey("ReportedById");
+                        .HasForeignKey("ReportedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "ReviewedBy")
                         .WithMany()
-                        .HasForeignKey("ReviewedById");
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ReportedBy");
 
