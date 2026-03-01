@@ -710,6 +710,31 @@
         ]
       }
     },
+    "/api/ContactUs": {
+      "post": {
+        "tags": [
+          "ContactUs"
+        ],
+        "operationId": "SendMessage",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendContactUsMessageCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Courses": {
       "get": {
         "tags": [
@@ -6134,6 +6159,21 @@
             "format": "guid"
           },
           "url": {
+            "type": "string"
+          }
+        }
+      },
+      "SendContactUsMessageCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "message": {
             "type": "string"
           }
         }
