@@ -17,19 +17,35 @@ The primary target languages are **English**, **Arabic**, **Spanish**, and **Por
 
 ## Architecture Overview
 
-Localization is handled via **per-entity translation tables**. Each translatable entity has a companion `*Translation` entity that stores language-specific fields. The `Language` enum (in `Domain/Enums/Language.cs`) is the single source of truth for supported languages.
+The project uses two localization patterns depending on the entity:
 
-### Translation Pattern
+### 1. Translation-Table Pattern (Q&A)
+
+Used by the **QA** entity. Each QA has a companion `QATranslation` row per language.
 
 ```
-Entity (e.g. QA)
-  └── EntityTranslation (e.g. QATranslation)
+QA
+  └── QATranslation
         ├── Language  (Language enum stored as string)
-        ├── <field1>  (translated field)
-        └── <field2>  (translated field)
+        ├── QuestionText
+        └── AnswerText / AnswerTextJson
 ```
 
-A unique index on `(EntityId, Language)` enforces one translation per language per entity.
+A unique index on `(QAId, Language)` enforces one translation per language per QA.  
+Callers pass an optional `language` query parameter; when omitted all translations are returned.
+
+### 2. Language-Attribute Pattern (Courses, Levels, Lessons, …)
+
+For content entities (Level, Course, Lesson, etc.) a `Language` property is added **directly on the entity**. Each row represents content in one specific language. Queries read the `Accept-Language` HTTP request header and automatically filter records to the matching language.
+
+```
+Course
+  ├── Language  ← attribute marking the language of this record
+  ├── Title
+  └── Description
+```
+
+**Querying:** `GET /Courses`, `GET /Levels`, `GET /Lessons` inspect the `Accept-Language` header (e.g. `Accept-Language: ar`) and apply a `WHERE Language = <resolved>` filter. If the header is absent or the language has no content, the API falls back to **English**.
 
 ---
 
@@ -46,28 +62,26 @@ A unique index on `(EntityId, Language)` enforces one translation per language p
 
 ## Pending Work
 
-### Phase 1 – Core Content Entities
+### Phase 1 – Core Content Entities (Language-Attribute Pattern)
 
-These entities contain user-facing content and need translation tables:
+Add a `Language` property directly to each content entity so that each row represents content in one specific language. Queries use the `Accept-Language` HTTP header to filter results automatically.
 
-| Entity    | Fields to Translate                   | Status  |
-|-----------|---------------------------------------|---------|
-| Level     | `Title`, `Description`                | Pending |
-| Course    | `Title`, `Description`                | Pending |
+| Entity    | Fields                                              | Status  |
+|-----------|-----------------------------------------------------|---------|
+| Level     | `Title`, `Description`                              | Pending |
+| Course    | `Title`, `Description`                              | Pending |
 | Lesson    | `Title`, `Description`, `ContentJson`, `Transcript` | Pending |
-| Question  | `QuestionText`                        | Pending |
-| Option    | `OptionText`                          | Pending |
-| Tag       | `Title`, `Description`                | Pending |
+| Question  | `QuestionText`                                      | Pending |
+| Option    | `OptionText`                                        | Pending |
+| Tag       | `Title`, `Description`                              | Pending |
 
 For each entity the implementation steps are:
-1. Create a `*Translation` domain entity (e.g. `CourseTranslation`).
-2. Add a `Translations` navigation property to the parent entity.
-3. Add an EF Core configuration class (`*TranslationConfiguration`).
-4. Register the new `DbSet` in `IApplicationDbContext` and `ApplicationDbContext`.
-5. Add an EF Core migration.
-6. Update Create / Update commands to accept `List<*TranslationInput>`.
-7. Update Read queries / DTOs to expose translations (optionally filtered by language).
-8. Update endpoint summaries.
+1. Add a `Language Language { get; set; }` property to the entity.
+2. Add an EF Core migration.
+3. In every "Get All" query handler, resolve the desired language from the `Accept-Language` HTTP header (falling back to `Language.English` when absent or unrecognised).
+4. Apply `.Where(e => e.Language == resolvedLanguage)` inside the query.
+5. Update Create / Update commands to accept a `Language` field.
+6. Update Read DTOs to expose the `Language` field.
 
 ### Phase 2 – User-Facing Notifications
 
@@ -91,12 +105,11 @@ For each entity the implementation steps are:
 
 ## API Design Guidelines
 
-- Endpoints that return translatable content accept an optional `language` query parameter.
-- When `language` is omitted, **all** translations are returned (useful for admin/editor UIs).
-- When `language` is provided, only the matching translation is included (useful for client apps).
+- **Content entities (Courses, Levels, Lessons, …):** Clients set the `Accept-Language` header (e.g. `Accept-Language: ar`). The API resolves the language from this header and filters results accordingly. If the header is absent or no content exists for that language, the response defaults to **English**.
+- **Q&A:** Accepts an optional `language` query parameter. When omitted, all translations are returned (useful for admin/editor UIs).
 
 ---
 
 ## Deployment Notes
 
-This project is deployed on **Azure** (cloud). The `Language` enum values are stored as strings, so new languages are backward-compatible with existing deployments – no database downtime or data migration is required when adding a new language.
+This project is deployed on **GitHub**. The `Language` enum values are stored as strings, so new languages are backward-compatible with existing deployments – no database downtime or data migration is required when adding a new language.
