@@ -11,7 +11,9 @@ public record CreateLevelCommand : IRequest<Result<Guid>>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public int Order { get; init; }
-    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; } = false;}
+    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; } = false;
+    public Language Language { get; init; } = Language.English;
+}
 
 public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Result<Guid>>
 {
@@ -30,7 +32,8 @@ public class CreateLevelCommandHandler : IRequestHandler<CreateLevelCommand, Res
             Description = request.Description,
             Order = request.Order,
             Difficulty = request.Difficulty,
-            IsPublished = request.IsPublished
+            IsPublished = request.IsPublished,
+            Language = request.Language
         };
 
         _context.Levels.Add(level);
@@ -56,5 +59,8 @@ public class CreateLevelCommandValidator : AbstractValidator<CreateLevelCommand>
 
         RuleFor(x => x.Difficulty)
             .IsInEnum().WithMessage("Invalid difficulty value.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
     }
 }

@@ -13,7 +13,9 @@ public record UpdateLevelCommand : IRequest<Result>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public int Order { get; init; }
-    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; }}
+    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; }
+    public Language Language { get; init; } = Language.English;
+}
 
 public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Result>
 {
@@ -38,6 +40,7 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Res
         entity.Order = request.Order;
         entity.Difficulty = request.Difficulty;
         entity.IsPublished = request.IsPublished;
+        entity.Language = request.Language;
 
         await _context.SaveChangesAsync(cancellationToken);
         
@@ -64,5 +67,8 @@ public class UpdateLevelCommandValidator : AbstractValidator<UpdateLevelCommand>
 
         RuleFor(x => x.Difficulty)
             .IsInEnum().WithMessage("Invalid difficulty value.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
     }
 }

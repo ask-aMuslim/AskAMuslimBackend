@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Courses.Commands.CreateCourse;
 
@@ -12,6 +13,7 @@ public record CreateCourseCommand : IRequest<Result<Guid>>
     public string? ThumbnailUrl { get; init; }
     public bool IsPublished { get; init; }
     public int Order { get; init; }
+    public Language Language { get; init; } = Language.English;
     public List<Guid> TagIds { get; init; } = new();
 }
 
@@ -34,7 +36,8 @@ public class CreateCourseCommandHandler : IRequestHandler<CreateCourseCommand, R
             Description = request.Description,
             ThumbnailUrl = request.ThumbnailUrl,
             IsPublished = request.IsPublished,
-            Order = request.Order
+            Order = request.Order,
+            Language = request.Language
         };
 
         if (request.TagIds.Count != 0)

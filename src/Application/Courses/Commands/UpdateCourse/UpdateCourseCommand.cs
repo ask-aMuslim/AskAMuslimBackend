@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -16,6 +17,7 @@ public record UpdateCourseCommand : IRequest<Result>
     public string? ThumbnailUrl { get; init; }
     public bool IsPublished { get; init; }
     public int Order { get; init; }
+    public Language Language { get; init; } = Language.English;
     public List<Guid> TagIds { get; init; } = new();
 }
 
@@ -45,6 +47,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, R
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.IsPublished = request.IsPublished;
         entity.Order = request.Order;
+        entity.Language = request.Language;
 
         // update tags
         var current = entity.CourseTags.Select(ct => ct.TagId).ToHashSet();

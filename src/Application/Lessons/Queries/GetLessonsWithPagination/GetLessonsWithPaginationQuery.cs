@@ -17,6 +17,8 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
     public LessonType? Type { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Language? Language { get; init; }
 }
 
 public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
@@ -47,6 +49,11 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
         if (request.Type.HasValue)
         {
             query = query.Where(l => l.Type == request.Type.Value);
+        }
+
+        if (request.Language.HasValue)
+        {
+            query = query.Where(l => l.Language == request.Language.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))

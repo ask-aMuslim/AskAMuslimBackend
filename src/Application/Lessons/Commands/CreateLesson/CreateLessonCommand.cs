@@ -20,6 +20,7 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; } = false;
+    public Language Language { get; init; } = Language.English;
 }
 
 public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Result<Guid>>
@@ -51,7 +52,8 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             Transcript = request.Transcript,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order,
-            IsPublished = request.IsPublished
+            IsPublished = request.IsPublished,
+            Language = request.Language
         };
 
         _context.Lessons.Add(lesson);
@@ -90,6 +92,9 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
 
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Invalid lesson type.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
 
         RuleFor(x => x.ContentJson)
             .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))

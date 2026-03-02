@@ -1,5 +1,6 @@
 ﻿using AskAMuslimBackend.Application.Tags.Queries;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Courses.Queries;
 
@@ -18,6 +19,8 @@ public class CourseBriefDto
     public double Rating { get; init; }
 
     public int Order { get; init; }
+
+    public Language Language { get; init; }
 
     public List<TagBriefDto> Tags { get; init; } = new();
 

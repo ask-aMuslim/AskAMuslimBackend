@@ -2,6 +2,7 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
+using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Levels.Queries.GetLevelsWithPagination;
 
@@ -11,6 +12,8 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Language? Language { get; init; }
 }
 
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
@@ -27,6 +30,11 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
     public async Task<Result<PaginatedList<LevelBriefDto>>> Handle(GetLevelsWithPaginationQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Levels.AsQueryable();
+
+        if (request.Language.HasValue)
+        {
+            query = query.Where(l => l.Language == request.Language.Value);
+        }
 
         if (request.IsPublished.HasValue)
         {

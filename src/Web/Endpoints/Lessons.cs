@@ -4,6 +4,7 @@ using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
 using AskAMuslimBackend.Domain.Constants;
+using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -27,9 +28,10 @@ public class Lessons : EndpointGroupBase
             .WithSummary("Delete a lesson");
     }
 
-    public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query)
+    public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query, HttpRequest request)
     {
-        var result = await sender.Send(query);
+        var language = LanguageResolver.Resolve(request.Headers);
+        var result = await sender.Send(query with { Language = language });
         return result.ToHttpResult();
     }
 

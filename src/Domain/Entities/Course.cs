@@ -1,4 +1,6 @@
-﻿namespace AskAMuslimBackend.Domain.Entities;
+﻿using AskAMuslimBackend.Domain.Enums;
+
+namespace AskAMuslimBackend.Domain.Entities;
 
 public class Course : BaseAuditableEntity
 {
@@ -9,6 +11,7 @@ public class Course : BaseAuditableEntity
     public bool IsPublished { get; set; }
     public double Rating { get; set; }
     public int Order { get; set; }
+    public Language Language { get; set; } = Language.English;
 
     // Navigation
     public Level? Level { get; set; }

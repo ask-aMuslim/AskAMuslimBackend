@@ -22,6 +22,7 @@ public record UpdateLessonCommand : IRequest<Result>
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; }
+    public Language Language { get; init; } = Language.English;
 }
 
 public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, Result>
@@ -59,6 +60,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.Order = request.Order;
         entity.IsPublished = request.IsPublished;
+        entity.Language = request.Language;
 
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();
@@ -76,6 +78,7 @@ public class UpdateLessonCommandValidator : AbstractValidator<UpdateLessonComman
         RuleFor(x => x.ContentUrl).MaximumLength(500).When(x => !string.IsNullOrEmpty(x.ContentUrl));
         RuleFor(x => x.ThumbnailUrl).MaximumLength(500).When(x => !string.IsNullOrEmpty(x.ThumbnailUrl));
         RuleFor(x => x.Type).IsInEnum();
+        RuleFor(x => x.Language).IsInEnum().WithMessage("Invalid language value.");
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
 
         RuleFor(x => x.ContentJson)
