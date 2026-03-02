@@ -113,6 +113,9 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
                 case Language.German:
                     qaStats.German = translation.Count;
                     break;
+                case Language.Portuguese:
+                    qaStats.Portuguese = translation.Count;
+                    break;
             }
         }
 
