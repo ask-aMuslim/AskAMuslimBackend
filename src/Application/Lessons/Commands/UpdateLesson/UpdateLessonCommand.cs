@@ -28,10 +28,12 @@ public record UpdateLessonCommand : IRequest<Result>
 public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateLessonCommandHandler(IApplicationDbContext context)
+    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
@@ -39,7 +41,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         var entity = await _context.Lessons.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (entity == null)
-            return Result.Failure(new[] { "Lesson not found." });
+            return Result.Failure(new[] { _localizer["Lessons.NotFound"] });
 
         // Optional: ensure course relation not broken
         if (entity.CourseId != request.CourseId)
@@ -47,7 +49,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
             // Ensure target course exists
             var course = await _context.Courses.FindAsync(new object[] { request.CourseId }, cancellationToken);
             if (course == null)
-                return Result.Failure(new[] { "Course not found." });
+                return Result.Failure(new[] { _localizer["Courses.NotFound"] });
             entity.CourseId = request.CourseId;
         }
 

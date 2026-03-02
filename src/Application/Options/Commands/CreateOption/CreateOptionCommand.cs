@@ -15,10 +15,12 @@ public record CreateOptionCommand : IRequest<Result<Guid>>
 public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateOptionCommandHandler(IApplicationDbContext context)
+    public CreateOptionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateOptionCommand request, CancellationToken cancellationToken)
@@ -26,7 +28,7 @@ public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, R
         var exists = await _context.Questions.AnyAsync(q => q.Id == request.QuestionId, cancellationToken);
         if (!exists)
         {
-            return Result<Guid>.Failure(new[] { "Question does not exist." });
+            return Result<Guid>.Failure(new[] { _localizer["Questions.DoesNotExist"] });
         }
 
         var entity = new Option

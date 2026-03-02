@@ -24,10 +24,12 @@ public record UpdateCourseCommand : IRequest<Result>
 public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateCourseCommandHandler(IApplicationDbContext context)
+    public UpdateCourseCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, R
 
         if (entity == null)
         {
-            return Result.Failure(new[] { "Course not found" });
+            return Result.Failure(new[] { _localizer["Courses.NotFound"] });
         }
 
         entity.LevelId = request.LevelId;

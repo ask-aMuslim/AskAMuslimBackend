@@ -15,10 +15,12 @@ public record AnswerStudentQuestionCommand : IRequest<Result>
 public class AnswerStudentQuestionCommandHandler : IRequestHandler<AnswerStudentQuestionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public AnswerStudentQuestionCommandHandler(IApplicationDbContext context)
+    public AnswerStudentQuestionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(AnswerStudentQuestionCommand request, CancellationToken cancellationToken)
@@ -26,7 +28,7 @@ public class AnswerStudentQuestionCommandHandler : IRequestHandler<AnswerStudent
         var entity = await _context.StudentQuestions.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (entity == null)
-            return Result.Failure(new[] { "Student question not found." });
+            return Result.Failure(new[] { _localizer["StudentQuestions.NotFound"] });
 
         entity.Answered = true;
         entity.AnswerText = request.AnswerText;

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true" />
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- HTTP / Exception handler -->
+  <data name="Errors.ResourceNotFound" xml:space="preserve"><value>المورد المحدد غير موجود.</value></data>
+  <data name="Errors.Unauthorized" xml:space="preserve"><value>غير مصرح به</value></data>
+  <data name="Errors.Forbidden" xml:space="preserve"><value>محظور</value></data>
+
+  <!-- Auth -->
+  <data name="Auth.NotAuthenticated" xml:space="preserve"><value>المستخدم غير مصادق عليه.</value></data>
+  <data name="Auth.InvalidUserContext" xml:space="preserve"><value>سياق المستخدم غير صالح</value></data>
+  <data name="Auth.InvalidUserIdFormat" xml:space="preserve"><value>تنسيق معرّف المستخدم غير صالح</value></data>
+
+  <!-- Tags -->
+  <data name="Tags.NotFound" xml:space="preserve"><value>الوسم غير موجود</value></data>
+  <data name="Tags.DoesNotExist" xml:space="preserve"><value>الوسم {0} غير موجود.</value></data>
+
+  <!-- Levels -->
+  <data name="Levels.NotFound" xml:space="preserve"><value>المستوى غير موجود</value></data>
+  <data name="Levels.HasCourses" xml:space="preserve"><value>لا يمكن حذف المستوى لأنه يحتوي على دورات مرتبطة. يرجى إزالة الدورات أو إعادة تعيينها أولاً.</value></data>
+  <data name="Levels.DeleteFailed" xml:space="preserve"><value>فشل حذف المستوى: {0}</value></data>
+
+  <!-- Courses -->
+  <data name="Courses.NotFound" xml:space="preserve"><value>الدورة غير موجودة</value></data>
+  <data name="Courses.DoesNotExist" xml:space="preserve"><value>الدورة غير موجودة.</value></data>
+  <data name="Courses.IsPrerequisiteFor" xml:space="preserve"><value>لا يمكن حذف هذه الدورة لأنها شرط مسبق لـ: {0}. يرجى إزالة هذه الدورة من متطلبات الدورات الأخرى أولاً.</value></data>
+  <data name="Courses.HasLessons" xml:space="preserve"><value>لا يمكن حذف هذه الدورة لأنها تحتوي على {0} درس/دروس. يرجى حذف جميع الدروس أولاً أو إلغاء نشر الدورة بدلاً من حذفها.</value></data>
+  <data name="Courses.HasActiveEnrollments" xml:space="preserve"><value>لا يمكن حذف هذه الدورة لأن {0} طالب/طلاب مسجلون فيها حالياً. يرجى انتظار إتمام الطلاب للدورة أو إلغاء تسجيلاتهم أو إلغاء نشر الدورة.</value></data>
+  <data name="Courses.DeleteDbError" xml:space="preserve"><value>حدث خطأ أثناء حذف الدورة. قد يكون ذلك بسبب تبعيات البيانات. يرجى التواصل مع الدعم إذا استمرت المشكلة.</value></data>
+  <data name="Courses.DeleteUnexpectedError" xml:space="preserve"><value>حدث خطأ غير متوقع أثناء حذف الدورة.</value></data>
+  <data name="Courses.SelfPrerequisite" xml:space="preserve"><value>لا يمكن أن تكون الدورة شرطاً مسبقاً لنفسها.</value></data>
+  <data name="Courses.PrerequisiteAlreadyExists" xml:space="preserve"><value>علاقة الشرط المسبق هذه موجودة بالفعل.</value></data>
+  <data name="Courses.PrerequisiteCircularDependency" xml:space="preserve"><value>إضافة هذا الشرط المسبق ستؤدي إلى تبعية دائرية.</value></data>
+  <data name="Courses.PrerequisiteNotFound" xml:space="preserve"><value>علاقة الشرط المسبق غير موجودة.</value></data>
+  <data name="Courses.PrerequisiteCourseNotFound" xml:space="preserve"><value>دورة الشرط المسبق غير موجودة.</value></data>
+
+  <!-- Lessons -->
+  <data name="Lessons.NotFound" xml:space="preserve"><value>الدرس غير موجود.</value></data>
+
+  <!-- Quizzes -->
+  <data name="Quizzes.NotFound" xml:space="preserve"><value>الاختبار غير موجود.</value></data>
+  <data name="Quizzes.TargetDoesNotExist" xml:space="preserve"><value>الهدف غير موجود أو لم يُقدَّم المعرّف.</value></data>
+
+  <!-- Questions -->
+  <data name="Questions.NotFound" xml:space="preserve"><value>السؤال غير موجود</value></data>
+  <data name="Questions.DoesNotExist" xml:space="preserve"><value>السؤال غير موجود.</value></data>
+
+  <!-- Options -->
+  <data name="Options.NotFound" xml:space="preserve"><value>الخيار غير موجود</value></data>
+
+  <!-- Events -->
+  <data name="Events.NotFound" xml:space="preserve"><value>الحدث غير موجود</value></data>
+
+  <!-- Event Registrations -->
+  <data name="EventRegistrations.NotFound" xml:space="preserve"><value>تسجيل الحدث غير موجود</value></data>
+  <data name="EventRegistrations.AlreadyRegistered" xml:space="preserve"><value>المستخدم مسجل بالفعل في هذا الحدث.</value></data>
+
+  <!-- Admins -->
+  <data name="Admins.NotFound" xml:space="preserve"><value>المسؤول غير موجود</value></data>
+
+  <!-- Students -->
+  <data name="Students.NotFound" xml:space="preserve"><value>الطالب غير موجود</value></data>
+
+  <!-- Reports -->
+  <data name="Reports.AlreadyReported" xml:space="preserve"><value>لقد أبلغت بالفعل عن هذا المحتوى.</value></data>
+
+  <!-- StudentQuestions -->
+  <data name="StudentQuestions.NotFound" xml:space="preserve"><value>سؤال الطالب غير موجود.</value></data>
+
+  <!-- StudentNotes -->
+  <data name="StudentNotes.NotFound" xml:space="preserve"><value>ملاحظة الطالب غير موجودة.</value></data>
+
+  <!-- QAs -->
+  <data name="QAs.NotFound" xml:space="preserve"><value>السؤال والجواب غير موجودَين.</value></data>
+  <data name="QAs.DuplicateLanguage" xml:space="preserve"><value>لغة مكررة: {0}.</value></data>
+
+  <!-- Moderators -->
+  <data name="Moderators.NotFound" xml:space="preserve"><value>المشرف غير موجود</value></data>
+  <data name="Moderators.AssociatedUserNotFound" xml:space="preserve"><value>المستخدم المرتبط غير موجود</value></data>
+  <data name="Moderators.AlreadyInRole" xml:space="preserve"><value>المشرف موجود بالفعل في الدور المطلوب</value></data>
+
+  <!-- Roles -->
+  <data name="Roles.Invalid" xml:space="preserve"><value>دور غير صالح</value></data>
+
+  <!-- AdminNotes -->
+  <data name="AdminNotes.InvalidUserContext" xml:space="preserve"><value>سياق المستخدم غير صالح</value></data>
+
+  <!-- Enrollments -->
+  <data name="Enrollments.NotFound" xml:space="preserve"><value>التسجيل غير موجود</value></data>
+
+  <!-- Certificates -->
+  <data name="Certificates.NotFound" xml:space="preserve"><value>الشهادة غير موجودة</value></data>
+</root>

@@ -16,16 +16,18 @@ public record UpdateOptionCommand : IRequest<Result>
 public class UpdateOptionCommandHandler : IRequestHandler<UpdateOptionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateOptionCommandHandler(IApplicationDbContext context)
+    public UpdateOptionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateOptionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Options.FindAsync(new object[] { request.Id }, cancellationToken);
-        if (entity == null) return Result.Failure(new[] { "Option not found" });
+        if (entity == null) return Result.Failure(new[] { _localizer["Options.NotFound"] });
 
         entity.Text = request.Text;
         entity.IsCorrect = request.IsCorrect;

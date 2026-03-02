@@ -26,10 +26,12 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
 public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateLessonCommandHandler(IApplicationDbContext context)
+    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         var courseExists = await _context.Courses.AsNoTracking().AnyAsync(c => c.Id == request.CourseId, cancellationToken);
         if (!courseExists)
         {
-            return Result<Guid>.Failure(new[] { "Course does not exist." });
+            return Result<Guid>.Failure(new[] { _localizer["Courses.DoesNotExist"] });
         }
 
         var lesson = new Lesson

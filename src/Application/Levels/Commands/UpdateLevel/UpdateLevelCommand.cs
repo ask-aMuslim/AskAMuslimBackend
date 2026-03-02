@@ -20,10 +20,12 @@ public record UpdateLevelCommand : IRequest<Result>
 public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateLevelCommandHandler(IApplicationDbContext context)
+    public UpdateLevelCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateLevelCommand request, CancellationToken cancellationToken)
@@ -32,7 +34,7 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Res
         
         if (entity == null)
         {
-            return Result.Failure(new[] { "Level not found" });
+            return Result.Failure(new[] { _localizer["Levels.NotFound"] });
         }
 
         entity.Title = request.Title;

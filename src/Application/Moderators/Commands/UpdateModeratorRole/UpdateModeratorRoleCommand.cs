@@ -34,15 +34,18 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
     private readonly IApplicationDbContext _context;
     private readonly UserManager<Domain.Entities.User> _userManager;
     private readonly IPermissionService _permissionService;
+    private readonly ILocalizationService _localizer;
 
     public UpdateModeratorRoleCommandHandler(
         IApplicationDbContext context,
         UserManager<Domain.Entities.User> userManager,
-        IPermissionService permissionService)
+        IPermissionService permissionService,
+        ILocalizationService localizer)
     {
         _context = context;
         _userManager = userManager;
         _permissionService = permissionService;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(UpdateModeratorRoleCommand request, CancellationToken cancellationToken)
@@ -85,7 +88,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
             // Check if already the requested role
             if (currentRole == request.NewRole)
             {
-                return Result<Guid>.Failure(new[] { "Moderator is already in the requested role" });
+                return Result<Guid>.Failure(new[] { _localizer["Moderators.AlreadyInRole"] });
             }
 
             // Remove from Admins table
@@ -115,7 +118,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
 
                 if (currentRole == request.NewRole)
                 {
-                    return Result<Guid>.Failure(new[] { "Moderator is already in the requested role" });
+                    return Result<Guid>.Failure(new[] { _localizer["Moderators.AlreadyInRole"] });
                 }
 
                 // Remove from Instructors table
@@ -147,7 +150,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
 
                     if (currentRole == request.NewRole)
                     {
-                        return Result<Guid>.Failure(new[] { "Moderator is already in the requested role" });
+                        return Result<Guid>.Failure(new[] { _localizer["Moderators.AlreadyInRole"] });
                     }
 
                     // Remove from Preachers table
@@ -155,7 +158,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
                 }
                 else
                 {
-                    return Result<Guid>.Failure(new[] { "Moderator not found" });
+                    return Result<Guid>.Failure(new[] { _localizer["Moderators.NotFound"] });
                 }
             }
         }
@@ -164,7 +167,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return Result<Guid>.Failure(new[] { "Associated user not found" });
+            return Result<Guid>.Failure(new[] { _localizer["Moderators.AssociatedUserNotFound"] });
         }
 
         // Update user role
@@ -260,7 +263,7 @@ public class UpdateModeratorRoleCommandHandler : IRequestHandler<UpdateModerator
                 break;
 
             default:
-                return Result<Guid>.Failure(new[] { "Invalid role" });
+                return Result<Guid>.Failure(new[] { _localizer["Roles.Invalid"] });
         }
 
         // Grant the user default permissions for their new role

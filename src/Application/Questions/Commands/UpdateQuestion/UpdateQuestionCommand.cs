@@ -15,16 +15,18 @@ public record UpdateQuestionCommand : IRequest<Result>
 public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateQuestionCommandHandler(IApplicationDbContext context)
+    public UpdateQuestionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateQuestionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Questions.FindAsync(new object[] { request.Id }, cancellationToken);
-        if (entity == null) return Result.Failure(new[] { "Question not found" });
+        if (entity == null) return Result.Failure(new[] { _localizer["Questions.NotFound"] });
 
         entity.Text = request.Text;
         await _context.SaveChangesAsync(cancellationToken);

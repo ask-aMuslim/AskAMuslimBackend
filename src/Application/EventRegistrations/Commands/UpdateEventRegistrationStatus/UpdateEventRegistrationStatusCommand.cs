@@ -17,10 +17,12 @@ public record UpdateEventRegistrationStatusCommand : IRequest<Result>
 public class UpdateEventRegistrationStatusCommandHandler : IRequestHandler<UpdateEventRegistrationStatusCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateEventRegistrationStatusCommandHandler(IApplicationDbContext context)
+    public UpdateEventRegistrationStatusCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateEventRegistrationStatusCommand request, CancellationToken cancellationToken)
@@ -28,7 +30,7 @@ public class UpdateEventRegistrationStatusCommandHandler : IRequestHandler<Updat
         var entity = await _context.EventRegistrations.FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken);
         if (entity is null)
         {
-            return Result.Failure(new[] { "Registration not found." });
+            return Result.Failure(new[] { _localizer["EventRegistrations.NotFound"] });
         }
 
         entity.Status = request.Status;

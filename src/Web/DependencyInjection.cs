@@ -24,6 +24,10 @@ public static class DependencyInjection
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+        // Localization
+        builder.Services.AddLocalization(opts => opts.ResourcesPath = "Resources");
+        builder.Services.AddScoped<ILocalizationService, LocalizationService>();
+
         // Add Hangfire services
         builder.Services.AddHangfire(configuration => { });
         builder.Services.AddHangfireServer();
