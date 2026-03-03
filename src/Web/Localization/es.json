@@ -1,0 +1,69 @@
+{
+  "Errors.ResourceNotFound": "El recurso especificado no fue encontrado.",
+  "Errors.Unauthorized": "No autorizado",
+  "Errors.Forbidden": "Prohibido",
+
+  "Auth.NotAuthenticated": "Usuario no autenticado.",
+  "Auth.InvalidUserContext": "Contexto de usuario no válido",
+  "Auth.InvalidUserIdFormat": "Formato de ID de usuario no válido",
+
+  "Tags.NotFound": "Etiqueta no encontrada",
+  "Tags.DoesNotExist": "La etiqueta {0} no existe.",
+
+  "Levels.NotFound": "Nivel no encontrado",
+  "Levels.HasCourses": "No se puede eliminar el nivel porque tiene cursos asociados. Por favor elimine o reasigne los cursos primero.",
+  "Levels.DeleteFailed": "Error al eliminar el nivel: {0}",
+
+  "Courses.NotFound": "Curso no encontrado",
+  "Courses.DoesNotExist": "El curso no existe.",
+  "Courses.IsPrerequisiteFor": "No se puede eliminar este curso porque es un requisito previo para: {0}. Por favor elimine este curso de los requisitos previos de otros cursos primero.",
+  "Courses.HasLessons": "No se puede eliminar este curso porque contiene {0} lección/es. Por favor elimine todas las lecciones primero.",
+  "Courses.HasActiveEnrollments": "No se puede eliminar este curso porque {0} estudiante(s) están inscritos activamente.",
+  "Courses.DeleteDbError": "Se produjo un error al eliminar el curso.",
+  "Courses.DeleteUnexpectedError": "Se produjo un error inesperado al eliminar el curso.",
+  "Courses.SelfPrerequisite": "Un curso no puede ser requisito previo de sí mismo.",
+  "Courses.PrerequisiteAlreadyExists": "Esta relación de requisito previo ya existe.",
+  "Courses.PrerequisiteCircularDependency": "Agregar este requisito previo crearía una dependencia circular.",
+  "Courses.PrerequisiteNotFound": "Relación de requisito previo no encontrada.",
+  "Courses.PrerequisiteCourseNotFound": "Curso requisito previo no encontrado.",
+
+  "Lessons.NotFound": "Lección no encontrada.",
+
+  "Quizzes.NotFound": "Cuestionario no encontrado.",
+  "Quizzes.TargetDoesNotExist": "El destino no existe o no se proporcionó el ID.",
+
+  "Questions.NotFound": "Pregunta no encontrada",
+  "Questions.DoesNotExist": "La pregunta no existe.",
+
+  "Options.NotFound": "Opción no encontrada",
+
+  "Events.NotFound": "Evento no encontrado",
+
+  "EventRegistrations.NotFound": "Registro de evento no encontrado",
+  "EventRegistrations.AlreadyRegistered": "El usuario ya está registrado en este evento.",
+
+  "Admins.NotFound": "Administrador no encontrado",
+
+  "Students.NotFound": "Estudiante no encontrado",
+
+  "Reports.AlreadyReported": "Ya has reportado este contenido.",
+
+  "StudentQuestions.NotFound": "Pregunta del estudiante no encontrada.",
+
+  "StudentNotes.NotFound": "Nota del estudiante no encontrada.",
+
+  "QAs.NotFound": "Pregunta y respuesta no encontradas.",
+  "QAs.DuplicateLanguage": "Idioma duplicado: {0}.",
+
+  "Moderators.NotFound": "Moderador no encontrado",
+  "Moderators.AssociatedUserNotFound": "Usuario asociado no encontrado",
+  "Moderators.AlreadyInRole": "El moderador ya está en el rol solicitado",
+
+  "Roles.Invalid": "Rol no válido",
+
+  "AdminNotes.InvalidUserContext": "Contexto de usuario no válido",
+
+  "Enrollments.NotFound": "Inscripción no encontrada",
+
+  "Certificates.NotFound": "Certificado no encontrado"
+}

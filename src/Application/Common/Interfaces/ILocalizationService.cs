@@ -1,11 +1,12 @@
 namespace AskAMuslimBackend.Application.Common.Interfaces;
 
 /// <summary>
-/// Abstraction over <c>IStringLocalizer</c> that command/query handlers use to
-/// retrieve locale-appropriate messages without depending directly on
-/// <c>Microsoft.Extensions.Localization</c>.
-/// The language is resolved from the HTTP <c>Accept-Language</c> header by
-/// <see cref="Microsoft.AspNetCore.Builder.ApplicationBuilderExtensions.UseRequestLocalization"/>.
+/// Abstraction for retrieving locale-appropriate messages in command/query handlers.
+/// The active culture is resolved from the HTTP <c>Accept-Language</c> header by
+/// <c>RequestLocalizationMiddleware</c> and stored in
+/// <see cref="System.Globalization.CultureInfo.CurrentUICulture"/>.
+/// Translations are loaded from embedded JSON files (<c>Localization/{culture}.json</c>)
+/// and fall back to English when a key or culture is not found.
 /// </summary>
 public interface ILocalizationService
 {
