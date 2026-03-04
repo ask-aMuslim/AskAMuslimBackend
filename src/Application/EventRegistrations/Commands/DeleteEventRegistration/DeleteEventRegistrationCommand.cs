@@ -10,10 +10,12 @@ public record DeleteEventRegistrationCommand([property: JsonIgnore] Guid Id) : I
 public class DeleteEventRegistrationCommandHandler : IRequestHandler<DeleteEventRegistrationCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteEventRegistrationCommandHandler(IApplicationDbContext context)
+    public DeleteEventRegistrationCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteEventRegistrationCommand request, CancellationToken cancellationToken)
@@ -21,7 +23,7 @@ public class DeleteEventRegistrationCommandHandler : IRequestHandler<DeleteEvent
         var entity = await _context.EventRegistrations.FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken);
         if (entity == null)
         {
-            return Result.Failure(new[] { $"Event registration with id {request.Id} not found" });
+            return Result.Failure(new[] { _localizer["EventRegistrations.NotFound"] });
         }
         
         _context.EventRegistrations.Remove(entity);

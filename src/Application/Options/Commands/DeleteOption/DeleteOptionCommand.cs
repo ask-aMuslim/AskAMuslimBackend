@@ -10,16 +10,18 @@ public record DeleteOptionCommand([property: JsonIgnore] Guid Id) : IRequest<Res
 public class DeleteOptionCommandHandler : IRequestHandler<DeleteOptionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteOptionCommandHandler(IApplicationDbContext context)
+    public DeleteOptionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteOptionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Options.FindAsync(new object[] { request.Id }, cancellationToken);
-        if (entity == null) return Result.Failure(new[] { "Option not found" });
+        if (entity == null) return Result.Failure(new[] { _localizer["Options.NotFound"] });
 
         _context.Options.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);

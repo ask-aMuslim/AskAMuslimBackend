@@ -27,5 +27,9 @@ public class LevelConfiguration : IEntityTypeConfiguration<Level>
 
         builder.Property(l => l.IsPublished)
             .HasDefaultValue(false);
+
+        builder.Property(l => l.Language)
+            .HasConversion<string>()
+            .HasMaxLength(50);
     }
 }

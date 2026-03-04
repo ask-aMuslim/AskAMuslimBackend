@@ -11,6 +11,7 @@ public class LevelBriefDto
     public int Order { get; init; }
     public LevelDifficulty Difficulty { get; init; }
     public bool IsPublished { get; init; }
+    public Language Language { get; init; }
     public int TotalCourses { get; init; }
 
     private class Mapping : Profile

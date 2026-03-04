@@ -28,6 +28,16 @@ app.UseUploadStaticFiles();
 
 app.UseCors();
 
+// Request localization – resolves culture from Accept-Language header
+var supportedCultures = new[] { "en", "ar", "fr", "es", "de", "pt" };
+app.UseRequestLocalization(opts =>
+{
+    opts.SetDefaultCulture("en")
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+    opts.ApplyCurrentCultureToResponseHeaders = true;
+});
+
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";

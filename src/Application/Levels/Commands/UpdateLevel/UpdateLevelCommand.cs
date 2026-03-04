@@ -13,15 +13,19 @@ public record UpdateLevelCommand : IRequest<Result>
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
     public int Order { get; init; }
-    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; }}
+    public LevelDifficulty Difficulty { get; init; }    public bool IsPublished { get; init; }
+    public Language Language { get; init; } = Language.English;
+}
 
 public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateLevelCommandHandler(IApplicationDbContext context)
+    public UpdateLevelCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateLevelCommand request, CancellationToken cancellationToken)
@@ -30,7 +34,7 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Res
         
         if (entity == null)
         {
-            return Result.Failure(new[] { "Level not found" });
+            return Result.Failure(new[] { _localizer["Levels.NotFound"] });
         }
 
         entity.Title = request.Title;
@@ -38,6 +42,7 @@ public class UpdateLevelCommandHandler : IRequestHandler<UpdateLevelCommand, Res
         entity.Order = request.Order;
         entity.Difficulty = request.Difficulty;
         entity.IsPublished = request.IsPublished;
+        entity.Language = request.Language;
 
         await _context.SaveChangesAsync(cancellationToken);
         
@@ -64,5 +69,8 @@ public class UpdateLevelCommandValidator : AbstractValidator<UpdateLevelCommand>
 
         RuleFor(x => x.Difficulty)
             .IsInEnum().WithMessage("Invalid difficulty value.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
     }
 }

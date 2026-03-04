@@ -9,10 +9,12 @@ public record DeleteLessonCommand([property: JsonIgnore] Guid Id) : IRequest<Res
 public class DeleteLessonCommandHandler : IRequestHandler<DeleteLessonCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteLessonCommandHandler(IApplicationDbContext context)
+    public DeleteLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteLessonCommand request, CancellationToken cancellationToken)
@@ -20,7 +22,7 @@ public class DeleteLessonCommandHandler : IRequestHandler<DeleteLessonCommand, R
         var entity = await _context.Lessons.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (entity == null)
-            return Result.Failure(new[] { "Lesson not found." });
+            return Result.Failure(new[] { _localizer["Lessons.NotFound"] });
         
         _context.Lessons.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);

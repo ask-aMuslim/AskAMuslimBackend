@@ -40,6 +40,10 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
         builder.Property(l => l.IsPublished)
             .HasDefaultValue(false);
 
+        builder.Property(l => l.Language)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
         builder.HasOne(l => l.Course)
             .WithMany(c => c.Lessons)
             .HasForeignKey(l => l.CourseId)

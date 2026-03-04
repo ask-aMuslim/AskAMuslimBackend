@@ -31,9 +31,10 @@ public class Levels : EndpointGroupBase
             .WithSummary("Delete a level");
     }
 
-    public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query)
+    public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query, HttpRequest request)
     {
-        var result = await sender.Send(query);
+        var language = LanguageResolver.Resolve(request.Headers);
+        var result = await sender.Send(query with { Language = language });
         return result.ToHttpResult();
     }
 

@@ -1,4 +1,5 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -34,6 +35,10 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .WithMany(l => l.Courses)
             .HasForeignKey(c => c.LevelId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(c => c.Language)
+            .HasConversion<string>()
+            .HasMaxLength(50);
 
         // many-to-many via CourseTag
         builder

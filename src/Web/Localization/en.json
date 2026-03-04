@@ -1,0 +1,69 @@
+{
+  "Errors.ResourceNotFound": "The specified resource was not found.",
+  "Errors.Unauthorized": "Unauthorized",
+  "Errors.Forbidden": "Forbidden",
+
+  "Auth.NotAuthenticated": "User not authenticated.",
+  "Auth.InvalidUserContext": "Invalid user context",
+  "Auth.InvalidUserIdFormat": "Invalid user ID format",
+
+  "Tags.NotFound": "Tag not found",
+  "Tags.DoesNotExist": "Tag {0} does not exist.",
+
+  "Levels.NotFound": "Level not found",
+  "Levels.HasCourses": "Cannot delete level because it has associated courses. Please remove or reassign the courses first.",
+  "Levels.DeleteFailed": "Failed to delete level: {0}",
+
+  "Courses.NotFound": "Course not found",
+  "Courses.DoesNotExist": "Course does not exist.",
+  "Courses.IsPrerequisiteFor": "Cannot delete this course because it is a prerequisite for: {0}. Please remove this course as a prerequisite from other courses first.",
+  "Courses.HasLessons": "Cannot delete this course because it contains {0} lesson(s). Please delete all lessons first or consider unpublishing the course instead of deleting it.",
+  "Courses.HasActiveEnrollments": "Cannot delete this course because it has {0} active student enrollment(s). Please wait for students to complete the course, cancel their enrollments, or unpublish the course to prevent new enrollments.",
+  "Courses.DeleteDbError": "An error occurred while deleting the course. This may be due to data dependencies. Please contact support if the problem persists.",
+  "Courses.DeleteUnexpectedError": "An unexpected error occurred while deleting the course.",
+  "Courses.SelfPrerequisite": "A course cannot be a prerequisite of itself.",
+  "Courses.PrerequisiteAlreadyExists": "This prerequisite relationship already exists.",
+  "Courses.PrerequisiteCircularDependency": "Adding this prerequisite would create a circular dependency.",
+  "Courses.PrerequisiteNotFound": "Prerequisite relationship not found.",
+  "Courses.PrerequisiteCourseNotFound": "Prerequisite course not found.",
+
+  "Lessons.NotFound": "Lesson not found.",
+
+  "Quizzes.NotFound": "Quiz not found.",
+  "Quizzes.TargetDoesNotExist": "Target does not exist or id not provided.",
+
+  "Questions.NotFound": "Question not found",
+  "Questions.DoesNotExist": "Question does not exist.",
+
+  "Options.NotFound": "Option not found",
+
+  "Events.NotFound": "Event not found",
+
+  "EventRegistrations.NotFound": "Event registration not found",
+  "EventRegistrations.AlreadyRegistered": "User is already registered for this event.",
+
+  "Admins.NotFound": "Admin not found",
+
+  "Students.NotFound": "Student not found",
+
+  "Reports.AlreadyReported": "You have already reported this content.",
+
+  "StudentQuestions.NotFound": "Student question not found.",
+
+  "StudentNotes.NotFound": "Student note not found.",
+
+  "QAs.NotFound": "QA not found.",
+  "QAs.DuplicateLanguage": "Duplicate language {0}.",
+
+  "Moderators.NotFound": "Moderator not found",
+  "Moderators.AssociatedUserNotFound": "Associated user not found",
+  "Moderators.AlreadyInRole": "Moderator is already in the requested role",
+
+  "Roles.Invalid": "Invalid role",
+
+  "AdminNotes.InvalidUserContext": "Invalid user context",
+
+  "Enrollments.NotFound": "Enrollment not found",
+
+  "Certificates.NotFound": "Certificate not found"
+}
