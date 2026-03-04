@@ -22,15 +22,18 @@ public record UpdateLessonCommand : IRequest<Result>
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; }
+    public Language Language { get; init; } = Language.English;
 }
 
 public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateLessonCommandHandler(IApplicationDbContext context)
+    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
@@ -38,7 +41,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         var entity = await _context.Lessons.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (entity == null)
-            return Result.Failure(new[] { "Lesson not found." });
+            return Result.Failure(new[] { _localizer["Lessons.NotFound"] });
 
         // Optional: ensure course relation not broken
         if (entity.CourseId != request.CourseId)
@@ -46,7 +49,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
             // Ensure target course exists
             var course = await _context.Courses.FindAsync(new object[] { request.CourseId }, cancellationToken);
             if (course == null)
-                return Result.Failure(new[] { "Course not found." });
+                return Result.Failure(new[] { _localizer["Courses.NotFound"] });
             entity.CourseId = request.CourseId;
         }
 
@@ -59,6 +62,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.ThumbnailUrl = request.ThumbnailUrl;
         entity.Order = request.Order;
         entity.IsPublished = request.IsPublished;
+        entity.Language = request.Language;
 
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();
@@ -76,6 +80,7 @@ public class UpdateLessonCommandValidator : AbstractValidator<UpdateLessonComman
         RuleFor(x => x.ContentUrl).MaximumLength(500).When(x => !string.IsNullOrEmpty(x.ContentUrl));
         RuleFor(x => x.ThumbnailUrl).MaximumLength(500).When(x => !string.IsNullOrEmpty(x.ThumbnailUrl));
         RuleFor(x => x.Type).IsInEnum();
+        RuleFor(x => x.Language).IsInEnum().WithMessage("Invalid language value.");
         RuleFor(x => x.Order).GreaterThanOrEqualTo(0);
 
         RuleFor(x => x.ContentJson)

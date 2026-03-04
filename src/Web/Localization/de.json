@@ -1,0 +1,69 @@
+{
+  "Errors.ResourceNotFound": "Die angegebene Ressource wurde nicht gefunden.",
+  "Errors.Unauthorized": "Nicht autorisiert",
+  "Errors.Forbidden": "Verboten",
+
+  "Auth.NotAuthenticated": "Benutzer nicht authentifiziert.",
+  "Auth.InvalidUserContext": "Ungültiger Benutzerkontext",
+  "Auth.InvalidUserIdFormat": "Ungültiges Benutzer-ID-Format",
+
+  "Tags.NotFound": "Tag nicht gefunden",
+  "Tags.DoesNotExist": "Tag {0} existiert nicht.",
+
+  "Levels.NotFound": "Stufe nicht gefunden",
+  "Levels.HasCourses": "Stufe kann nicht gelöscht werden, da zugehörige Kurse vorhanden sind. Bitte entfernen oder verschieben Sie die Kurse zuerst.",
+  "Levels.DeleteFailed": "Fehler beim Löschen der Stufe: {0}",
+
+  "Courses.NotFound": "Kurs nicht gefunden",
+  "Courses.DoesNotExist": "Der Kurs existiert nicht.",
+  "Courses.IsPrerequisiteFor": "Dieser Kurs kann nicht gelöscht werden, da er eine Voraussetzung für folgende Kurse ist: {0}.",
+  "Courses.HasLessons": "Dieser Kurs kann nicht gelöscht werden, da er {0} Lektion(en) enthält.",
+  "Courses.HasActiveEnrollments": "Dieser Kurs kann nicht gelöscht werden, da {0} Schüler aktiv eingeschrieben sind.",
+  "Courses.DeleteDbError": "Beim Löschen des Kurses ist ein Fehler aufgetreten.",
+  "Courses.DeleteUnexpectedError": "Beim Löschen des Kurses ist ein unerwarteter Fehler aufgetreten.",
+  "Courses.SelfPrerequisite": "Ein Kurs kann keine Voraussetzung für sich selbst sein.",
+  "Courses.PrerequisiteAlreadyExists": "Diese Voraussetzungsbeziehung existiert bereits.",
+  "Courses.PrerequisiteCircularDependency": "Das Hinzufügen dieser Voraussetzung würde eine zirkuläre Abhängigkeit erzeugen.",
+  "Courses.PrerequisiteNotFound": "Voraussetzungsbeziehung nicht gefunden.",
+  "Courses.PrerequisiteCourseNotFound": "Voraussetzungskurs nicht gefunden.",
+
+  "Lessons.NotFound": "Lektion nicht gefunden.",
+
+  "Quizzes.NotFound": "Quiz nicht gefunden.",
+  "Quizzes.TargetDoesNotExist": "Das Ziel existiert nicht oder es wurde keine ID angegeben.",
+
+  "Questions.NotFound": "Frage nicht gefunden",
+  "Questions.DoesNotExist": "Die Frage existiert nicht.",
+
+  "Options.NotFound": "Option nicht gefunden",
+
+  "Events.NotFound": "Veranstaltung nicht gefunden",
+
+  "EventRegistrations.NotFound": "Veranstaltungsregistrierung nicht gefunden",
+  "EventRegistrations.AlreadyRegistered": "Der Benutzer ist bereits für diese Veranstaltung registriert.",
+
+  "Admins.NotFound": "Administrator nicht gefunden",
+
+  "Students.NotFound": "Schüler nicht gefunden",
+
+  "Reports.AlreadyReported": "Sie haben diesen Inhalt bereits gemeldet.",
+
+  "StudentQuestions.NotFound": "Schülerfrage nicht gefunden.",
+
+  "StudentNotes.NotFound": "Schülernotiz nicht gefunden.",
+
+  "QAs.NotFound": "Frage und Antwort nicht gefunden.",
+  "QAs.DuplicateLanguage": "Doppelte Sprache: {0}.",
+
+  "Moderators.NotFound": "Moderator nicht gefunden",
+  "Moderators.AssociatedUserNotFound": "Zugehöriger Benutzer nicht gefunden",
+  "Moderators.AlreadyInRole": "Moderator ist bereits in der angeforderten Rolle",
+
+  "Roles.Invalid": "Ungültige Rolle",
+
+  "AdminNotes.InvalidUserContext": "Ungültiger Benutzerkontext",
+
+  "Enrollments.NotFound": "Einschreibung nicht gefunden",
+
+  "Certificates.NotFound": "Zertifikat nicht gefunden"
+}

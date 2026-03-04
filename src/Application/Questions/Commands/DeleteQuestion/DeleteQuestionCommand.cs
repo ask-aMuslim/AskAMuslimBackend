@@ -10,16 +10,18 @@ public record DeleteQuestionCommand([property: JsonIgnore] Guid Id) : IRequest<R
 public class DeleteQuestionCommandHandler : IRequestHandler<DeleteQuestionCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteQuestionCommandHandler(IApplicationDbContext context)
+    public DeleteQuestionCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteQuestionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Questions.FindAsync(new object[] { request.Id }, cancellationToken);
-        if (entity == null) return Result.Failure(new[] { "Question not found" });
+        if (entity == null) return Result.Failure(new[] { _localizer["Questions.NotFound"] });
 
         _context.Questions.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);

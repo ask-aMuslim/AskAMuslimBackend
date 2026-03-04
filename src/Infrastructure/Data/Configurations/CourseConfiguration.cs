@@ -35,6 +35,11 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasForeignKey(c => c.LevelId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.Property(c => c.Language)
+            .HasConversion<string>()
+            .HasMaxLength(50)
+            .HasDefaultValue("English");
+
         // many-to-many via CourseTag
         builder
             .HasMany<CourseTag>(c => c.CourseTags)

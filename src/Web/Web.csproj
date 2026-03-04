@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="firebase-adminsdk.json" />
+    <EmbeddedResource Include="Localization\*.json" />
   </ItemGroup>
 
   <ItemGroup>

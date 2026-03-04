@@ -15,10 +15,12 @@ public record RemoveCoursePrerequisiteCommand : IRequest<Result>
 public class RemoveCoursePrerequisiteCommandHandler : IRequestHandler<RemoveCoursePrerequisiteCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public RemoveCoursePrerequisiteCommandHandler(IApplicationDbContext context)
+    public RemoveCoursePrerequisiteCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(RemoveCoursePrerequisiteCommand request, CancellationToken cancellationToken)
@@ -30,7 +32,7 @@ public class RemoveCoursePrerequisiteCommandHandler : IRequestHandler<RemoveCour
 
         if (prerequisite == null)
         {
-            return Result.Failure(new[] { "Prerequisite relationship not found." });
+            return Result.Failure(new[] { _localizer["Courses.PrerequisiteNotFound"] });
         }
 
         _context.CoursePrerequisites.Remove(prerequisite);

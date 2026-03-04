@@ -2,6 +2,7 @@
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
+using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 
@@ -12,6 +13,8 @@ public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<Cour
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Language? Language { get; init; }
 }
 
 public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWithPaginationQuery, Result<PaginatedList<CourseBriefDto>>>
@@ -35,6 +38,11 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
         if (request.LevelId.HasValue)
         {
             query = query.Where(c => c.LevelId == request.LevelId.Value);
+        }
+
+        if (request.Language.HasValue)
+        {
+            query = query.Where(c => c.Language == request.Language.Value);
         }
 
         if (request.IsPublished.HasValue)

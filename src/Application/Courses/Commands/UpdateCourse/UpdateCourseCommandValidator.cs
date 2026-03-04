@@ -26,5 +26,8 @@ public class UpdateCourseCommandValidator : AbstractValidator<UpdateCourseComman
 
         RuleFor(x => x.Order)
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
     }
 }

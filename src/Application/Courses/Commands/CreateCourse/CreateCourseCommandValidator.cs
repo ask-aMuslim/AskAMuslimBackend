@@ -54,6 +54,9 @@ public class CreateCourseCommandValidator : AbstractValidator<CreateCourseComman
 
         RuleFor(x => x.Order)
             .GreaterThanOrEqualTo(0).WithMessage("Order must be 0 or greater.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
     }
 
     private Task<bool> LevelExists(Guid levelId, CancellationToken ct)

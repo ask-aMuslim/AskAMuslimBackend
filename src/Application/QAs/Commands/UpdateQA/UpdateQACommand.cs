@@ -29,10 +29,12 @@ public record UpdateQATranslationInput
 public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateQACommandHandler(IApplicationDbContext context)
+    public UpdateQACommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateQACommand request, CancellationToken cancellationToken)
@@ -43,7 +45,7 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
             .FirstOrDefaultAsync(q => q.Id == request.Id, cancellationToken);
 
         if (entity == null)
-            return Result.Failure(new[] { "QA not found." });
+            return Result.Failure(new[] { _localizer["QAs.NotFound"] });
 
         entity.IsPublished = request.IsPublished;
 

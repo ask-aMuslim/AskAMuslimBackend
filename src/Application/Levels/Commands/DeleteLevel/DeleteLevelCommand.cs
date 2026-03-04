@@ -10,10 +10,12 @@ public record DeleteLevelCommand([property: JsonIgnore] Guid Id) : IRequest<Resu
 public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteLevelCommandHandler(IApplicationDbContext context)
+    public DeleteLevelCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteLevelCommand request, CancellationToken cancellationToken)
@@ -21,14 +23,14 @@ public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Res
         var entity = await _context.Levels.FindAsync(new object[] { request.Id }, cancellationToken);
         if (entity == null)
         {
-            return Result.Failure(new[] { "Level not found" });
+            return Result.Failure(new[] { _localizer["Levels.NotFound"] });
         }
 
         // Check if level has any courses
         var hasCourses = await _context.Courses.AnyAsync(c => c.LevelId == request.Id, cancellationToken);
         if (hasCourses)
         {
-            return Result.Failure(new[] { "Cannot delete level because it has associated courses. Please remove or reassign the courses first." });
+            return Result.Failure(new[] { _localizer["Levels.HasCourses"] });
         }
 
         try
@@ -41,7 +43,7 @@ public class DeleteLevelCommandHandler : IRequestHandler<DeleteLevelCommand, Res
         {
             // Optionally log ex here
             var message = ex.InnerException?.Message ?? ex.Message;
-            return Result.Failure(new[] { $"Failed to delete level: {message}" });
+            return Result.Failure(new[] { _localizer.GetString("Levels.DeleteFailed", message) });
         }
     }
 }

@@ -16,10 +16,12 @@ public record AddCoursePrerequisiteCommand : IRequest<Result>
 public class AddCoursePrerequisiteCommandHandler : IRequestHandler<AddCoursePrerequisiteCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public AddCoursePrerequisiteCommandHandler(IApplicationDbContext context)
+    public AddCoursePrerequisiteCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(AddCoursePrerequisiteCommand request, CancellationToken cancellationToken)
@@ -30,7 +32,7 @@ public class AddCoursePrerequisiteCommandHandler : IRequestHandler<AddCoursePrer
 
         if (!courseExists)
         {
-            return Result.Failure(new[] { "Course not found." });
+            return Result.Failure(new[] { _localizer["Courses.NotFound"] });
         }
 
         var prerequisiteExists = await _context.Courses
@@ -38,13 +40,13 @@ public class AddCoursePrerequisiteCommandHandler : IRequestHandler<AddCoursePrer
 
         if (!prerequisiteExists)
         {
-            return Result.Failure(new[] { "Prerequisite course not found." });
+            return Result.Failure(new[] { _localizer["Courses.PrerequisiteCourseNotFound"] });
         }
 
         // Check if courses are the same
         if (request.CourseId == request.PrerequisiteCourseId)
         {
-            return Result.Failure(new[] { "A course cannot be a prerequisite of itself." });
+            return Result.Failure(new[] { _localizer["Courses.SelfPrerequisite"] });
         }
 
         // Check if prerequisite already exists
@@ -55,13 +57,13 @@ public class AddCoursePrerequisiteCommandHandler : IRequestHandler<AddCoursePrer
 
         if (existingPrerequisite)
         {
-            return Result.Failure(new[] { "This prerequisite relationship already exists." });
+            return Result.Failure(new[] { _localizer["Courses.PrerequisiteAlreadyExists"] });
         }
 
         // Check for circular dependency
         if (await HasCircularDependency(request.CourseId, request.PrerequisiteCourseId, cancellationToken))
         {
-            return Result.Failure(new[] { "Adding this prerequisite would create a circular dependency." });
+            return Result.Failure(new[] { _localizer["Courses.PrerequisiteCircularDependency"] });
         }
 
         // Add the prerequisite

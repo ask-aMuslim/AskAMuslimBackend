@@ -1,4 +1,5 @@
 ﻿using AskAMuslimBackend.Application.Common.Exceptions;
+using AskAMuslimBackend.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,9 +8,11 @@ namespace AskAMuslimBackend.Web.Infrastructure;
 public class CustomExceptionHandler : IExceptionHandler
 {
     private readonly Dictionary<Type, Func<HttpContext, Exception, Task>> _exceptionHandlers;
+    private readonly ILocalizationService _localizer;
 
-    public CustomExceptionHandler()
+    public CustomExceptionHandler(ILocalizationService localizer)
     {
+        _localizer = localizer;
         // Register known exception types and handlers.
         _exceptionHandlers = new()
             {
@@ -56,7 +59,7 @@ public class CustomExceptionHandler : IExceptionHandler
         {
             Status = StatusCodes.Status404NotFound,
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
-            Title = "The specified resource was not found.",
+            Title = _localizer["Errors.ResourceNotFound"],
             Detail = exception.Message
         });
     }
@@ -68,7 +71,7 @@ public class CustomExceptionHandler : IExceptionHandler
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = StatusCodes.Status401Unauthorized,
-            Title = "Unauthorized",
+            Title = _localizer["Errors.Unauthorized"],
             Type = "https://tools.ietf.org/html/rfc7235#section-3.1"
         });
     }
@@ -80,7 +83,7 @@ public class CustomExceptionHandler : IExceptionHandler
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = StatusCodes.Status403Forbidden,
-            Title = "Forbidden",
+            Title = _localizer["Errors.Forbidden"],
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3"
         });
     }

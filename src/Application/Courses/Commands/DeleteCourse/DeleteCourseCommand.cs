@@ -11,10 +11,12 @@ public record DeleteCourseCommand([property: JsonIgnore] Guid Id) : IRequest<Res
 public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteCourseCommandHandler(IApplicationDbContext context)
+    public DeleteCourseCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteCourseCommand request, CancellationToken cancellationToken)
@@ -27,7 +29,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
 
             if (!courseExists)
             {
-                return Result.Failure(new[] { "Course not found." });
+                return Result.Failure(new[] { _localizer["Courses.NotFound"] });
             }
 
             // 2. Check if course is a prerequisite for other courses (single query)
@@ -43,8 +45,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
                 var moreCount = dependentCourses.Count > 3 ? $" and {dependentCourses.Count - 3} more" : "";
                 return Result.Failure(new[] 
                 { 
-                    $"Cannot delete this course because it is a prerequisite for: {courseList}{moreCount}. " +
-                    "Please remove this course as a prerequisite from other courses first." 
+                    _localizer.GetString("Courses.IsPrerequisiteFor", $"{courseList}{moreCount}")
                 });
             }
 
@@ -56,8 +57,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
             {
                 return Result.Failure(new[] 
                 { 
-                    $"Cannot delete this course because it contains {lessonCount} lesson(s). " +
-                    "Please delete all lessons first or consider unpublishing the course instead of deleting it." 
+                    _localizer.GetString("Courses.HasLessons", lessonCount)
                 });
             }
 
@@ -76,8 +76,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
 
                 return Result.Failure(new[] 
                 { 
-                    $"Cannot delete this course because it has {activeCount} active student enrollment(s). " +
-                    "Please wait for students to complete the course, cancel their enrollments, or unpublish the course to prevent new enrollments." 
+                    _localizer.GetString("Courses.HasActiveEnrollments", activeCount)
                 });
             }
 
@@ -160,8 +159,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
             // Handle database-specific errors
             return Result.Failure(new[] 
             { 
-                "An error occurred while deleting the course. This may be due to data dependencies. " +
-                "Please contact support if the problem persists.",
+                _localizer["Courses.DeleteDbError"],
                 $"Technical details: {ex.InnerException?.Message ?? ex.Message}"
             });
         }
@@ -169,7 +167,7 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
         {
             return Result.Failure(new[] 
             { 
-                "An unexpected error occurred while deleting the course.",
+                _localizer["Courses.DeleteUnexpectedError"],
                 $"Error: {ex.Message}"
             });
         }
