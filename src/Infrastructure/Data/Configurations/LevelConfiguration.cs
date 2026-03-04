@@ -30,7 +30,6 @@ public class LevelConfiguration : IEntityTypeConfiguration<Level>
 
         builder.Property(l => l.Language)
             .HasConversion<string>()
-            .HasMaxLength(50)
-            .HasDefaultValue("English");
+            .HasMaxLength(50);
     }
 }

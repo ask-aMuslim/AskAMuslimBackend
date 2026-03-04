@@ -1,4 +1,5 @@
 ﻿using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -37,8 +38,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.Property(c => c.Language)
             .HasConversion<string>()
-            .HasMaxLength(50)
-            .HasDefaultValue("English");
+            .HasMaxLength(50);
 
         // many-to-many via CourseTag
         builder

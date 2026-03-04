@@ -42,8 +42,7 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
 
         builder.Property(l => l.Language)
             .HasConversion<string>()
-            .HasMaxLength(50)
-            .HasDefaultValue("English");
+            .HasMaxLength(50);
 
         builder.HasOne(l => l.Course)
             .WithMany(c => c.Lessons)
