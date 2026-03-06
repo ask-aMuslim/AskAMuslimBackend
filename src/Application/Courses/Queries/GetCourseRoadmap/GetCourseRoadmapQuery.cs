@@ -9,10 +9,12 @@ public record GetCourseRoadmapQuery(Guid LevelId, Guid? StudentId = null) : IReq
 public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuery, Result<CourseRoadmapDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
 
-    public GetCourseRoadmapQueryHandler(IApplicationDbContext context)
+    public GetCourseRoadmapQueryHandler(IApplicationDbContext context, IUser currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<Result<CourseRoadmapDto>> Handle(GetCourseRoadmapQuery request, CancellationToken cancellationToken)
@@ -65,11 +67,28 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
         }
 
         // If student ID provided, get their enrollment status for each course
-        if (request.StudentId.HasValue)
+        // If not provided but the caller is an authenticated student, resolve via JWT
+        var studentId = request.StudentId;
+        if (!studentId.HasValue && Guid.TryParse(_currentUser.Id, out var currentUserId))
         {
+            var student = await _context.Students
+                .Where(s => s.UserId == currentUserId)
+                .Select(s => new { s.Id })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (student != null)
+                studentId = student.Id;
+        }
+
+        if (studentId.HasValue)
+        {
+            // Include prerequisite course IDs that may belong to other levels
+            var allPrerequisiteIds = prerequisites.Select(p => p.PrerequisiteCourseId).Distinct().ToList();
+            var allRelevantCourseIds = courseIds.Union(allPrerequisiteIds).ToList();
+
             var enrollments = await _context.Enrollments
-                .Where(e => e.StudentId == request.StudentId.Value && 
-                           courseIds.Contains(e.CourseId))
+                .Where(e => e.StudentId == studentId.Value && 
+                           allRelevantCourseIds.Contains(e.CourseId))
                 .Select(e => new
                 {
                     e.CourseId,
@@ -106,10 +125,11 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
         }
         else
         {
-            // No student context, all published courses are available
+            // No student context — courses without prerequisites are available if published;
+            // courses with prerequisites are never available without a known student
             foreach (var course in courses)
             {
-                course.IsAvailable = course.IsPublished;
+                course.IsAvailable = course.IsPublished && !course.PrerequisiteIds.Any();
             }
         }
 
