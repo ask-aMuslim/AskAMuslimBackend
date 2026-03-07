@@ -10,10 +10,12 @@ public record DeleteTagCommand([property: JsonIgnore] Guid Id) : IRequest<Result
 public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteTagCommandHandler(IApplicationDbContext context)
+    public DeleteTagCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteTagCommand request, CancellationToken cancellationToken)
@@ -22,7 +24,7 @@ public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Result>
         
         if (entity == null)
         {
-            return Result.Failure(new[] { "Tag not found" });
+            return Result.Failure(new[] { _localizer["Tags.NotFound"] });
         }
 
         _context.Tags.Remove(entity);

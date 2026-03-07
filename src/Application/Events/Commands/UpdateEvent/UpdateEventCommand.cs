@@ -23,10 +23,12 @@ public record UpdateEventCommand : IRequest<Result>
 public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateEventCommandHandler(IApplicationDbContext context)
+    public UpdateEventCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateEventCommand request, CancellationToken cancellationToken)
@@ -34,7 +36,7 @@ public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Res
         var entity = await _context.Events.FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken);
         if (entity is null)
         {
-            return Result.Failure(new[] { "Event not found" });
+            return Result.Failure(new[] { _localizer["Events.NotFound"] });
         }
 
         entity.Title = request.Title;

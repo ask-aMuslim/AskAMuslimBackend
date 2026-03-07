@@ -10,10 +10,12 @@ public record DeleteEventCommand([property: JsonIgnore] Guid Id) : IRequest<Resu
 public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteEventCommandHandler(IApplicationDbContext context)
+    public DeleteEventCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteEventCommand request, CancellationToken cancellationToken)
@@ -21,7 +23,7 @@ public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand, Res
         var entity = await _context.Events.FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken);
         if (entity == null)
         {
-            return Result.Failure(new[] { "Event not found" });
+            return Result.Failure(new[] { _localizer["Events.NotFound"] });
         }
         
         _context.Events.Remove(entity);

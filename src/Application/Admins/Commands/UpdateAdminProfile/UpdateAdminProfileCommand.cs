@@ -18,11 +18,13 @@ public class UpdateAdminProfileCommandHandler : IRequestHandler<UpdateAdminProfi
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateAdminProfileCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public UpdateAdminProfileCommandHandler(IApplicationDbContext context, IUser currentUser, ILocalizationService localizer)
     {
         _context = context;
         _currentUser = currentUser;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(UpdateAdminProfileCommand request, CancellationToken cancellationToken)
@@ -31,12 +33,12 @@ public class UpdateAdminProfileCommandHandler : IRequestHandler<UpdateAdminProfi
         
         if (string.IsNullOrEmpty(userIdString))
         {
-            return Result<Guid>.Failure(new[] { "User not authenticated" });
+            return Result<Guid>.Failure(new[] { _localizer["Auth.NotAuthenticated"] });
         }
 
         if (!Guid.TryParse(userIdString, out var userId))
         {
-            return Result<Guid>.Failure(new[] { "Invalid user ID format" });
+            return Result<Guid>.Failure(new[] { _localizer["Auth.InvalidUserIdFormat"] });
         }
 
         var admin = await _context.Admins
@@ -44,7 +46,7 @@ public class UpdateAdminProfileCommandHandler : IRequestHandler<UpdateAdminProfi
             
         if (admin == null)
         {
-            return Result<Guid>.Failure(new[] { "Admin not found" });
+            return Result<Guid>.Failure(new[] { _localizer["Admins.NotFound"] });
         }
 
         // Update user-level fields

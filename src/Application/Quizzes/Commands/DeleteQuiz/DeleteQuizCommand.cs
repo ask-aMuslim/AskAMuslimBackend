@@ -10,10 +10,12 @@ public record DeleteQuizCommand([property: JsonIgnore] Guid Id) : IRequest<Resul
 public class DeleteQuizCommandHandler : IRequestHandler<DeleteQuizCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteQuizCommandHandler(IApplicationDbContext context)
+    public DeleteQuizCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteQuizCommand request, CancellationToken cancellationToken)
@@ -21,7 +23,7 @@ public class DeleteQuizCommandHandler : IRequestHandler<DeleteQuizCommand, Resul
         var entity = await _context.Quizzes.FindAsync(new object[] { request.Id }, cancellationToken);
         if (entity == null)
         {
-            return Result.Failure(new[] { "Quiz not found." });
+            return Result.Failure(new[] { _localizer["Quizzes.NotFound"] });
         }
 
         _context.Quizzes.Remove(entity);

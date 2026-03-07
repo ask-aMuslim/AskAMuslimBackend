@@ -19,10 +19,12 @@ public record CreateQuizCommand : IRequest<Result<Guid>>
 public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateQuizCommandHandler(IApplicationDbContext context)
+    public CreateQuizCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateQuizCommand request, CancellationToken cancellationToken)
@@ -38,7 +40,7 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
 
         if (!targetExists)
         {
-            return Result<Guid>.Failure(new[] { "Target does not exist or id not provided." });
+            return Result<Guid>.Failure(new[] { _localizer["Quizzes.TargetDoesNotExist"] });
         }
 
         var quiz = new Quiz

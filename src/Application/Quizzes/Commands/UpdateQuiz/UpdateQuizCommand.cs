@@ -21,10 +21,12 @@ public record UpdateQuizCommand : IRequest<Result>
 public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateQuizCommandHandler(IApplicationDbContext context)
+    public UpdateQuizCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateQuizCommand request, CancellationToken cancellationToken)
@@ -32,7 +34,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
         var entity = await _context.Quizzes.FindAsync(new object[] { request.Id }, cancellationToken);
         if (entity == null)
         {
-            return Result.Failure(new[] { "Quiz not found." });
+            return Result.Failure(new[] { _localizer["Quizzes.NotFound"] });
         }
 
         // Validate target exists if changed
@@ -45,7 +47,7 @@ public class UpdateQuizCommandHandler : IRequestHandler<UpdateQuizCommand, Resul
         };
         if (!targetExists)
         {
-            return Result.Failure(new[] { "Target does not exist or id not provided." });
+            return Result.Failure(new[] { _localizer["Quizzes.TargetDoesNotExist"] });
         }
 
         entity.LevelId = request.LevelId;

@@ -1,0 +1,69 @@
+{
+  "Errors.ResourceNotFound": "La ressource spécifiée est introuvable.",
+  "Errors.Unauthorized": "Non autorisé",
+  "Errors.Forbidden": "Interdit",
+
+  "Auth.NotAuthenticated": "Utilisateur non authentifié.",
+  "Auth.InvalidUserContext": "Contexte utilisateur invalide",
+  "Auth.InvalidUserIdFormat": "Format d'identifiant utilisateur invalide",
+
+  "Tags.NotFound": "Étiquette introuvable",
+  "Tags.DoesNotExist": "L'étiquette {0} n'existe pas.",
+
+  "Levels.NotFound": "Niveau introuvable",
+  "Levels.HasCourses": "Impossible de supprimer le niveau car il contient des cours associés. Veuillez supprimer ou réaffecter les cours d'abord.",
+  "Levels.DeleteFailed": "Échec de la suppression du niveau : {0}",
+
+  "Courses.NotFound": "Cours introuvable",
+  "Courses.DoesNotExist": "Le cours n'existe pas.",
+  "Courses.IsPrerequisiteFor": "Impossible de supprimer ce cours car il est un prérequis pour : {0}. Veuillez d'abord retirer ce cours des prérequis des autres cours.",
+  "Courses.HasLessons": "Impossible de supprimer ce cours car il contient {0} leçon(s). Veuillez d'abord supprimer toutes les leçons.",
+  "Courses.HasActiveEnrollments": "Impossible de supprimer ce cours car {0} étudiant(s) y sont inscrits activement.",
+  "Courses.DeleteDbError": "Une erreur s'est produite lors de la suppression du cours.",
+  "Courses.DeleteUnexpectedError": "Une erreur inattendue s'est produite lors de la suppression du cours.",
+  "Courses.SelfPrerequisite": "Un cours ne peut pas être son propre prérequis.",
+  "Courses.PrerequisiteAlreadyExists": "Cette relation de prérequis existe déjà.",
+  "Courses.PrerequisiteCircularDependency": "L'ajout de ce prérequis créerait une dépendance circulaire.",
+  "Courses.PrerequisiteNotFound": "Relation de prérequis introuvable.",
+  "Courses.PrerequisiteCourseNotFound": "Cours prérequis introuvable.",
+
+  "Lessons.NotFound": "Leçon introuvable.",
+
+  "Quizzes.NotFound": "Quiz introuvable.",
+  "Quizzes.TargetDoesNotExist": "La cible n'existe pas ou l'identifiant n'a pas été fourni.",
+
+  "Questions.NotFound": "Question introuvable",
+  "Questions.DoesNotExist": "La question n'existe pas.",
+
+  "Options.NotFound": "Option introuvable",
+
+  "Events.NotFound": "Événement introuvable",
+
+  "EventRegistrations.NotFound": "Inscription à l'événement introuvable",
+  "EventRegistrations.AlreadyRegistered": "L'utilisateur est déjà inscrit à cet événement.",
+
+  "Admins.NotFound": "Administrateur introuvable",
+
+  "Students.NotFound": "Étudiant introuvable",
+
+  "Reports.AlreadyReported": "Vous avez déjà signalé ce contenu.",
+
+  "StudentQuestions.NotFound": "Question de l'étudiant introuvable.",
+
+  "StudentNotes.NotFound": "Note de l'étudiant introuvable.",
+
+  "QAs.NotFound": "Q&R introuvable.",
+  "QAs.DuplicateLanguage": "Langue dupliquée : {0}.",
+
+  "Moderators.NotFound": "Modérateur introuvable",
+  "Moderators.AssociatedUserNotFound": "Utilisateur associé introuvable",
+  "Moderators.AlreadyInRole": "Le modérateur est déjà dans le rôle demandé",
+
+  "Roles.Invalid": "Rôle invalide",
+
+  "AdminNotes.InvalidUserContext": "Contexte utilisateur invalide",
+
+  "Enrollments.NotFound": "Inscription introuvable",
+
+  "Certificates.NotFound": "Certificat introuvable"
+}

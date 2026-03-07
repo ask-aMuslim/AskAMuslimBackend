@@ -24,6 +24,9 @@ public static class DependencyInjection
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+        // Localization – reads from embedded JSON files in Localization/*.json
+        builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+
         // Add Hangfire services
         builder.Services.AddHangfire(configuration => { });
         builder.Services.AddHangfireServer();

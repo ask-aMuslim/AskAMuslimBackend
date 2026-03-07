@@ -10,10 +10,12 @@ public record DeleteStudentNoteCommand([property: JsonIgnore] Guid Id) : IReques
 public class DeleteStudentNoteCommandHandler : IRequestHandler<DeleteStudentNoteCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public DeleteStudentNoteCommandHandler(IApplicationDbContext context)
+    public DeleteStudentNoteCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(DeleteStudentNoteCommand request, CancellationToken cancellationToken)
@@ -21,7 +23,7 @@ public class DeleteStudentNoteCommandHandler : IRequestHandler<DeleteStudentNote
         var entity = await _context.StudentNotes.FindAsync(new object[] { request.Id }, cancellationToken);
         
         if (entity == null)
-            return Result.Failure(new[] { "Student note not found." });
+            return Result.Failure(new[] { _localizer["StudentNotes.NotFound"] });
 
         _context.StudentNotes.Remove(entity);
         await _context.SaveChangesAsync(cancellationToken);

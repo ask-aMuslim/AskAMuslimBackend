@@ -19,18 +19,20 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly ILocalizationService _localizer;
 
-    public CreateReportCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public CreateReportCommandHandler(IApplicationDbContext context, IUser currentUser, ILocalizationService localizer)
     {
         _context = context;
         _currentUser = currentUser;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateReportCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(_currentUser.Id) || !Guid.TryParse(_currentUser.Id, out var userId))
         {
-            return Result<Guid>.Failure(new[] { "User not authenticated." });
+            return Result<Guid>.Failure(new[] { _localizer["Auth.NotAuthenticated"] });
         }
 
         // Check if user already reported this content
@@ -45,7 +47,7 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
 
         if (existingReport != null)
         {
-            return Result<Guid>.Failure(new[] { "You have already reported this content." });
+            return Result<Guid>.Failure(new[] { _localizer["Reports.AlreadyReported"] });
         }
 
         var report = new Report

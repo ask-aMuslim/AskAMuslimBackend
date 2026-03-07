@@ -789,6 +789,19 @@
               "nullable": true
             },
             "x-position": 5
+          },
+          {
+            "name": "Language",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Language"
+                }
+              ]
+            },
+            "x-position": 6
           }
         ],
         "responses": {
@@ -2214,6 +2227,19 @@
               ]
             },
             "x-position": 6
+          },
+          {
+            "name": "Language",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Language"
+                }
+              ]
+            },
+            "x-position": 7
           }
         ],
         "responses": {
@@ -2388,6 +2414,19 @@
               "nullable": true
             },
             "x-position": 4
+          },
+          {
+            "name": "Language",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/Language"
+                }
+              ]
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -6178,6 +6217,26 @@
           }
         }
       },
+      "Language": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "English",
+          "Arabic",
+          "French",
+          "Spanish",
+          "German",
+          "Portuguese"
+        ],
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
       "CreateCourseCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6203,6 +6262,9 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           },
           "tagIds": {
             "type": "array",
@@ -6238,6 +6300,9 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           },
           "tagIds": {
             "type": "array",
@@ -6484,24 +6549,6 @@
           }
         }
       },
-      "Language": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "English",
-          "Arabic",
-          "French",
-          "Spanish",
-          "German"
-        ],
-        "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
-      },
       "UpdateInquiryRequestStatusCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6629,6 +6676,9 @@
           },
           "isPublished": {
             "type": "boolean"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           }
         }
       },
@@ -6672,6 +6722,9 @@
           },
           "isPublished": {
             "type": "boolean"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           }
         }
       },
@@ -6695,6 +6748,9 @@
           },
           "isPublished": {
             "type": "boolean"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           }
         }
       },
@@ -6734,6 +6790,9 @@
           },
           "isPublished": {
             "type": "boolean"
+          },
+          "language": {
+            "$ref": "#/components/schemas/Language"
           }
         }
       },

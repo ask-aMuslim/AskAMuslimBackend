@@ -20,15 +20,18 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; } = false;
+    public Language Language { get; init; } = Language.English;
 }
 
 public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateLessonCommandHandler(IApplicationDbContext context)
+    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
@@ -37,7 +40,7 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         var courseExists = await _context.Courses.AsNoTracking().AnyAsync(c => c.Id == request.CourseId, cancellationToken);
         if (!courseExists)
         {
-            return Result<Guid>.Failure(new[] { "Course does not exist." });
+            return Result<Guid>.Failure(new[] { _localizer["Courses.DoesNotExist"] });
         }
 
         var lesson = new Lesson
@@ -51,7 +54,8 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             Transcript = request.Transcript,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order,
-            IsPublished = request.IsPublished
+            IsPublished = request.IsPublished,
+            Language = request.Language
         };
 
         _context.Lessons.Add(lesson);
@@ -90,6 +94,9 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
 
         RuleFor(x => x.Type)
             .IsInEnum().WithMessage("Invalid lesson type.");
+
+        RuleFor(x => x.Language)
+            .IsInEnum().WithMessage("Invalid language value.");
 
         RuleFor(x => x.ContentJson)
             .Must(BeValidTiptapJson).WithMessage(x => GetTiptapJsonError(x.ContentJson))

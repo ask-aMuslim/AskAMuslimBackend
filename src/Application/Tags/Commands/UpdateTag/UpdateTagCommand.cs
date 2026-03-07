@@ -16,10 +16,12 @@ public record UpdateTagCommand : IRequest<Result>
 public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public UpdateTagCommandHandler(IApplicationDbContext context)
+    public UpdateTagCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result> Handle(UpdateTagCommand request, CancellationToken cancellationToken)
@@ -28,7 +30,7 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
         
         if (entity == null)
         {
-            return Result.Failure(new[] { "Tag not found" });
+            return Result.Failure(new[] { _localizer["Tags.NotFound"] });
         }
 
         entity.Title = request.Title;

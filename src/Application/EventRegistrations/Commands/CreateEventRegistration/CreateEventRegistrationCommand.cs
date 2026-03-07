@@ -17,10 +17,12 @@ public record CreateEventRegistrationCommand : IRequest<Result<Guid>>
 public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEventRegistrationCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateEventRegistrationCommandHandler(IApplicationDbContext context)
+    public CreateEventRegistrationCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateEventRegistrationCommand request, CancellationToken cancellationToken)
@@ -29,8 +31,8 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
         var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
         
         var errors = new List<string>();
-        if (!eventExists) errors.Add("Event does not exist.");
-        if (!userExists) errors.Add("User does not exist.");
+        if (!eventExists) errors.Add(_localizer["Events.NotFound"]);
+        if (!userExists) errors.Add(_localizer["Auth.NotAuthenticated"]);
         if (errors.Any()) return Result<Guid>.Failure(errors);
 
         var alreadyRegistered = await _context.EventRegistrations
@@ -38,7 +40,7 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
             .AnyAsync(r => r.EventId == request.EventId && r.UserId == request.UserId, cancellationToken);
         if (alreadyRegistered)
         {
-            return Result<Guid>.Failure(new[] { "User is already registered for this event." });
+            return Result<Guid>.Failure(new[] { _localizer["EventRegistrations.AlreadyRegistered"] });
         }
 
         var entity = new EventRegistration

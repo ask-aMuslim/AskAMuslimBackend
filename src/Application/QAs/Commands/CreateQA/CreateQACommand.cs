@@ -26,10 +26,12 @@ public record CreateQACommand : IRequest<Result<Guid>>
 public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ILocalizationService _localizer;
 
-    public CreateQACommandHandler(IApplicationDbContext context)
+    public CreateQACommandHandler(IApplicationDbContext context, ILocalizationService localizer)
     {
         _context = context;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateQACommand request, CancellationToken cancellationToken)
@@ -41,7 +43,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
             var missing = request.TagIds.Distinct().Except(existingTagIds).ToList();
             if (missing.Any())
             {
-                return Result<Guid>.Failure(missing.Select(id => $"Tag {id} does not exist.").ToArray());
+                return Result<Guid>.Failure(missing.Select(id => _localizer.GetString("Tags.DoesNotExist", id)).ToArray());
             }
         }
 
@@ -49,7 +51,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
         var duplicateLangs = request.Translations.GroupBy(t => t.Language).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
         if (duplicateLangs.Any())
         {
-            return Result<Guid>.Failure(duplicateLangs.Select(l => $"Duplicate language {l}.").ToArray());
+            return Result<Guid>.Failure(duplicateLangs.Select(l => _localizer.GetString("QAs.DuplicateLanguage", l)).ToArray());
         }
 
         var entity = new QA

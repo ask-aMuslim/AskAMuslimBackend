@@ -51,4 +51,5 @@ public class QATranslationStatistics
     public int French { get; set; }
     public int Spanish { get; set; }
     public int German { get; set; }
+    public int Portuguese { get; set; }
 }

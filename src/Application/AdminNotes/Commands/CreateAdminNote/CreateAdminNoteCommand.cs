@@ -15,18 +15,20 @@ public class CreateAdminNoteCommandHandler : IRequestHandler<CreateAdminNoteComm
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _currentUser;
+    private readonly ILocalizationService _localizer;
 
-    public CreateAdminNoteCommandHandler(IApplicationDbContext context, IUser currentUser)
+    public CreateAdminNoteCommandHandler(IApplicationDbContext context, IUser currentUser, ILocalizationService localizer)
     {
         _context = context;
         _currentUser = currentUser;
+        _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateAdminNoteCommand request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(_currentUser.Id, out var adminUserId))
         {
-            return Result<Guid>.Failure(new[] { "Invalid user context" });
+            return Result<Guid>.Failure(new[] { _localizer["Auth.InvalidUserContext"] });
         }
 
         var adminNote = new AdminNote
