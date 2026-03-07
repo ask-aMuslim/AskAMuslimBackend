@@ -18,10 +18,12 @@ public record RegisterCommand : IRequest<Result<AuthenticationResponse>>
 public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<AuthenticationResponse>>
 {
     private readonly IIdentityService _identityService;
+    private readonly IEmailService _emailService;
 
-    public RegisterCommandHandler(IIdentityService identityService)
+    public RegisterCommandHandler(IIdentityService identityService, IEmailService emailService)
     {
         _identityService = identityService;
+        _emailService = emailService;
     }
 
     public async Task<Result<AuthenticationResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -35,6 +37,25 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             request.Religion,
             null,
             cancellationToken);
+
+        if (result.Succeeded && result.Data != null)
+        {
+            var fullName = $"{request.FirstName} {request.LastName}".Trim();
+            var body = $"""
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333;">
+                  <h2>Welcome to Ask A Muslim, {fullName}!</h2>
+                  <p>Thank you for creating your account. We're glad to have you here.</p>
+                  <p>You can now log in and start exploring our courses and resources.</p>
+                  <br/>
+                  <p>If you have any questions, feel free to reach out to us.</p>
+                  <p>Warm regards,<br/>The Ask A Muslim Team</p>
+                </body>
+                </html>
+                """;
+
+            await _emailService.SendEmailAsync(request.Email, "Welcome to Ask A Muslim!", body);
+        }
 
         return result;
     }
