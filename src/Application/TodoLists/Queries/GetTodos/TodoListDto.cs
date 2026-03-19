@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 ﻿using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.TodoLists.Queries.GetTodos;
@@ -16,12 +17,4 @@ public class TodoListDto
     public string? Colour { get; init; }
 
     public IReadOnlyCollection<TodoItemDto> Items { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<TodoList, TodoListDto>();
-        }
-    }
 }

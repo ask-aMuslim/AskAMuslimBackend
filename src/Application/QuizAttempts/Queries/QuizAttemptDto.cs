@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Queries;
@@ -13,12 +14,4 @@ public class QuizAttemptDto
     public DateTime StartedAt { get; init; }
     public DateTime? CompletedAt { get; init; }
     public int AttemptNumber { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<QuizAttempt, QuizAttemptDto>();
-        }
-    }
 }

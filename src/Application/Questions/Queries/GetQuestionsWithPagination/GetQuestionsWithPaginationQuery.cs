@@ -16,12 +16,10 @@ public record GetQuestionsWithPaginationQuery : IRequest<Result<PaginatedList<Qu
 public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestionsWithPaginationQuery, Result<PaginatedList<QuestionBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetQuestionsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetQuestionsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<QuestionBriefDto>>> Handle(GetQuestionsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -35,7 +33,11 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
 
         var paginatedList = await query
             .OrderBy(q => q.Text)
-            .ProjectTo<QuestionBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new QuestionBriefDto {
+            Id = s.Id,
+            Text = s.Text,
+            OptionsCount = s.Options.Count
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         
         return Result<PaginatedList<QuestionBriefDto>>.Success(paginatedList);

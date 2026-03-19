@@ -9,12 +9,10 @@ public record GetEventByIdQuery(Guid Id) : IRequest<Result<EventDto>>;
 public class GetEventByIdQueryHandler : IRequestHandler<GetEventByIdQuery, Result<EventDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEventByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEventByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<EventDto>> Handle(GetEventByIdQuery request, CancellationToken cancellationToken)
@@ -22,7 +20,18 @@ public class GetEventByIdQueryHandler : IRequestHandler<GetEventByIdQuery, Resul
         var eventDto = await _context.Events
             .AsNoTracking()
             .Where(e => e.Id == request.Id)
-            .ProjectTo<EventDto>(_mapper.ConfigurationProvider)
+            .Select(s => new EventDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            SpeakerName = s.SpeakerName,
+            ImageUrl = s.ImageUrl,
+            StartDateTime = s.StartDateTime,
+            EndDateTime = s.EndDateTime,
+            MeetingLink = s.MeetingLink,
+            IsPublished = s.IsPublished,
+            TotalRegistrations = s.Registrations.Count
+    })
             .FirstOrDefaultAsync(cancellationToken);
             
         if (eventDto == null)

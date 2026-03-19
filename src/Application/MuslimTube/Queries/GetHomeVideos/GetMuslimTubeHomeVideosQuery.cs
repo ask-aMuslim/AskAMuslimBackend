@@ -4,10 +4,6 @@ using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Application.MuslimTube.Queries;
 using AskAMuslimBackend.Application.MuslimTube.Queries.Caching;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
-
 namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetHomeVideos;
 
 public record GetMuslimTubeHomeVideosQuery : IRequest<Result<PaginatedList<MuslimTubeVideoBriefDto>>>, IPaginationQuery
@@ -23,13 +19,11 @@ public record GetMuslimTubeHomeVideosQuery : IRequest<Result<PaginatedList<Musli
 public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTubeHomeVideosQuery, Result<PaginatedList<MuslimTubeVideoBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
     private readonly IMuslimTubeCache _cache;
 
-    public GetMuslimTubeHomeVideosQueryHandler(IApplicationDbContext context, IMapper mapper, IMuslimTubeCache cache)
+    public GetMuslimTubeHomeVideosQueryHandler(IApplicationDbContext context, IMuslimTubeCache cache)
     {
         _context = context;
-        _mapper = mapper;
         _cache = cache;
     }
 
@@ -69,7 +63,18 @@ public class GetMuslimTubeHomeVideosQueryHandler : IRequestHandler<GetMuslimTube
         }
 
         var result = await ordered
-            .ProjectTo<MuslimTubeVideoBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new MuslimTubeVideoBriefDto {
+            Id = s.Id,
+            YouTubeVideoId = s.YouTubeVideoId,
+            MuslimTubeChannelId = s.MuslimTubeChannelId,
+            Title = s.Title,
+            Description = s.Description,
+            ThumbnailDefaultUrl = s.ThumbnailDefaultUrl,
+            ThumbnailMediumUrl = s.ThumbnailMediumUrl,
+            ThumbnailHighUrl = s.ThumbnailHighUrl,
+            PublishedAt = s.PublishedAt,
+            VideoUrl = s.VideoUrl
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         await _cache.SetVideosAsync(key, result, cancellationToken);

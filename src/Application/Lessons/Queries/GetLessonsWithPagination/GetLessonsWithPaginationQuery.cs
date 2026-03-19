@@ -3,8 +3,6 @@ using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Domain.Enums;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
@@ -24,12 +22,10 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
 public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetLessonsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetLessonsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<LessonBriefDto>>> Handle(GetLessonsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -67,7 +63,20 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
             .OrderBy(l => l.CourseId)
             .ThenBy(l => l.Order)
             .ThenBy(l => l.Title)
-            .ProjectTo<LessonBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new LessonBriefDto {
+            Id = s.Id,
+            CourseId = s.CourseId,
+            Title = s.Title,
+            Description = s.Description,
+            ContentJson = s.ContentJson,
+            Type = s.Type,
+            Order = s.Order,
+            ThumbnailUrl = s.ThumbnailUrl,
+            ContentUrl = s.ContentUrl,
+            Transcript = s.Transcript,
+            IsPublished = s.IsPublished,
+            Language = s.Language
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         
         return Result<PaginatedList<LessonBriefDto>>.Success(paginatedList);

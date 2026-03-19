@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -16,15 +17,4 @@ public class InquiryRequestDto
     public MeetingInquiryRequestStatus Status { get; init; }
     public string? Response { get; init; }
     public DateTimeOffset Created { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<InquiryRequest, InquiryRequestDto>()
-                .ForMember(d => d.Languages, opt => opt.MapFrom(s => s.Languages))
-                .ForMember(d => d.RequesterName, opt => opt.MapFrom(s => s.Requester != null ? $"{s.Requester.FirstName} {s.Requester.LastName}" : string.Empty))
-                .ForMember(d => d.ModeratorName, opt => opt.MapFrom(s => s.Moderator != null ? $"{s.Moderator.FirstName} {s.Moderator.LastName}" : null));
-        }
-    }
 }

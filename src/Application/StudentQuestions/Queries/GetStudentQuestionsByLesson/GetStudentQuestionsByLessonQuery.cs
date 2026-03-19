@@ -1,7 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestionsByLesson;
@@ -11,12 +9,10 @@ public record GetStudentQuestionsByLessonQuery(Guid LessonId) : IRequest<Result<
 public class GetStudentQuestionsByLessonQueryHandler : IRequestHandler<GetStudentQuestionsByLessonQuery, Result<List<StudentQuestionDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetStudentQuestionsByLessonQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetStudentQuestionsByLessonQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<List<StudentQuestionDto>>> Handle(GetStudentQuestionsByLessonQuery request, CancellationToken cancellationToken)
@@ -24,7 +20,15 @@ public class GetStudentQuestionsByLessonQueryHandler : IRequestHandler<GetStuden
         var questions = await _context.StudentQuestions
             .Where(q => q.LessonId == request.LessonId)
             .OrderBy(q => q.Timestamp)
-            .ProjectTo<StudentQuestionDto>(_mapper.ConfigurationProvider)
+            .Select(s => new StudentQuestionDto {
+            Id = s.Id,
+            StudentId = s.StudentId,
+            LessonId = s.LessonId,
+            QuestionText = s.QuestionText,
+            Timestamp = s.Timestamp,
+            Answered = s.Answered,
+            AnswerText = s.AnswerText
+    })
             .ToListAsync(cancellationToken);
         
         return Result<List<StudentQuestionDto>>.Success(questions);

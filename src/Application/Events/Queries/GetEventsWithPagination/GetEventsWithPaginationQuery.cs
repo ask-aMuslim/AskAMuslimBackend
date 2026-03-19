@@ -18,12 +18,10 @@ public record GetEventsWithPaginationQuery : IRequest<Result<PaginatedList<Event
 public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWithPaginationQuery, Result<PaginatedList<EventDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEventsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEventsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<EventDto>>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -47,7 +45,18 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
 
         var events = await query
             .OrderBy(e => e.StartDateTime)
-            .ProjectTo<EventDto>(_mapper.ConfigurationProvider)
+            .Select(s => new EventDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            SpeakerName = s.SpeakerName,
+            ImageUrl = s.ImageUrl,
+            StartDateTime = s.StartDateTime,
+            EndDateTime = s.EndDateTime,
+            MeetingLink = s.MeetingLink,
+            IsPublished = s.IsPublished,
+            TotalRegistrations = s.Registrations.Count
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<EventDto>>.Success(events);

@@ -8,19 +8,28 @@ public record GetMuslimTubeVideoByIdQuery(Guid Id) : IRequest<Result<MuslimTubeV
 public class GetMuslimTubeVideoByIdQueryHandler : IRequestHandler<GetMuslimTubeVideoByIdQuery, Result<MuslimTubeVideoBriefDto?>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetMuslimTubeVideoByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetMuslimTubeVideoByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<MuslimTubeVideoBriefDto?>> Handle(GetMuslimTubeVideoByIdQuery request, CancellationToken cancellationToken)
     {
         var video = await _context.MuslimTubeVideos
             .Where(v => v.Id == request.Id)
-            .ProjectTo<MuslimTubeVideoBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new MuslimTubeVideoBriefDto {
+            Id = s.Id,
+            YouTubeVideoId = s.YouTubeVideoId,
+            MuslimTubeChannelId = s.MuslimTubeChannelId,
+            Title = s.Title,
+            Description = s.Description,
+            ThumbnailDefaultUrl = s.ThumbnailDefaultUrl,
+            ThumbnailMediumUrl = s.ThumbnailMediumUrl,
+            ThumbnailHighUrl = s.ThumbnailHighUrl,
+            PublishedAt = s.PublishedAt,
+            VideoUrl = s.VideoUrl
+    })
             .FirstOrDefaultAsync(cancellationToken);
         
         return Result<MuslimTubeVideoBriefDto?>.Success(video);

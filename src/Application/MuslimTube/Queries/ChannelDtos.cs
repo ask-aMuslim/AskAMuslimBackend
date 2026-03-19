@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.MuslimTube.Queries;
@@ -12,14 +13,6 @@ public class MuslimTubeChannelBriefDto
     public string? ThumbnailMediumUrl { get; set; }
     public string? ThumbnailHighUrl { get; set; }
     public DateTimeOffset? LastSyncedAt { get; set; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<MuslimTubeChannel, MuslimTubeChannelBriefDto>();
-        }
-    }
 }
 
 public class MuslimTubeVideoBriefDto
@@ -34,12 +27,4 @@ public class MuslimTubeVideoBriefDto
     public string? ThumbnailHighUrl { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public string VideoUrl { get; set; } = string.Empty;
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<MuslimTubeVideo, MuslimTubeVideoBriefDto>();
-        }
-    }
 }

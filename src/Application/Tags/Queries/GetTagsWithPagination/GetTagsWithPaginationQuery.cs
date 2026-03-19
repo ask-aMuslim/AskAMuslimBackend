@@ -15,12 +15,10 @@ public record GetTagsWithPaginationQuery : IRequest<Result<PaginatedList<TagBrie
 public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPaginationQuery, Result<PaginatedList<TagBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetTagsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetTagsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<TagBriefDto>>> Handle(GetTagsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -34,7 +32,13 @@ public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPagi
 
         var paginatedList = await query
             .OrderBy(c => c.Title)
-            .ProjectTo<TagBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new TagBriefDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            TotalCourses = s.CourseTags.Count,
+            TotalQAs = s.QATags.Count
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<TagBriefDto>>.Success(paginatedList);

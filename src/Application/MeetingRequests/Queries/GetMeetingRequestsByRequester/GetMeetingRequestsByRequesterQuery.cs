@@ -10,12 +10,10 @@ public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingInquir
 public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeetingRequestsByRequesterQuery, Result<List<MeetingRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetMeetingRequestsByRequesterQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetMeetingRequestsByRequesterQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByRequesterQuery request, CancellationToken cancellationToken)
@@ -29,7 +27,20 @@ public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeet
             query = query.Where(m => m.Status == request.Status.Value);
         }
         var data = await query
-            .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
+            .Select(s => new MeetingRequestDto {
+            Id = s.Id,
+            RequesterId = s.RequesterId,
+            RequesterName = s.Requester != null ? s.Requester.FirstName + " " + s.Requester.LastName : string.Empty,
+            ModeratorName = s.Moderator != null ? s.Moderator.FirstName + " " + s.Moderator.LastName : null,
+            ModeratorId = s.ModeratorId,
+            Topic = s.Topic,
+            Message = s.Message,
+            Languages = s.Languages,
+            ScheduledAt = s.ScheduledAt,
+            Status = s.Status,
+            Response = s.Response,
+            CreatedAt = s.Created
+    })
             .ToListAsync(cancellationToken);
         return Result<List<MeetingRequestDto>>.Success(data);
     }

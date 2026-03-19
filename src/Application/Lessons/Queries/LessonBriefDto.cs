@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -17,12 +18,4 @@ public class LessonBriefDto
     public string? Transcript { get; init; }
     public bool IsPublished { get; init; }
     public Language Language { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<Lesson, LessonBriefDto>();
-        }
-    }
 }
