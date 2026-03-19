@@ -4,9 +4,6 @@ using AskAMuslimBackend.Application.Common.Pagination;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.MuslimTube.Queries;
 using AskAMuslimBackend.Application.MuslimTube.Queries.Caching;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
 namespace AskAMuslimBackend.Application.MuslimTube.Queries.GetChannelsWithPagination;
 
 public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<Result<PaginatedList<MuslimTubeChannelBriefDto>>>, IPaginationQuery
@@ -19,13 +16,11 @@ public record GetMuslimTubeChannelsWithPaginationQuery : IRequest<Result<Paginat
 public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<GetMuslimTubeChannelsWithPaginationQuery, Result<PaginatedList<MuslimTubeChannelBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
     private readonly IMuslimTubeCache _cache;
 
-    public GetMuslimTubeChannelsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper, IMuslimTubeCache cache)
+    public GetMuslimTubeChannelsWithPaginationQueryHandler(IApplicationDbContext context, IMuslimTubeCache cache)
     {
         _context = context;
-        _mapper = mapper;
         _cache = cache;
     }
 
@@ -47,7 +42,16 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
 
         var result = await query
             .OrderBy(c => c.Name)
-            .ProjectTo<MuslimTubeChannelBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new MuslimTubeChannelBriefDto {
+            Id = s.Id,
+            YouTubeChannelId = s.YouTubeChannelId,
+            Name = s.Name,
+            Description = s.Description,
+            ThumbnailDefaultUrl = s.ThumbnailDefaultUrl,
+            ThumbnailMediumUrl = s.ThumbnailMediumUrl,
+            ThumbnailHighUrl = s.ThumbnailHighUrl,
+            LastSyncedAt = s.LastSyncedAt
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         await _cache.SetChannelsAsync(key, result, cancellationToken);

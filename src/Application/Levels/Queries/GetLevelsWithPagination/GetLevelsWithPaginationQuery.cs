@@ -19,12 +19,10 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetLevelsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetLevelsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<LevelBriefDto>>> Handle(GetLevelsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -51,7 +49,16 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
         var paginatedList = await query
             .OrderBy(l => l.Order)
             .ThenBy(l => l.Title)
-            .ProjectTo<LevelBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new LevelBriefDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            Order = s.Order,
+            Difficulty = s.Difficulty,
+            IsPublished = s.IsPublished,
+            Language = s.Language,
+            TotalCourses = s.Courses.Count
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<LevelBriefDto>>.Success(paginatedList);

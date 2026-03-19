@@ -1,7 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptsByStudent;
@@ -11,12 +9,10 @@ public record GetQuizAttemptsByStudentQuery(Guid StudentId) : IRequest<Result<Li
 public class GetQuizAttemptsByStudentQueryHandler : IRequestHandler<GetQuizAttemptsByStudentQuery, Result<List<QuizAttemptDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetQuizAttemptsByStudentQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetQuizAttemptsByStudentQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<List<QuizAttemptDto>>> Handle(GetQuizAttemptsByStudentQuery request, CancellationToken cancellationToken)

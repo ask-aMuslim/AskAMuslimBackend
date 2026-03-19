@@ -19,12 +19,10 @@ public record GetAllMeetingRequestsQuery : IRequest<Result<PaginatedList<Meeting
 public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRequestsQuery, Result<PaginatedList<MeetingRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetAllMeetingRequestsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetAllMeetingRequestsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<MeetingRequestDto>>> Handle(GetAllMeetingRequestsQuery request, CancellationToken cancellationToken)
@@ -57,7 +55,20 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
 
         var paginatedList = await query
             .OrderByDescending(mr => mr.Created)
-            .ProjectTo<MeetingRequestDto>(_mapper.ConfigurationProvider)
+            .Select(s => new MeetingRequestDto {
+            Id = s.Id,
+            RequesterId = s.RequesterId,
+            RequesterName = s.Requester != null ? s.Requester.FirstName + " " + s.Requester.LastName : string.Empty,
+            ModeratorName = s.Moderator != null ? s.Moderator.FirstName + " " + s.Moderator.LastName : null,
+            ModeratorId = s.ModeratorId,
+            Topic = s.Topic,
+            Message = s.Message,
+            Languages = s.Languages,
+            ScheduledAt = s.ScheduledAt,
+            Status = s.Status,
+            Response = s.Response,
+            CreatedAt = s.Created
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<MeetingRequestDto>>.Success(paginatedList);

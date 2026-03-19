@@ -1,9 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Domain.Enums;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
-
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCourseDetailById;
 
 public record GetCourseDetailByIdQuery(Guid CourseId, Guid? StudentId = null) : IRequest<Result<CourseDetailDto?>>;
@@ -11,19 +8,28 @@ public record GetCourseDetailByIdQuery(Guid CourseId, Guid? StudentId = null) : 
 public class GetCourseDetailByIdQueryHandler : IRequestHandler<GetCourseDetailByIdQuery, Result<CourseDetailDto?>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetCourseDetailByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetCourseDetailByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<CourseDetailDto?>> Handle(GetCourseDetailByIdQuery request, CancellationToken cancellationToken)
     {
         var course = await _context.Courses
             .Where(c => c.Id == request.CourseId)
-            .ProjectTo<CourseDetailDto>(_mapper.ConfigurationProvider)
+            .Select(s => new CourseDetailDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            ThumbnailUrl = s.ThumbnailUrl,
+            IsPublished = s.IsPublished,
+            Rating = s.Rating,
+            Order = s.Order,
+            LevelId = s.LevelId,
+            Prerequisites = s.CoursePrerequisites.OrderBy(cp => cp.Order).Select(cp => new PrerequisiteCourseDto { Id = cp.PrerequisiteCourseId, Title = cp.PrerequisiteCourse!.Title, Order = cp.Order }).ToList(),
+            UnlockedCourses = s.PrerequisiteForCourses.Select(cp => new PrerequisiteCourseDto { Id = cp.CourseId, Title = cp.Course!.Title, Order = cp.Order }).ToList()
+    })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (course == null)

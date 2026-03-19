@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -13,13 +14,4 @@ public class LevelBriefDto
     public bool IsPublished { get; init; }
     public Language Language { get; init; }
     public int TotalCourses { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<Level, LevelBriefDto>()
-                .ForMember(dest => dest.TotalCourses, opt => opt.MapFrom(src => src.Courses.Count));
-        }
-    }
 }

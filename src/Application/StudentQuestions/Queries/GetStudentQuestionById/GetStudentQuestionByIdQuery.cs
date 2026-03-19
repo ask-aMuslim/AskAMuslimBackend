@@ -1,7 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Queries.GetStudentQuestionById;
@@ -11,19 +9,25 @@ public record GetStudentQuestionByIdQuery(Guid Id) : IRequest<Result<StudentQues
 public class GetStudentQuestionByIdQueryHandler : IRequestHandler<GetStudentQuestionByIdQuery, Result<StudentQuestionDto?>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetStudentQuestionByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetStudentQuestionByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<StudentQuestionDto?>> Handle(GetStudentQuestionByIdQuery request, CancellationToken cancellationToken)
     {
         var question = await _context.StudentQuestions
             .Where(q => q.Id == request.Id)
-            .ProjectTo<StudentQuestionDto>(_mapper.ConfigurationProvider)
+            .Select(s => new StudentQuestionDto {
+            Id = s.Id,
+            StudentId = s.StudentId,
+            LessonId = s.LessonId,
+            QuestionText = s.QuestionText,
+            Timestamp = s.Timestamp,
+            Answered = s.Answered,
+            AnswerText = s.AnswerText
+    })
             .FirstOrDefaultAsync(cancellationToken);
         
         return Result<StudentQuestionDto?>.Success(question);

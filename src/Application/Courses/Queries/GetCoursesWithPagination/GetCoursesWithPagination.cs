@@ -1,4 +1,4 @@
-﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Pagination;
@@ -20,12 +20,10 @@ public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<Cour
 public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWithPaginationQuery, Result<PaginatedList<CourseBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetCoursesWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetCoursesWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<CourseBriefDto>>> Handle(GetCoursesWithPaginationQuery request, CancellationToken cancellationToken)
@@ -60,7 +58,17 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
         var paginatedList = await query
             .OrderBy(c => c.Order)
             .ThenBy(c => c.Title)
-            .ProjectTo<CourseBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new CourseBriefDto {
+            Id = s.Id,
+            Title = s.Title,
+            Description = s.Description,
+            ThumbnailUrl = s.ThumbnailUrl,
+            IsPublished = s.IsPublished,
+            Rating = s.Rating,
+            Order = s.Order,
+            Language = s.Language,
+            Tags = s.CourseTags.Select(ct => new AskAMuslimBackend.Application.Tags.Queries.TagBriefDto { Id = ct.Tag!.Id, Title = ct.Tag.Title, Description = ct.Tag.Description, TotalCourses = ct.Tag.CourseTags.Count, TotalQAs = ct.Tag.QATags.Count }).ToList()
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
             
         return Result<PaginatedList<CourseBriefDto>>.Success(paginatedList);

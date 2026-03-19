@@ -9,12 +9,10 @@ public record GetEventRegistrationByIdQuery(Guid Id) : IRequest<Result<EventRegi
 public class GetEventRegistrationByIdQueryHandler : IRequestHandler<GetEventRegistrationByIdQuery, Result<EventRegistrationDto?>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEventRegistrationByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEventRegistrationByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<EventRegistrationDto?>> Handle(GetEventRegistrationByIdQuery request, CancellationToken cancellationToken)
@@ -22,7 +20,15 @@ public class GetEventRegistrationByIdQueryHandler : IRequestHandler<GetEventRegi
         var registration = await _context.EventRegistrations
             .AsNoTracking()
             .Where(r => r.Id == request.Id)
-            .ProjectTo<EventRegistrationDto>(_mapper.ConfigurationProvider)
+            .Select(s => new EventRegistrationDto {
+            Id = s.Id,
+            EventId = s.EventId,
+            UserId = s.UserId,
+            FirstName = s.User != null ? s.User.FirstName : string.Empty,
+            LastName = s.User != null ? s.User.LastName : string.Empty,
+            QuestionText = s.QuestionText,
+            Status = s.Status
+    })
             .FirstOrDefaultAsync(cancellationToken);
             
         return Result<EventRegistrationDto?>.Success(registration);

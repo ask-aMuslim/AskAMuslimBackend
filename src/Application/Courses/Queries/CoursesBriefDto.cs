@@ -1,4 +1,5 @@
-﻿using AskAMuslimBackend.Application.Tags.Queries;
+using AskAMuslimBackend.Application.Tags.Queries;
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -23,13 +24,4 @@ public class CourseBriefDto
     public Language Language { get; init; }
 
     public List<TagBriefDto> Tags { get; init; } = new();
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<Course, CourseBriefDto>()
-                .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.CourseTags.Select(ct => ct.Tag)));
-        }
-    }
 }

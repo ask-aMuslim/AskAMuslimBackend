@@ -1,7 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Enrollments.Queries.GetEnrollmentsByStudent;
@@ -11,12 +9,10 @@ public record GetEnrollmentsByStudentQuery(Guid StudentId) : IRequest<Result<Lis
 public class GetEnrollmentsByStudentQueryHandler : IRequestHandler<GetEnrollmentsByStudentQuery, Result<List<EnrollmentDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEnrollmentsByStudentQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEnrollmentsByStudentQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<List<EnrollmentDto>>> Handle(GetEnrollmentsByStudentQuery request, CancellationToken cancellationToken)
@@ -24,7 +20,15 @@ public class GetEnrollmentsByStudentQueryHandler : IRequestHandler<GetEnrollment
         var enrollments = await _context.Enrollments
             .Where(e => e.StudentId == request.StudentId)
             .OrderByDescending(e => e.EnrolledAt)
-            .ProjectTo<EnrollmentDto>(_mapper.ConfigurationProvider)
+            .Select(s => new EnrollmentDto {
+            Id = s.Id,
+            StudentId = s.StudentId,
+            CourseId = s.CourseId,
+            EnrolledAt = s.EnrolledAt,
+            Status = s.Status,
+            LevelProgress = s.LevelProgress,
+            CourseProgress = s.CourseProgress
+    })
             .ToListAsync(cancellationToken);
             
         return Result<List<EnrollmentDto>>.Success(enrollments);

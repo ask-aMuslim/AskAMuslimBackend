@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 
@@ -12,12 +13,4 @@ public class EnrollmentDto
     public EnrollmentStatus Status { get; init; }
     public double LevelProgress { get; init; }
     public double CourseProgress { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<Enrollment, EnrollmentDto>();
-        }
-    }
 }

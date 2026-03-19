@@ -1,4 +1,4 @@
-﻿using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
 
@@ -14,12 +14,10 @@ public record GetTodoItemsWithPaginationQuery : IRequest<Result<PaginatedList<To
 public class GetTodoItemsWithPaginationQueryHandler : IRequestHandler<GetTodoItemsWithPaginationQuery, Result<PaginatedList<TodoItemBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetTodoItemsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetTodoItemsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<TodoItemBriefDto>>> Handle(GetTodoItemsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -27,7 +25,12 @@ public class GetTodoItemsWithPaginationQueryHandler : IRequestHandler<GetTodoIte
         var data = await _context.TodoItems
             .Where(x => x.ListId == request.ListId)
             .OrderBy(x => x.Title)
-            .ProjectTo<TodoItemBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new TodoItemBriefDto {
+            Id = s.Id,
+            ListId = s.ListId,
+            Title = s.Title,
+            Done = s.Done
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         return Result<PaginatedList<TodoItemBriefDto>>.Success(data);
     }

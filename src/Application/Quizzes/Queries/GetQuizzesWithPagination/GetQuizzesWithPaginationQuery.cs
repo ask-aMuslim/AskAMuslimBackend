@@ -20,12 +20,10 @@ public record GetQuizzesWithPaginationQuery : IRequest<Result<PaginatedList<Quiz
 public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWithPaginationQuery, Result<PaginatedList<QuizBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetQuizzesWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetQuizzesWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<QuizBriefDto>>> Handle(GetQuizzesWithPaginationQuery request, CancellationToken cancellationToken)
@@ -55,7 +53,16 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
 
         var result = await query
             .OrderBy(q => q.Title)
-            .ProjectTo<QuizBriefDto>(_mapper.ConfigurationProvider)
+            .Select(s => new QuizBriefDto {
+            Id = s.Id,
+            LevelId = s.LevelId,
+            CourseId = s.CourseId,
+            LessonId = s.LessonId,
+            TargetType = s.TargetType,
+            Title = s.Title,
+            TotalMarks = s.TotalMarks,
+            QuestionsCount = s.Questions.Count
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         return Result<PaginatedList<QuizBriefDto>>.Success(result);
     }

@@ -19,12 +19,10 @@ public record GetAllInquiryRequestsQuery : IRequest<Result<PaginatedList<Inquiry
 public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRequestsQuery, Result<PaginatedList<InquiryRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetAllInquiryRequestsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetAllInquiryRequestsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<InquiryRequestDto>>> Handle(GetAllInquiryRequestsQuery request, CancellationToken cancellationToken)
@@ -57,7 +55,19 @@ public class GetAllInquiryRequestsQueryHandler : IRequestHandler<GetAllInquiryRe
 
         var paginatedList = await query
             .OrderByDescending(ir => ir.Created)
-            .ProjectTo<InquiryRequestDto>(_mapper.ConfigurationProvider)
+            .Select(s => new InquiryRequestDto {
+            Id = s.Id,
+            RequesterId = s.RequesterId,
+            RequesterName = s.Requester != null ? s.Requester.FirstName + " " + s.Requester.LastName : string.Empty,
+            ModeratorName = s.Moderator != null ? s.Moderator.FirstName + " " + s.Moderator.LastName : null,
+            ModeratorId = s.ModeratorId,
+            Topic = s.Topic,
+            Message = s.Message,
+            Languages = s.Languages,
+            Status = s.Status,
+            Response = s.Response,
+            Created = s.Created
+    })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
         return Result<PaginatedList<InquiryRequestDto>>.Success(paginatedList);

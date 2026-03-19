@@ -18,12 +18,10 @@ public record GetQAsWithPaginationQuery : IRequest<Result<PaginatedList<QABriefD
 public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPaginationQuery, Result<PaginatedList<QABriefDto>>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetQAsWithPaginationQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetQAsWithPaginationQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<Result<PaginatedList<QABriefDto>>> Handle(GetQAsWithPaginationQuery request, CancellationToken cancellationToken)

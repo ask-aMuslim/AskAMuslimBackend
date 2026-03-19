@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AskAMuslimBackend.Domain.Entities;
 
 namespace AskAMuslimBackend.Application.StudentQuestions.Queries;
@@ -11,12 +12,4 @@ public class StudentQuestionDto
     public double Timestamp { get; init; }
     public bool Answered { get; init; }
     public string? AnswerText { get; init; }
-
-    private class Mapping : Profile
-    {
-        public Mapping()
-        {
-            CreateMap<StudentQuestion, StudentQuestionDto>();
-        }
-    }
 }
