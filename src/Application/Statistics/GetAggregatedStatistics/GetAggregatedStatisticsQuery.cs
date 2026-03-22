@@ -44,6 +44,9 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
         var nonMuslimStudents = await _context.StudentProfiles
             .CountAsync(sp => !sp.IsMuslim, cancellationToken);
 
+        // Volunteers
+        var totalVolunteers = await _context.Volunteers.CountAsync(cancellationToken);
+
         // New users this month - using EnrollmentDate for students, JoinedDate for others
         var firstDayOfMonthDateOnly = DateOnly.FromDateTime(firstDayOfMonth);
         var newStudentsThisMonth = await _context.Students
@@ -137,7 +140,8 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
                     Instructors = totalInstructors,
                     Preachers = totalPreachers,
                     Students = totalStudents,
-                    NonMuslim = nonMuslimStudents
+                    NonMuslim = nonMuslimStudents,
+                    Volunteers = totalVolunteers
                 }
             },
             Courses = new CourseStatistics

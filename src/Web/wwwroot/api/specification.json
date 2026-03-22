@@ -5911,6 +5911,47 @@
           }
         ]
       }
+    },
+    "/api/Volunteers": {
+      "post": {
+        "tags": [
+          "Volunteers"
+        ],
+        "operationId": "CreateVolunteer",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVolunteerCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Volunteers"
+        ],
+        "operationId": "GetVolunteers",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -7843,6 +7884,47 @@
             "nullable": true
           }
         }
+      },
+      "CreateVolunteerCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/VolunteerType"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "VolunteerType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Dawah",
+          "TeachingNewMuslims",
+          "Developers",
+          "Designers",
+          "Translators",
+          "VideoEditors"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
       }
     },
     "securitySchemes": {
