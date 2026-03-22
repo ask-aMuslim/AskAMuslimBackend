@@ -8,4 +8,5 @@ public class StatisticsDto
     public int TotalCourses { get; set; }
     public int TotalLessons { get; set; }
     public int TotalCompletedCourses { get; set; }
+    public int TotalVolunteers { get; set; }
 }

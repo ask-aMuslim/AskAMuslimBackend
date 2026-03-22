@@ -59,6 +59,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
 
     public DbSet<MuslimTubeVideo> MuslimTubeVideos => Set<MuslimTubeVideo>();
 
+    public DbSet<Volunteer> Volunteers => Set<Volunteer>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

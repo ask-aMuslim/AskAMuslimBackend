@@ -35,6 +35,7 @@ public class UserRoleStatistics
     public int Preachers { get; set; }
     public int Students { get; set; }
     public int NonMuslim { get; set; }
+    public int Volunteers { get; set; }
 }
 
 public class CourseStatistics

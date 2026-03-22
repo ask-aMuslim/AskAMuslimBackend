@@ -41,6 +41,9 @@ public class GetStatisticsQueryHandler : IRequestHandler<GetStatisticsQuery, Res
             .Where(e => e.Status == Domain.Enums.EnrollmentStatus.Completed)
             .CountAsync(cancellationToken);
 
+        // Get total volunteers
+        var totalVolunteers = await _context.Volunteers.CountAsync(cancellationToken);
+
         var statistics = new StatisticsDto
         {
             TotalStudents = totalStudents,
@@ -48,7 +51,8 @@ public class GetStatisticsQueryHandler : IRequestHandler<GetStatisticsQuery, Res
             TotalNewMuslims = totalNewMuslims,
             TotalCourses = totalCourses,
             TotalLessons = totalLessons,
-            TotalCompletedCourses = totalCompletedCourses
+            TotalCompletedCourses = totalCompletedCourses,
+            TotalVolunteers = totalVolunteers
         };
 
         return Result<StatisticsDto>.Success(statistics);
