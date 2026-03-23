@@ -2160,6 +2160,19 @@
         }
       }
     },
+    "/api/Languages": {
+      "get": {
+        "tags": [
+          "Languages"
+        ],
+        "operationId": "GetLanguages",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/Lessons": {
       "get": {
         "tags": [
@@ -6577,7 +6590,12 @@
         "additionalProperties": false,
         "properties": {
           "topic": {
-            "$ref": "#/components/schemas/MeetingInquiryTopic"
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MeetingInquiryTopic"
+              }
+            ]
           },
           "message": {
             "type": "string"

@@ -8,7 +8,7 @@ namespace AskAMuslimBackend.Application.InquiryRequests.Commands.CreateInquiryRe
 
 public record CreateInquiryRequestCommand : IRequest<Result<Guid>>
 {
-    public MeetingInquiryTopic Topic { get; init; }
+    public MeetingInquiryTopic? Topic { get; init; }
     public string Message { get; init; } = string.Empty;
     public List<Language> Languages { get; init; } = new();
 }
@@ -36,7 +36,7 @@ public class CreateInquiryRequestCommandHandler : IRequestHandler<CreateInquiryR
         var inquiry = new InquiryRequest
         {
             RequesterId = requesterGuid,
-            Topic = request.Topic,
+            Topic = request.Topic ?? MeetingInquiryTopic.GeneralInquiry,
             Message = request.Message,
             Languages = request.Languages,
             Status = MeetingInquiryRequestStatus.Pending,
@@ -52,7 +52,7 @@ public class CreateInquiryRequestCommandValidator : AbstractValidator<CreateInqu
 {
     public CreateInquiryRequestCommandValidator()
     {
-        RuleFor(x => x.Topic).IsInEnum();
+        RuleFor(x => x.Topic).IsInEnum().When(x => x.Topic.HasValue);
         RuleFor(x => x.Message).NotEmpty().MaximumLength(4000);
         RuleFor(x => x.Languages).NotEmpty().WithMessage("At least one language must be specified.");
         RuleForEach(x => x.Languages).IsInEnum();
