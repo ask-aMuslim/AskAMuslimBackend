@@ -2173,6 +2173,131 @@
         }
       }
     },
+    "/api/LearnIslamRequests": {
+      "post": {
+        "tags": [
+          "LearnIslamRequests"
+        ],
+        "operationId": "CreateLearnIslamRequest",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLearnIslamRequestCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "LearnIslamRequests"
+        ],
+        "operationId": "GetLearnIslamRequests",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/LearnIslamRequests/{id}/status": {
+      "put": {
+        "tags": [
+          "LearnIslamRequests"
+        ],
+        "operationId": "UpdateStatus2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLearnIslamRequestStatusCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/LearnIslamRequests/{id}/label": {
+      "put": {
+        "tags": [
+          "LearnIslamRequests"
+        ],
+        "operationId": "UpdateLabel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLearnIslamRequestLabelCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Lessons": {
       "get": {
         "tags": [
@@ -2848,7 +2973,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "UpdateStatus2",
+        "operationId": "UpdateStatus3",
         "parameters": [
           {
             "name": "id",
@@ -6679,6 +6804,94 @@
           }
         }
       },
+      "CreateLearnIslamRequestCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "$ref": "#/components/schemas/Language"
+          },
+          "knowledgeLevel": {
+            "$ref": "#/components/schemas/LearnIslamKnowledgeLevel"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentReligion": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "LearnIslamKnowledgeLevel": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "None",
+          "Basic",
+          "Intermediate",
+          "Advanced"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "UpdateLearnIslamRequestStatusCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LearnIslamRequestStatus"
+          }
+        }
+      },
+      "LearnIslamRequestStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "Contacted",
+          "Completed",
+          "Dismissed"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "UpdateLearnIslamRequestLabelCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "LessonType": {
         "type": "integer",
         "description": "",
@@ -6860,7 +7073,12 @@
         "additionalProperties": false,
         "properties": {
           "topic": {
-            "$ref": "#/components/schemas/MeetingInquiryTopic"
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MeetingInquiryTopic"
+              }
+            ]
           },
           "message": {
             "type": "string"
