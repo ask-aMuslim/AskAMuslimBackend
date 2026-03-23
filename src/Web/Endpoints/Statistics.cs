@@ -11,12 +11,12 @@ public class Statistics : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetStatistics)
-            .RequireAuthorization(Policies.ViewDashboard)
+            //.RequireAuthorization(Policies.ViewDashboard)
             .WithName("GetStatistics")
             .WithSummary("Get platform statistics including student, course, and enrollment counts");
 
         groupBuilder.MapGet(GetAggregatedStatistics, "aggregated")
-            .RequireAuthorization(Policies.ViewAnalytics)
+            //.RequireAuthorization(Policies.ViewAnalytics)
             .WithName("GetAggregatedStatistics")
             .WithSummary("Get comprehensive aggregated statistics for users, courses, and QA translations");
     }
