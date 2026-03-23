@@ -60,6 +60,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<MuslimTubeVideo> MuslimTubeVideos => Set<MuslimTubeVideo>();
 
     public DbSet<Volunteer> Volunteers => Set<Volunteer>();
+    public DbSet<LearnIslamRequest> LearnIslamRequests => Set<LearnIslamRequest>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
