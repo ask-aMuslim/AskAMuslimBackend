@@ -39,8 +39,10 @@ public static class DependencyInjection
                 policy.SetIsOriginAllowed(origin =>
                       {
                           // Allow web and admin panel
-                          if (origin == "https://aam-web.ask-a-muslim.com" || 
-                              origin == "https://adminpanel.ask-a-muslim.com")
+                          if (origin == "https://aam-web.ask-a-muslim.com" ||
+                              origin == "https://adminpanel.ask-a-muslim.com" ||
+                              origin == "https://islam-port.vercel.app" ||
+                              origin == "https://noor-frontend-xi.vercel.app")
                               return true;
                           
                           // Allow localhost for development (Angular, Android emulator, etc.)
