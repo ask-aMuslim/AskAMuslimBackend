@@ -254,11 +254,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("CompletedLessonsCount")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<double>("CourseProgress")
-                        .HasColumnType("float");
 
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
@@ -277,6 +277,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<double>("LevelProgress")
                         .HasColumnType("float");
 
@@ -287,6 +290,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("TotalLessonsCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1493,6 +1499,58 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("StudentProfiles", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastAccessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double?>("ProgressPercentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("float(5)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("StudentId", "CourseId", "LessonId")
+                        .IsUnique();
+
+                    b.ToTable("StudentProgresses");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentQuestion", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2367,6 +2425,33 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasForeignKey("AskAMuslimBackend.Domain.Entities.StudentProfile", "StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.StudentProgress", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Lesson", "Lesson")
+                        .WithMany()
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Lesson");
 
                     b.Navigation("Student");
                 });

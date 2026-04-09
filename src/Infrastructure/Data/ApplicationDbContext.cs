@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<CoursePrerequisite> CoursePrerequisites => Set<CoursePrerequisite>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
+    public DbSet<StudentProgress> StudentProgresses => Set<StudentProgress>();
     public DbSet<Quiz> Quizzes => Set<Quiz>();
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<Option> Options => Set<Option>();

@@ -1,0 +1,106 @@
+using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Domain.Entities;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace AskAMuslimBackend.Application.Progress.Commands.CompleteLesson;
+
+public record CompleteLessonCommand(Guid CourseId, Guid LessonId, double? VideoProgressPercentage) : IRequest<bool>;
+
+public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonCommand, bool>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IUser _user;
+
+    public CompleteLessonCommandHandler(IApplicationDbContext context, IUser user)
+    {
+        _context = context;
+        _user = user;
+    }
+
+    public async Task<bool> Handle(CompleteLessonCommand request, CancellationToken cancellationToken)
+    {
+        if (_user.Id == null)
+            throw new UnauthorizedAccessException();
+
+        var studentId = Guid.Parse(_user.Id);
+
+        var lesson = await _context.Lessons
+            .FirstOrDefaultAsync(l => l.Id == request.LessonId && l.CourseId == request.CourseId, cancellationToken)
+            ?? throw new InvalidOperationException("Lesson not found or does not belong to the specified course.");
+
+        bool shouldComplete = true;
+        if (request.VideoProgressPercentage.HasValue && request.VideoProgressPercentage < 90)
+        {
+            shouldComplete = false;
+        }
+
+        var studentProgress = await _context.StudentProgresses
+            .FirstOrDefaultAsync(sp => sp.StudentId == studentId && sp.LessonId == request.LessonId, cancellationToken);
+
+        if (studentProgress == null)
+        {
+            studentProgress = new StudentProgress
+            {
+                StudentId = studentId,
+                CourseId = request.CourseId,
+                LessonId = request.LessonId,
+                IsCompleted = shouldComplete,
+                ProgressPercentage = request.VideoProgressPercentage,
+                LastAccessedAt = DateTime.UtcNow,
+                CompletedAt = shouldComplete ? DateTime.UtcNow : null
+            };
+            _context.StudentProgresses.Add(studentProgress);
+        }
+        else
+        {
+            studentProgress.LastAccessedAt = DateTime.UtcNow;
+            
+            if (studentProgress.IsCompleted)
+            {
+                if (request.VideoProgressPercentage.HasValue && request.VideoProgressPercentage > studentProgress.ProgressPercentage)
+                    studentProgress.ProgressPercentage = request.VideoProgressPercentage;
+                
+                await _context.SaveChangesAsync(cancellationToken);
+                return false;
+            }
+
+            studentProgress.ProgressPercentage = request.VideoProgressPercentage ?? studentProgress.ProgressPercentage;
+            
+            if (shouldComplete)
+            {
+                studentProgress.IsCompleted = true;
+                studentProgress.CompletedAt = DateTime.UtcNow;
+            }
+        }
+
+        if (shouldComplete)
+        {
+            var enrollment = await _context.Enrollments
+                .Include(e => e.Course)
+                    .ThenInclude(c => c!.Lessons)
+                .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == request.CourseId, cancellationToken);
+
+            if (enrollment == null)
+            {
+                throw new InvalidOperationException("Student is not enrolled in this course.");
+            }
+
+            enrollment.TotalLessonsCount = enrollment.Course!.Lessons.Count;
+            
+            var currentCompletedCount = await _context.StudentProgresses
+                .CountAsync(sp => sp.StudentId == studentId && sp.CourseId == request.CourseId && sp.IsCompleted, cancellationToken);
+            
+            enrollment.CompletedLessonsCount = currentCompletedCount + 1;
+            enrollment.LastUpdatedAt = DateTime.UtcNow;
+
+            if (enrollment.CompletedLessonsCount >= enrollment.TotalLessonsCount)
+            {
+                enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
+            }
+        }
+        
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+}

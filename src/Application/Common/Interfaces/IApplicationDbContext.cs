@@ -16,6 +16,7 @@ public interface IApplicationDbContext
     DbSet<Course> Courses { get; }
     DbSet<CoursePrerequisite> CoursePrerequisites { get; }
     DbSet<Lesson> Lessons { get; }
+    DbSet<StudentProgress> StudentProgresses { get; }
     DbSet<Quiz> Quizzes { get; }
     DbSet<Question> Questions { get; }
     DbSet<Option> Options { get; }
