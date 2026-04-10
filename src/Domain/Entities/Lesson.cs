@@ -13,6 +13,7 @@ public class Lesson : BaseAuditableEntity
     public string? Transcript { get; set; }
     public string? ThumbnailUrl { get; set; }
     public int Order { get; set; }    public bool IsPublished { get; set; } = false;
+    public bool HasQuiz { get; set; } = false;
     public Language Language { get; set; } = Language.English;
     // Navigation
     public Course? Course { get; set; }

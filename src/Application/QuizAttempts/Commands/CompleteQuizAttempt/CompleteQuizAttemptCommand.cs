@@ -138,44 +138,18 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
 
             if (enrollment != null)
             {
-                // Gather all quizzes directly assigned to this course
-                var directCourseQuizIdsQuery = _context.Quizzes
-                    .Where(q => q.CourseId == courseId.Value)
-                    .Select(q => q.Id);
-
-                // And all quizzes assigned to the lessons of this course
-                var courseLessonIdsQuery = _context.Lessons
-                    .Where(l => l.CourseId == courseId.Value)
-                    .Select(l => l.Id);
-
-                var lessonQuizIdsQuery = _context.Quizzes
-                    .Where(q => q.LessonId != null && courseLessonIdsQuery.Contains(q.LessonId!.Value))
-                    .Select(q => q.Id);
-
-                var courseQuizIds = await directCourseQuizIdsQuery
-                    .Union(lessonQuizIdsQuery)
-                    .ToListAsync(cancellationToken);
-
-                var totalCourseQuizzes = courseQuizIds.Count;
-                int passedQuizCount = 0;
-                if (totalCourseQuizzes > 0)
+                // If this is a Course quiz and it has been passed, check if all lessons are already completed
+                // so we can mark the course as Completed
+                if (isPassed && attempt.Quiz?.TargetType == Domain.Enums.QuizTargetType.Course)
                 {
-                    passedQuizCount = await _context.QuizAttempts
-                        .Where(a => a.StudentId == attempt.StudentId && a.IsPassed && courseQuizIds.Contains(a.QuizId))
-                        .Select(a => a.QuizId)
-                        .Distinct()
-                        .CountAsync(cancellationToken);
-                }
-
-                // If this is how they track course completion here, map it to the new properties
-                enrollment.CompletedLessonsCount = passedQuizCount;
-                enrollment.TotalLessonsCount = totalCourseQuizzes;
-
-                // Mark course completed when reaching 100% and persist before computing level progress
-                if (enrollment.CourseProgress >= 100d && enrollment.Status != Domain.Enums.EnrollmentStatus.Completed)
-                {
-                    enrollment.Status = Domain.Enums.EnrollmentStatus.Completed;
-                    await _context.SaveChangesAsync(cancellationToken);
+                    if (enrollment.CompletedLessonsCount >= enrollment.TotalLessonsCount && enrollment.TotalLessonsCount > 0)
+                    {
+                        if (enrollment.Status != Domain.Enums.EnrollmentStatus.Completed)
+                        {
+                            enrollment.Status = Domain.Enums.EnrollmentStatus.Completed;
+                            await _context.SaveChangesAsync(cancellationToken);
+                        }
+                    }
                 }
 
                 // Resolve levelId (from quiz or from the course)

@@ -29,6 +29,26 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
             .FirstOrDefaultAsync(l => l.Id == request.LessonId && l.CourseId == request.CourseId, cancellationToken)
             ?? throw new InvalidOperationException("Lesson not found or does not belong to the specified course.");
 
+        // Prerequisite check: Must have completed the previous lesson's quiz if it has one
+        var previousLesson = await _context.Lessons
+            .Where(l => l.CourseId == request.CourseId && l.Order < lesson.Order)
+            .OrderByDescending(l => l.Order)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (previousLesson != null && previousLesson.HasQuiz)
+        {
+            bool passedPreviousQuiz = await _context.QuizAttempts
+                .AnyAsync(a => a.StudentId == studentId && 
+                               a.Quiz != null && 
+                               a.Quiz.LessonId == previousLesson.Id && 
+                               a.Quiz.TargetType == Domain.Enums.QuizTargetType.Lesson && 
+                               a.IsPassed, cancellationToken);
+            if (!passedPreviousQuiz)
+            {
+                throw new InvalidOperationException($"You must pass the quiz for the previous lesson '{previousLesson.Title}' before proceeding.");
+            }
+        }
+
         bool shouldComplete = true;
         if (request.VideoProgressPercentage.HasValue && request.VideoProgressPercentage < 90)
         {
@@ -94,9 +114,27 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
             enrollment.CompletedLessonsCount = currentCompletedCount + 1;
             enrollment.LastUpdatedAt = DateTime.UtcNow;
 
+            // Mark course as completed if all lessons are done AND (course has no quiz OR course quiz is passed)
             if (enrollment.CompletedLessonsCount >= enrollment.TotalLessonsCount)
             {
-                enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
+                if (!enrollment.Course!.HasQuiz)
+                {
+                    enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
+                }
+                else
+                {
+                    // Course has a quiz, verify if the user has passed the course quiz
+                    bool hasPassedCourseQuiz = await _context.QuizAttempts
+                        .AnyAsync(a => a.StudentId == studentId && a.Quiz != null && 
+                                       a.Quiz.CourseId == request.CourseId && 
+                                       a.Quiz.TargetType == Domain.Enums.QuizTargetType.Course && 
+                                       a.IsPassed, cancellationToken);
+                                       
+                    if (hasPassedCourseQuiz)
+                    {
+                        enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
+                    }
+                }
             }
         }
         

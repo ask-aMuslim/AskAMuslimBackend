@@ -1,4 +1,5 @@
 using AskAMuslimBackend.Application.Common.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace AskAMuslimBackend.Web.Infrastructure;
 
@@ -24,6 +25,25 @@ public static class ResultExtensions
 
         // Return the full Result wrapper with error information
         return Results.BadRequest(result);
+    }
+
+    public static IResult ToAuthenticationHttpResult(this Result<AuthenticationResponse> result, HttpContext httpContext)
+    {
+        if (result.Succeeded && result.Data != null && !string.IsNullOrEmpty(result.Data.RefreshToken))
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = result.Data.RefreshTokenExpiresAt,
+                Path = "/api/Authentication/refresh-token"
+            };
+
+            httpContext.Response.Cookies.Append("refreshToken", result.Data.RefreshToken, cookieOptions);
+        }
+
+        return result.ToHttpResult();
     }
 
     public static IResult ToCreatedResult<T>(this Result<T> result, string uri)
