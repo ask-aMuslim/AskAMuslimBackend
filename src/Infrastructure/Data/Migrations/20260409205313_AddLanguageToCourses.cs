@@ -10,29 +10,6 @@ namespace AskAMuslimBackend.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Language",
-                table: "Levels",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                defaultValue: "English");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Language",
-                table: "Courses",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                defaultValue: "English");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Language",
-                table: "Lessons",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                defaultValue: "English");
         }
 
         /// <inheritdoc />
