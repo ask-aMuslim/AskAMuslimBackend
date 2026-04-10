@@ -164,6 +164,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<bool>("HasQuiz")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("InstructorId")
                         .HasColumnType("uniqueidentifier");
 
@@ -609,6 +612,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<bool>("HasQuiz")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -671,6 +677,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("HasQuiz")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPublished")
                         .ValueGeneratedOnAdd()

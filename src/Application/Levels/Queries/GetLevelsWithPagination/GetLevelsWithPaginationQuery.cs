@@ -19,10 +19,12 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
 public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWithPaginationQuery, Result<PaginatedList<LevelBriefDto>>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _user;
 
-    public GetLevelsWithPaginationQueryHandler(IApplicationDbContext context)
+    public GetLevelsWithPaginationQueryHandler(IApplicationDbContext context, IUser user)
     {
         _context = context;
+        _user = user;
     }
 
     public async Task<Result<PaginatedList<LevelBriefDto>>> Handle(GetLevelsWithPaginationQuery request, CancellationToken cancellationToken)
@@ -57,9 +59,41 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
             Difficulty = s.Difficulty,
             IsPublished = s.IsPublished,
             Language = s.Language,
+            HasQuiz = s.HasQuiz,
+            CanAccessLevel = true,
             TotalCourses = s.Courses.Count
     })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
+            
+        if (!string.IsNullOrWhiteSpace(_user.Id) && Guid.TryParse(_user.Id, out var studentId))
+        {
+            var orderedLevelsInfo = await _context.Levels
+                .Where(l => !request.Language.HasValue || l.Language == request.Language.Value)
+                .Select(l => new { l.Id, l.Order, l.HasQuiz })
+                .OrderBy(l => l.Order)
+                .ToListAsync(cancellationToken);
+
+            var passedQuizLevelIds = await _context.QuizAttempts
+                .Where(a => a.StudentId == studentId && 
+                            a.Quiz != null && 
+                            a.Quiz.TargetType == Domain.Enums.QuizTargetType.Level && 
+                            a.IsPassed)
+                .Select(a => a.Quiz!.LevelId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var item in paginatedList.Items)
+            {
+                var previousLevelWithQuiz = orderedLevelsInfo
+                    .Where(l => l.Order < item.Order && l.HasQuiz)
+                    .OrderByDescending(l => l.Order)
+                    .FirstOrDefault();
+
+                if (previousLevelWithQuiz != null)
+                {
+                    item.CanAccessLevel = passedQuizLevelIds.Contains(previousLevelWithQuiz.Id);
+                }
+            }
+        }
             
         return Result<PaginatedList<LevelBriefDto>>.Success(paginatedList);
     }

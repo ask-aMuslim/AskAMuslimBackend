@@ -25,13 +25,15 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
     public async Task<Result<Guid>> Handle(CreateEnrollmentCommand request, CancellationToken cancellationToken)
     {
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
-        var courseExists = await _context.Courses.AnyAsync(c => c.Id == request.CourseId, cancellationToken);
-
-        if (!studentExists || !courseExists)
+        var course = await _context.Courses
+            .Include(c => c.Level)
+            .FirstOrDefaultAsync(c => c.Id == request.CourseId, cancellationToken);
+            
+        if (!studentExists || course == null)
         {
             var errors = new List<string>();
             if (!studentExists) errors.Add("Student does not exist.");
-            if (!courseExists) errors.Add("Course does not exist.");
+            if (course == null) errors.Add("Course does not exist.");
             return Result<Guid>.Failure(errors.ToArray());
         }
 
@@ -42,6 +44,35 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
         if (alreadyEnrolled)
         {
             return Result<Guid>.Failure(new[] { "Student is already enrolled in this course." });
+        }
+        
+        // Level Progression Check: Must pass previous level quiz if it exists
+        if (course.Level != null)
+        {
+            var previousLevels = await _context.Levels
+                .Where(l => l.Order < course.Level.Order)
+                .OrderByDescending(l => l.Order)
+                .ToListAsync(cancellationToken);
+                
+            foreach (var prevLevel in previousLevels)
+            {
+                // Find first previous level that requires a quiz
+                if (prevLevel.HasQuiz)
+                {
+                    var passedLevelQuiz = await _context.QuizAttempts
+                        .AnyAsync(a => a.StudentId == request.StudentId && 
+                                       a.Quiz != null && 
+                                       a.Quiz.LevelId == prevLevel.Id && 
+                                       a.Quiz.TargetType == QuizTargetType.Level && 
+                                       a.IsPassed, cancellationToken);
+
+                    if (!passedLevelQuiz)
+                    {
+                        return Result<Guid>.Failure(new[] { $"You must pass the quiz for the previous level '{prevLevel.Title}' before enrolling in courses of level '{course.Level.Title}'." });
+                    }
+                    break; // Only enforce the immediately preceding level that has a quiz
+                }
+            }
         }
 
         // Check prerequisites - all must be completed

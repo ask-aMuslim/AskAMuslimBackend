@@ -23,15 +23,42 @@ public class CreateQuizAttemptCommandHandler : IRequestHandler<CreateQuizAttempt
 
     public async Task<Result<Guid>> Handle(CreateQuizAttemptCommand request, CancellationToken cancellationToken)
     {
-        var quizExists = await _context.Quizzes.AnyAsync(q => q.Id == request.QuizId, cancellationToken);
+        var quiz = await _context.Quizzes
+            .Include(q => q.Lesson)
+            .FirstOrDefaultAsync(q => q.Id == request.QuizId, cancellationToken);
+            
         var studentExists = await _context.Students.AnyAsync(s => s.Id == request.StudentId, cancellationToken);
 
-        if (!quizExists || !studentExists)
+        if (quiz == null || !studentExists)
         {
             var errors = new List<string>();
-            if (!quizExists) errors.Add("Quiz does not exist.");
+            if (quiz == null) errors.Add("Quiz does not exist.");
             if (!studentExists) errors.Add("Student does not exist.");
             return Result<Guid>.Failure(errors.ToArray());
+        }
+        
+        // Progression check for Lesson Quiz: Must pass the previous lesson's quiz first
+        if (quiz.TargetType == Domain.Enums.QuizTargetType.Lesson && quiz.Lesson != null)
+        {
+            var previousLesson = await _context.Lessons
+                .Where(l => l.CourseId == quiz.Lesson.CourseId && l.Order < quiz.Lesson.Order)
+                .OrderByDescending(l => l.Order)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (previousLesson != null && previousLesson.HasQuiz)
+            {
+                bool passedPreviousQuiz = await _context.QuizAttempts
+                    .AnyAsync(a => a.StudentId == request.StudentId && 
+                                   a.Quiz != null && 
+                                   a.Quiz.LessonId == previousLesson.Id && 
+                                   a.Quiz.TargetType == Domain.Enums.QuizTargetType.Lesson && 
+                                   a.IsPassed, cancellationToken);
+
+                if (!passedPreviousQuiz)
+                {
+                    return Result<Guid>.Failure(new[] { $"You must pass the quiz for the previous lesson '{previousLesson.Title}' before attempting this one." });
+                }
+            }
         }
 
         // Determine next attempt number for this student/quiz (robust across providers)

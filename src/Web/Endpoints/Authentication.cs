@@ -100,42 +100,47 @@ public class Authentication : EndpointGroupBase
 
     public async Task<IResult> Register(
         ISender sender,
+        HttpContext httpContext,
         RegisterCommand command)
     {
         var result = await sender.Send(command);
-        return result.ToHttpResult();
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 
     public async Task<IResult> Login(
         ISender sender,
+        HttpContext httpContext,
         LoginCommand command)
     {
         var result = await sender.Send(command);
-        return result.ToHttpResult();
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 
     public async Task<IResult> AdminLogin(
         ISender sender,
+        HttpContext httpContext,
         LoginAdminCommand command)
     {
         var result = await sender.Send(command);
-        return result.ToHttpResult();
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 
     public async Task<IResult> LoginWithGoogle(
         ISender sender,
+        HttpContext httpContext,
         LoginWithGoogleCommand command)
     {
         var result = await sender.Send(command);
-        return result.ToHttpResult();
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 
     public async Task<IResult> LoginWithFacebook(
         ISender sender,
+        HttpContext httpContext,
         LoginWithFacebookCommand command)
     {
         var result = await sender.Send(command);
-        return result.ToHttpResult();
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 
     public async Task<IResult> ForgotPassword(
@@ -202,14 +207,32 @@ public class Authentication : EndpointGroupBase
         };
 
         var result = await sender.Send(command);
+
+        // Delete the refresh token cookie
+        httpContext.Response.Cookies.Delete("refreshToken", new CookieOptions
+        {
+            Path = "/api/Authentication/refresh-token",
+            Secure = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.Strict
+        });
+
         return result.ToHttpResult();
     }
 
     public async Task<IResult> RefreshToken(
         ISender sender,
+        HttpContext httpContext,
         RefreshTokenCommand command)
     {
-        var result = await sender.Send(command);
-        return result.ToHttpResult();
+        // Try falling back to the cookie if it's not provided in the request body
+        var finalCommand = command;
+        if (string.IsNullOrWhiteSpace(command.RefreshToken) && httpContext.Request.Cookies.TryGetValue("refreshToken", out var cookieToken))
+        {
+            finalCommand = command with { RefreshToken = cookieToken };
+        }
+
+        var result = await sender.Send(finalCommand);
+        return result.ToAuthenticationHttpResult(httpContext);
     }
 }

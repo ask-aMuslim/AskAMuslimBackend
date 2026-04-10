@@ -9,6 +9,7 @@ public class Course : BaseAuditableEntity
     public string? Description { get; set; }
     public string? ThumbnailUrl { get; set; }
     public bool IsPublished { get; set; }
+    public bool HasQuiz { get; set; } = false;
     public double Rating { get; set; }
     public int Order { get; set; }
     public Language Language { get; set; } = Language.English;

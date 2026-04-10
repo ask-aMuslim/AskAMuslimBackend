@@ -29,14 +29,47 @@ public class CreateQuizCommandHandler : IRequestHandler<CreateQuizCommand, Resul
 
     public async Task<Result<Guid>> Handle(CreateQuizCommand request, CancellationToken cancellationToken)
     {
-        // Determine target id based on type and validate existence
-        var targetExists = request.TargetType switch
+        // Determine target id based on type and validate existence, also update HasQuiz
+        bool targetExists = false;
+        
+        switch (request.TargetType)
         {
-            QuizTargetType.Level => request.LevelId.HasValue && await _context.Levels.AnyAsync(l => l.Id == request.LevelId.Value, cancellationToken),
-            QuizTargetType.Course => request.CourseId.HasValue && await _context.Courses.AnyAsync(c => c.Id == request.CourseId.Value, cancellationToken),
-            QuizTargetType.Lesson => request.LessonId.HasValue && await _context.Lessons.AnyAsync(l => l.Id == request.LessonId.Value, cancellationToken),
-            _ => false
-        };
+            case QuizTargetType.Level:
+                if (request.LevelId.HasValue)
+                {
+                    var level = await _context.Levels.FirstOrDefaultAsync(l => l.Id == request.LevelId.Value, cancellationToken);
+                    if (level != null)
+                    {
+                        level.HasQuiz = true;
+                        targetExists = true;
+                    }
+                }
+                break;
+                
+            case QuizTargetType.Course:
+                if (request.CourseId.HasValue)
+                {
+                    var course = await _context.Courses.FirstOrDefaultAsync(c => c.Id == request.CourseId.Value, cancellationToken);
+                    if (course != null)
+                    {
+                        course.HasQuiz = true;
+                        targetExists = true;
+                    }
+                }
+                break;
+                
+            case QuizTargetType.Lesson:
+                if (request.LessonId.HasValue)
+                {
+                    var lesson = await _context.Lessons.FirstOrDefaultAsync(l => l.Id == request.LessonId.Value, cancellationToken);
+                    if (lesson != null)
+                    {
+                        lesson.HasQuiz = true;
+                        targetExists = true;
+                    }
+                }
+                break;
+        }
 
         if (!targetExists)
         {

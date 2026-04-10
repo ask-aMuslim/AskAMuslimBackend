@@ -14,4 +14,6 @@ public class LevelBriefDto
     public bool IsPublished { get; init; }
     public Language Language { get; init; }
     public int TotalCourses { get; init; }
+    public bool HasQuiz { get; init; }
+    public bool CanAccessLevel { get; set; } = true;
 }
