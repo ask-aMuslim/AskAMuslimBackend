@@ -89,6 +89,37 @@ public class OtpService : IOtpService
         return Task.FromResult(isValid);
     }
 
+    public Task<string> GenerateResetTokenAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var tokenBytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(tokenBytes);
+        var token = Convert.ToBase64String(tokenBytes);
+
+        var cacheKey = GetTokenCacheKey(email);
+        _cache.Set(cacheKey, token, TimeSpan.FromMinutes(15)); // Token valid for 15 minutes
+        
+        return Task.FromResult(token);
+    }
+
+    public Task<bool> ValidateResetTokenAsync(string email, string token, CancellationToken cancellationToken = default)
+    {
+        var cacheKey = GetTokenCacheKey(email);
+        
+        if (!_cache.TryGetValue<string>(cacheKey, out var storedToken) || string.IsNullOrEmpty(storedToken))
+        {
+            return Task.FromResult(false);
+        }
+
+        bool isValid = storedToken == token;
+        if (isValid)
+        {
+            _cache.Remove(cacheKey); // Burn token after successful use
+        }
+
+        return Task.FromResult(isValid);
+    }
+
     public Task RemoveOtpAsync(string email, CancellationToken cancellationToken = default)
     {
         var cacheKey = GetCacheKey(email);
@@ -116,6 +147,11 @@ public class OtpService : IOtpService
     private static string GetCacheKey(string email)
     {
         return $"OTP_{email.ToLowerInvariant()}";
+    }
+
+    private static string GetTokenCacheKey(string email)
+    {
+        return $"RESET_TOKEN_{email.ToLowerInvariant()}";
     }
 
     private static string GenerateOtpEmailHtml(string otp, string userName)

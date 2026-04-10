@@ -475,7 +475,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result"
+                  "$ref": "#/components/schemas/ResultOfString"
                 }
               }
             }
@@ -485,7 +485,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Result"
+                  "$ref": "#/components/schemas/ResultOfString"
                 }
               }
             }
@@ -6392,6 +6392,25 @@
           }
         }
       },
+      "ResultOfString": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "VerifyOtpCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -6411,7 +6430,7 @@
           "email": {
             "type": "string"
           },
-          "otp": {
+          "token": {
             "type": "string"
           },
           "newPassword": {

@@ -71,15 +71,15 @@ public class Authentication : EndpointGroupBase
             .AllowAnonymous()
             .WithName("VerifyOtp")
             .WithSummary("Verify OTP")
-            .WithDescription("Validates the OTP without consuming it. Use this to verify OTP before proceeding to password reset.")
-            .Produces<Result>(StatusCodes.Status200OK)
-            .Produces<Result>(StatusCodes.Status400BadRequest);
+            .WithDescription("Validates the OTP and returns a short-lived reset token to be used for setting the new password.")
+            .Produces<Result<string>>(StatusCodes.Status200OK)
+            .Produces<Result<string>>(StatusCodes.Status400BadRequest);
 
         groupBuilder.MapPost(ResetPassword, "reset-password")
             .AllowAnonymous()
             .WithName("ResetPassword")
-            .WithSummary("Reset password with OTP")
-            .WithDescription("Validates the OTP and resets the user's password")
+            .WithSummary("Reset password using reset token")
+            .WithDescription("Validates the reset token returned by VerifyOtp and updates the user's password")
             .Produces<Result>(StatusCodes.Status200OK)
             .Produces<Result>(StatusCodes.Status400BadRequest);
 
