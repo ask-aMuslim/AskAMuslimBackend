@@ -7,7 +7,7 @@ namespace AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 public record ResetPasswordCommand : IRequest<Result>
 {
     public string Email { get; init; } = string.Empty;
-    public string Otp { get; init; } = string.Empty;
+    public string Token { get; init; } = string.Empty;
     public string NewPassword { get; init; } = string.Empty;
 }
 
@@ -20,11 +20,9 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
             .EmailAddress()
             .WithMessage("A valid email address is required.");
 
-        RuleFor(v => v.Otp)
+        RuleFor(v => v.Token)
             .NotEmpty()
-            .Length(6)
-            .Matches(@"^\d{6}$")
-            .WithMessage("OTP must be a 6-digit number.");
+            .WithMessage("Reset token is required.");
 
         RuleFor(v => v.NewPassword)
             .NotEmpty()
@@ -59,11 +57,11 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
 
     public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
     {
-        // Validate OTP
-        var isValidOtp = await _otpService.ValidateOtpAsync(request.Email, request.Otp, cancellationToken);
-        if (!isValidOtp)
+        // Validate Reset Token
+        var isValidToken = await _otpService.ValidateResetTokenAsync(request.Email, request.Token, cancellationToken);
+        if (!isValidToken)
         {
-            return Result.Failure(new[] { "Invalid or expired OTP. Please request a new one." });
+            return Result.Failure(new[] { "Invalid or expired reset token. Please restart the forgot password process." });
         }
 
         // Find user
