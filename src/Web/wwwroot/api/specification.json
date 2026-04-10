@@ -4316,6 +4316,80 @@
         }
       }
     },
+    "/api/Progress/lesson/complete": {
+      "post": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "CompleteLesson",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteLessonCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Progress/course/{courseId}": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "operationId": "GetCourseProgress",
+        "parameters": [
+          {
+            "name": "courseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseProgressDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/QAs": {
       "get": {
         "tags": [
@@ -7593,6 +7667,46 @@
           "organization": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "CompleteLessonCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "courseId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "lessonId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "videoProgressPercentage": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "CourseProgressDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "completedLessonsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalLessonsCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "progressPercentage": {
+            "type": "number",
+            "format": "double"
+          },
+          "isCompleted": {
+            "type": "boolean"
           }
         }
       },

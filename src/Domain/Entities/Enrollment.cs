@@ -7,7 +7,12 @@ public class Enrollment : BaseAuditableEntity
     public DateTime EnrolledAt { get; set; } = DateTime.UtcNow;
     public EnrollmentStatus Status { get; set; } = EnrollmentStatus.Active;
     public double LevelProgress { get; set; }
-    public double CourseProgress { get; set; }
+    
+    // Aggregation for course progress tracking
+    public int CompletedLessonsCount { get; set; } = 0;
+    public int TotalLessonsCount { get; set; } = 0;
+    public double CourseProgress => TotalLessonsCount == 0 ? 0 : Math.Round(((double)CompletedLessonsCount / TotalLessonsCount) * 100, 2);
+    public DateTime? LastUpdatedAt { get; set; }
 
     // Navigation
     public Student? Student { get; set; }

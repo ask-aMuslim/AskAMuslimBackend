@@ -157,19 +157,19 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
                     .ToListAsync(cancellationToken);
 
                 var totalCourseQuizzes = courseQuizIds.Count;
-                double courseProgress = 0d;
+                int passedQuizCount = 0;
                 if (totalCourseQuizzes > 0)
                 {
-                    var passedQuizCount = await _context.QuizAttempts
+                    passedQuizCount = await _context.QuizAttempts
                         .Where(a => a.StudentId == attempt.StudentId && a.IsPassed && courseQuizIds.Contains(a.QuizId))
                         .Select(a => a.QuizId)
                         .Distinct()
                         .CountAsync(cancellationToken);
-
-                    courseProgress = passedQuizCount * 100d / totalCourseQuizzes;
                 }
 
-                enrollment.CourseProgress = Math.Round(courseProgress, 2);
+                // If this is how they track course completion here, map it to the new properties
+                enrollment.CompletedLessonsCount = passedQuizCount;
+                enrollment.TotalLessonsCount = totalCourseQuizzes;
 
                 // Mark course completed when reaching 100% and persist before computing level progress
                 if (enrollment.CourseProgress >= 100d && enrollment.Status != Domain.Enums.EnrollmentStatus.Completed)

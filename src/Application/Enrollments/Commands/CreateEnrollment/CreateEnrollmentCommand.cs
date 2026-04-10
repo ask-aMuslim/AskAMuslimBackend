@@ -83,7 +83,8 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
             EnrolledAt = DateTime.UtcNow,
             Status = EnrollmentStatus.Active,
             LevelProgress = 0,
-            CourseProgress = 0
+            CompletedLessonsCount = 0,
+            TotalLessonsCount = 0
         };
 
         _context.Enrollments.Add(entity);
