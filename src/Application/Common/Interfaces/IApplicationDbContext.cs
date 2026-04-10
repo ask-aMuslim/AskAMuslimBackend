@@ -45,6 +45,7 @@ public interface IApplicationDbContext
     DbSet<Notification> Notifications { get; }
     DbSet<UserPermission> UserPermissions { get; }
     DbSet<RolePermission> RolePermissions { get; }
+    DbSet<NewsletterSubscription> NewsletterSubscriptions { get; }
 
     // MuslimTube
     DbSet<MuslimTubeChannel> MuslimTubeChannels { get; }

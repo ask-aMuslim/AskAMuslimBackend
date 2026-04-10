@@ -3591,6 +3591,95 @@
         ]
       }
     },
+    "/api/Newsletters/subscribe": {
+      "post": {
+        "tags": [
+          "Newsletters"
+        ],
+        "operationId": "Subscribe",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscribeToNewsletterCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfGuid"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfGuid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Newsletters/send": {
+      "post": {
+        "tags": [
+          "Newsletters"
+        ],
+        "operationId": "SendNewsletter",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendNewsletterCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Result"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Notifications/{userId}": {
       "get": {
         "tags": [
@@ -7267,6 +7356,46 @@
           "initialVideoLimit": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "ResultOfGuid": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "data": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
+      "SubscribeToNewsletterCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "SendNewsletterCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "htmlBody": {
+            "type": "string"
           }
         }
       },
