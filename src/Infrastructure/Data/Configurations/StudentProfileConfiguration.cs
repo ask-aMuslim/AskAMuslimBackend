@@ -33,6 +33,9 @@ public class StudentProfileConfiguration : IEntityTypeConfiguration<StudentProfi
         builder.Property(sp => sp.OldReligion)
             .HasMaxLength(100);
 
+        builder.Property(sp => sp.ReasonOfReligion)
+            .HasMaxLength(1000);
+
         builder.Property(sp => sp.ReasonForConversion)
             .HasMaxLength(2000);
     }

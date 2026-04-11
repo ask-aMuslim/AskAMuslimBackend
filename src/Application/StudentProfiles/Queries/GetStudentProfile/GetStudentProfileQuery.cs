@@ -26,7 +26,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
     public async Task<Result<StudentProfileDto?>> Handle(GetStudentProfileQuery request, CancellationToken cancellationToken)
     {
         Guid studentId;
-        
+
         if (request.StudentId.HasValue)
         {
             // Admin looking up by studentId
@@ -37,12 +37,12 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             // Admin looking up by userId
             var studentByUserId = await _context.Students
                 .FirstOrDefaultAsync(s => s.UserId == request.UserId.Value, cancellationToken);
-            
+
             if (studentByUserId == null)
             {
                 return Result<StudentProfileDto?>.Failure(new[] { "Student not found" });
             }
-            
+
             studentId = studentByUserId.Id;
         }
         else
@@ -56,12 +56,12 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             // Get student by current user's ID
             var currentStudent = await _context.Students
                 .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
-            
+
             if (currentStudent == null)
             {
                 return Result<StudentProfileDto?>.Failure(new[] { "Student not found" });
             }
-            
+
             studentId = currentStudent.Id;
         }
 
@@ -75,7 +75,9 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
         }
 
         // Get user details
-        var user = await _context.Users.FindAsync(new object[] { student.UserId }, cancellationToken);
+        var user = await _context.Users
+            .Include(u => u.Languages)
+            .FirstOrDefaultAsync(u => u.Id == student.UserId, cancellationToken);
         if (user == null)
         {
             return Result<StudentProfileDto?>.Failure(new[] { "User not found" });
@@ -106,6 +108,16 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             Email = user.Email ?? string.Empty,
             FirstName = user.FirstName,
             LastName = user.LastName,
+            ImageUrl = user.ImageUrl,
+            Gender = user.Gender,
+            Languages = user.Languages
+                .Select(l => new StudentProfileLanguageDto
+                {
+                    Id = l.Id,
+                    Name = l.Name,
+                    Code = l.Code
+                })
+                .ToList(),
             ReligiousStatus = user.ReligionStatus ?? ReligiousStatus.NonMuslim,
             Address = profile.Address,
             Country = profile.Country,
@@ -117,6 +129,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             IsNewMuslim = profile.IsNewMuslim,
             DateOfIslamConversion = profile.DateOfIslamConversion,
             OldReligion = profile.OldReligion,
+            ReasonOfReligion = profile.ReasonOfReligion,
             ReasonForConversion = profile.ReasonForConversion
         });
     }

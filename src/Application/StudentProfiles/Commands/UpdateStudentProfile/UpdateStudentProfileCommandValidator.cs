@@ -16,6 +16,19 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .MaximumLength(500).WithMessage("Image URL must not exceed 500 characters.")
             .When(v => !string.IsNullOrEmpty(v.ImageUrl));
 
+        RuleFor(v => v.Gender)
+            .MaximumLength(30)
+            .When(v => !string.IsNullOrEmpty(v.Gender))
+            .WithMessage("Gender must not exceed 30 characters");
+
+        RuleFor(v => v.Languages)
+            .Must(languages => languages == null || languages.All(id => id != Guid.Empty))
+            .WithMessage("Languages must not contain empty IDs");
+
+        RuleFor(v => v.Languages)
+            .Must(languages => languages == null || languages.Distinct().Count() == languages.Count)
+            .WithMessage("Languages must not contain duplicate IDs");
+
         RuleFor(v => v.PhoneNumber)
             .MaximumLength(20)
             .When(v => !string.IsNullOrEmpty(v.PhoneNumber))
@@ -55,6 +68,11 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .MaximumLength(100)
             .When(v => !string.IsNullOrEmpty(v.OldReligion))
             .WithMessage("Old religion must not exceed 100 characters");
+
+        RuleFor(v => v.ReasonOfReligion)
+            .MaximumLength(1000)
+            .When(v => !string.IsNullOrEmpty(v.ReasonOfReligion))
+            .WithMessage("Reason of religion must not exceed 1000 characters");
 
         RuleFor(v => v.ReasonForConversion)
             .MaximumLength(2000)

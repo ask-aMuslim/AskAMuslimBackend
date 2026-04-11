@@ -14,7 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     }
 
     public new DbSet<User> Users => Set<User>();
-    
+
     public DbSet<TodoList> TodoLists => Set<TodoList>();
     public DbSet<TodoItem> TodoItems => Set<TodoItem>();
 
@@ -46,6 +46,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     // User Management
     public DbSet<Student> Students => Set<Student>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
+    public DbSet<AppLanguage> AppLanguages => Set<AppLanguage>();
 
     public DbSet<Instructor> Instructors => Set<Instructor>();
     public DbSet<Admin> Admins => Set<Admin>();
