@@ -351,7 +351,7 @@ public class IdentityService : IIdentityService
 
         if (!user.EmailConfirmed)
         {
-            return Result<AuthenticationResponse>.Failure(new[] { "Email is not confirmed. Please verify your account using the provided OTP." });
+            return Result<AuthenticationResponse>.Failure(new[] { "Email is not confirmed. Please register again and verify your account using the provided OTP." });
         }
 
         if (!user.IsActive)
@@ -387,9 +387,9 @@ public class IdentityService : IIdentityService
         }
 
         user.EmailConfirmed = true;
-        
+
         var updateResult = await _userManager.UpdateAsync(user);
-        
+
         if (!updateResult.Succeeded)
         {
             return Result<AuthenticationResponse>.Failure(updateResult.Errors.Select(e => e.Description));
