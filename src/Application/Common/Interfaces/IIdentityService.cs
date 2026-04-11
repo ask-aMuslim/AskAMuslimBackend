@@ -27,6 +27,8 @@ public interface IIdentityService
         CancellationToken cancellationToken = default,
         bool allowAdminCreation = false);
 
+    Task<Result<AuthenticationResponse>> ConfirmEmailAsync(string email);
+
     Task<Result<AuthenticationResponse>> LoginUserAsync(string email, string password);
 
     Task<Result<AuthenticationResponse>> LoginModeratorAsync(string email, string password);

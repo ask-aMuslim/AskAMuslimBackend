@@ -4,6 +4,7 @@ using AskAMuslimBackend.Application.Authentication.Commands.LoginWithGoogle;
 using AskAMuslimBackend.Application.Authentication.Commands.LoginWithFacebook;
 using AskAMuslimBackend.Application.Authentication.Commands.ForgotPassword;
 using AskAMuslimBackend.Application.Authentication.Commands.VerifyOtp;
+using AskAMuslimBackend.Application.Authentication.Commands.VerifyRegistrationOtp;
 using AskAMuslimBackend.Application.Authentication.Commands.ResetPassword;
 using AskAMuslimBackend.Application.Authentication.Commands.Logout;
 using AskAMuslimBackend.Application.Authentication.Commands.RefreshToken;
@@ -23,7 +24,15 @@ public class Authentication : EndpointGroupBase
             .DisableAntiforgery()
             .WithName("Register")
             .WithSummary("Register a new user")
-            .WithDescription("Creates a new user account with the specified role (Admin, Student, Instructor, NonMuslim). Accepts multipart/form-data for image upload.")
+            .WithDescription("Creates a new user account with the specified role (Admin, Student, Instructor, NonMuslim). Accepts multipart/form-data for image upload. Sends an OTP to the user's email.")
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
+            .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
+
+        groupBuilder.MapPost(VerifyRegistrationOtp, "verify-registration-otp")
+            .AllowAnonymous()
+            .WithName("VerifyRegistrationOtp")
+            .WithSummary("Verify Registration OTP")
+            .WithDescription("Validates the OTP sent during registration and returns a JWT token.")
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status200OK)
             .Produces<Result<AuthenticationResponse>>(StatusCodes.Status400BadRequest);
 
@@ -102,6 +111,15 @@ public class Authentication : EndpointGroupBase
         ISender sender,
         HttpContext httpContext,
         RegisterCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> VerifyRegistrationOtp(
+        ISender sender,
+        HttpContext httpContext,
+        VerifyRegistrationOtpCommand command)
     {
         var result = await sender.Send(command);
         return result.ToAuthenticationHttpResult(httpContext);

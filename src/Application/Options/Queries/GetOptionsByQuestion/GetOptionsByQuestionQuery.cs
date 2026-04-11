@@ -18,6 +18,7 @@ public class GetOptionsByQuestionQueryHandler : IRequestHandler<GetOptionsByQues
     public async Task<Result<List<OptionBriefDto>>> Handle(GetOptionsByQuestionQuery request, CancellationToken cancellationToken)
     {
         var data = await _context.Options
+            .AsNoTracking()
             .Where(o => o.QuestionId == request.QuestionId)
             .Select(s => new OptionBriefDto {
             Id = s.Id,

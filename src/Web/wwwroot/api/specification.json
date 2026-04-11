@@ -241,6 +241,48 @@
         }
       }
     },
+    "/api/Authentication/verify-registration-otp": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "VerifyRegistrationOtp",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRegistrationOtpCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultOfAuthenticationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Authentication/login": {
       "post": {
         "tags": [
@@ -6412,6 +6454,18 @@
           },
           "religion": {
             "$ref": "#/components/schemas/ReligiousStatus"
+          }
+        }
+      },
+      "VerifyRegistrationOtpCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "otp": {
+            "type": "string"
           }
         }
       },

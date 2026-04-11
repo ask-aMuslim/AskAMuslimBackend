@@ -114,7 +114,59 @@ public class IdentityService : IIdentityService
         var existingUser = await _userManager.FindByEmailAsync(email);
         if (existingUser != null)
         {
-            return Result<AuthenticationResponse>.Failure(new[] { "User with this email already exists." });
+            if (existingUser.EmailConfirmed)
+            {
+                return Result<AuthenticationResponse>.Failure(new[] { "User with this email already exists." });
+            }
+
+            // User exists but is not confirmed. Allow re-registration by updating password & details.
+            if (await _userManager.HasPasswordAsync(existingUser))
+            {
+                await _userManager.RemovePasswordAsync(existingUser);
+            }
+            await _userManager.AddPasswordAsync(existingUser, password);
+
+            existingUser.FirstName = firstName;
+            existingUser.LastName = lastName;
+            existingUser.Role = role;
+            existingUser.ReligionStatus = religiousStatus;
+
+            if (image != null)
+            {
+                try
+                {
+                    existingUser.ImageUrl = await _fileStorageService.UploadFileAsync(image, "profile-images", cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    return Result<AuthenticationResponse>.Failure(new[] { $"Failed to upload image: {ex.Message}" });
+                }
+            }
+
+            await _userManager.UpdateAsync(existingUser);
+
+            var currentRoles = await _userManager.GetRolesAsync(existingUser);
+            await _userManager.RemoveFromRolesAsync(existingUser, currentRoles);
+            await _userManager.AddToRoleAsync(existingUser, GetRoleName(role));
+
+            // Ensure role specific entity exists (e.g., in case they changed role before verifying)
+            await CreateRoleSpecificEntity(existingUser.Id, role, isSuperAdmin: false);
+
+            // Re-grant permissions in case role changed
+            var newRolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(role.ToString());
+            await _permissionService.SetUserPermissionsAsync(existingUser.Id.ToString(), newRolePermissions, null, $"Auto-granted on re-registration for role {role}");
+
+            var existingAuthResponse = new AuthenticationResponse
+            {
+                UserId = existingUser.Id.ToString(),
+                Email = existingUser.Email ?? string.Empty,
+                FirstName = existingUser.FirstName,
+                LastName = existingUser.LastName,
+                Role = existingUser.Role,
+                ReligiousStatus = existingUser.ReligionStatus
+            };
+
+            return Result<AuthenticationResponse>.Success(existingAuthResponse);
         }
 
         // Upload image if provided
@@ -140,7 +192,7 @@ public class IdentityService : IIdentityService
             Role = role,
             ReligionStatus = religiousStatus,
             ImageUrl = imageUrl,
-            EmailConfirmed = true,
+            EmailConfirmed = false, // Require OTP verification
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -163,8 +215,15 @@ public class IdentityService : IIdentityService
         var rolePermissions = await _permissionService.GetDefaultPermissionsForRoleAsync(role.ToString());
         await _permissionService.SetUserPermissionsAsync(user.Id.ToString(), rolePermissions, null, $"Auto-granted on registration for role {role}");
 
-        // Generate tokens and response
-        var authResponse = await CreateAuthenticationResponseAsync(user);
+        var authResponse = new AuthenticationResponse
+        {
+            UserId = user.Id.ToString(),
+            Email = user.Email ?? string.Empty,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role,
+            ReligiousStatus = user.ReligionStatus
+        };
 
         return Result<AuthenticationResponse>.Success(authResponse);
     }
@@ -278,6 +337,11 @@ public class IdentityService : IIdentityService
             return Result<AuthenticationResponse>.Failure(new[] { "Invalid email or password." });
         }
 
+        if (!user.EmailConfirmed)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Email is not confirmed. Please verify your account using the provided OTP." });
+        }
+
         if (!user.IsActive)
         {
             return Result<AuthenticationResponse>.Failure(new[] { "Your account has been deactivated. Please contact support for assistance." });
@@ -291,6 +355,35 @@ public class IdentityService : IIdentityService
         await EnsureSuperAdminPermissions(user.Id);
 
         // Generate tokens and response
+        var authResponse = await CreateAuthenticationResponseAsync(user);
+
+        return Result<AuthenticationResponse>.Success(authResponse);
+    }
+
+    public async Task<Result<AuthenticationResponse>> ConfirmEmailAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "User not found." });
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return Result<AuthenticationResponse>.Failure(new[] { "Email is already confirmed." });
+        }
+
+        user.EmailConfirmed = true;
+        
+        var updateResult = await _userManager.UpdateAsync(user);
+        
+        if (!updateResult.Succeeded)
+        {
+            return Result<AuthenticationResponse>.Failure(updateResult.Errors.Select(e => e.Description));
+        }
+
+        // Generate tokens and response to log them in automatically upon confirmation
         var authResponse = await CreateAuthenticationResponseAsync(user);
 
         return Result<AuthenticationResponse>.Success(authResponse);
