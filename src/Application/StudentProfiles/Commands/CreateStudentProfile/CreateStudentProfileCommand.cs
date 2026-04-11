@@ -17,6 +17,7 @@ public record CreateStudentProfileCommand : IRequest<Result<Guid>>
     // For New Muslims (Reverts) only
     public DateOnly? DateOfIslamConversion { get; init; }
     public string? OldReligion { get; init; }
+    public string? ReasonOfReligion { get; init; }
     public string? ReasonForConversion { get; init; }
 }
 
@@ -86,6 +87,7 @@ public class CreateStudentProfileCommandHandler : IRequestHandler<CreateStudentP
             DateOfBirth = request.DateOfBirth,
             IsMuslim = isMuslim,
             IsNewMuslim = isNewMuslim,
+            ReasonOfReligion = request.ReasonOfReligion,
             // Only set revert-specific fields if user is a reverted Muslim
             DateOfIslamConversion = isNewMuslim ? request.DateOfIslamConversion : null,
             OldReligion = isNewMuslim ? request.OldReligion : null,

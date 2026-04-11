@@ -1817,6 +1817,10 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<string>("Gender")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 

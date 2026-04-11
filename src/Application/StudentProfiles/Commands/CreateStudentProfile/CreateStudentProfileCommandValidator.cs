@@ -44,6 +44,11 @@ public class CreateStudentProfileCommandValidator : AbstractValidator<CreateStud
             .When(v => !string.IsNullOrEmpty(v.OldReligion))
             .WithMessage("Old religion must not exceed 100 characters");
 
+        RuleFor(v => v.ReasonOfReligion)
+            .MaximumLength(1000)
+            .When(v => !string.IsNullOrEmpty(v.ReasonOfReligion))
+            .WithMessage("Reason of religion must not exceed 1000 characters");
+
         RuleFor(v => v.ReasonForConversion)
             .MaximumLength(2000)
             .When(v => !string.IsNullOrEmpty(v.ReasonForConversion))

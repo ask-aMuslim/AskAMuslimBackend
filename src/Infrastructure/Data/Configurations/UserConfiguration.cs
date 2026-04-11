@@ -30,6 +30,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(u => u.Gender)
+            .HasMaxLength(30);
+
         // Store enum as string for readability
         builder.Property(u => u.Role)
             .IsRequired()

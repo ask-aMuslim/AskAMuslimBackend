@@ -8300,6 +8300,10 @@
             "type": "string",
             "nullable": true
           },
+          "reasonOfReligion": {
+            "type": "string",
+            "nullable": true
+          },
           "reasonForConversion": {
             "type": "string",
             "nullable": true
@@ -8321,6 +8325,18 @@
           "imageUrl": {
             "type": "string",
             "nullable": true
+          },
+          "gender": {
+            "type": "string",
+            "nullable": true
+          },
+          "languages": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
           },
           "address": {
             "type": "string",
@@ -8353,6 +8369,10 @@
             "nullable": true
           },
           "oldReligion": {
+            "type": "string",
+            "nullable": true
+          },
+          "reasonOfReligion": {
             "type": "string",
             "nullable": true
           },
