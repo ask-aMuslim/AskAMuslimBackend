@@ -21,13 +21,23 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .When(v => !string.IsNullOrEmpty(v.Gender))
             .WithMessage("Gender must not exceed 30 characters");
 
-        RuleFor(v => v.Languages)
-            .Must(languages => languages == null || languages.All(id => id != Guid.Empty))
-            .WithMessage("Languages must not contain empty IDs");
+        RuleFor(v => v.ReligionStatus)
+            .IsInEnum()
+            .When(v => v.ReligionStatus.HasValue)
+            .WithMessage("Religion status must be a valid value");
 
         RuleFor(v => v.Languages)
-            .Must(languages => languages == null || languages.Distinct().Count() == languages.Count)
-            .WithMessage("Languages must not contain duplicate IDs");
+            .Must(languages => languages == null || languages.All(language => !string.IsNullOrWhiteSpace(language)))
+            .WithMessage("Languages must not contain empty values");
+
+        RuleFor(v => v.Languages)
+            .Must(languages => languages == null || languages.Distinct(StringComparer.OrdinalIgnoreCase).Count() == languages.Count)
+            .WithMessage("Languages must not contain duplicate values");
+
+        RuleForEach(v => v.Languages)
+            .MaximumLength(100)
+            .When(v => v.Languages != null)
+            .WithMessage("Each language must not exceed 100 characters");
 
         RuleFor(v => v.PhoneNumber)
             .MaximumLength(20)
