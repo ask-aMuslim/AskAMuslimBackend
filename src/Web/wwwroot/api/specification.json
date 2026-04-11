@@ -8330,12 +8330,19 @@
             "type": "string",
             "nullable": true
           },
+          "religionStatus": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReligiousStatus"
+              }
+            ]
+          },
           "languages": {
             "type": "array",
             "nullable": true,
             "items": {
-              "type": "string",
-              "format": "guid"
+              "type": "string"
             }
           },
           "address": {
