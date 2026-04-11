@@ -103,16 +103,21 @@ public class UpdateRolePermissionsCommandHandler : IRequestHandler<UpdateRolePer
             .Where(u => u.Role == request.Role)
             .ToListAsync(cancellationToken);
 
+        // N+1 Query Fix: Pre-fetch super admins if updating Admin role
+        var superAdminIds = new HashSet<Guid>();
+        if (request.Role == UserRole.Admin)
+        {
+            var adminUserIds = usersWithRole.Select(u => u.Id).ToList();
+            superAdminIds = await _context.Admins
+                .Where(a => adminUserIds.Contains(a.UserId) && a.IsSuperAdmin)
+                .Select(a => a.UserId)
+                .ToHashSetAsync(cancellationToken);
+        }
+
         foreach (var user in usersWithRole)
         {
             // Check if user is SuperAdmin - SKIP them, they keep AllPermissions
-            var isSuperAdmin = false;
-            if (request.Role == UserRole.Admin)
-            {
-                var admin = await _context.Admins
-                    .FirstOrDefaultAsync(a => a.UserId == user.Id, cancellationToken);
-                isSuperAdmin = admin?.IsSuperAdmin ?? false;
-            }
+            var isSuperAdmin = request.Role == UserRole.Admin && superAdminIds.Contains(user.Id);
 
             // Skip SuperAdmins - they always keep AllPermissions
             if (isSuperAdmin)

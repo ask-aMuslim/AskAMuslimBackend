@@ -91,7 +91,7 @@ public class CreateAdminCommandHandler : IRequestHandler<CreateAdminCommand, Res
             return Result<ModeratorCreatedResponse>.Failure(result.Errors);
         }
 
-        // Parse the userId from the response
+        // Parse the userId from the response securely
         if (result.Data == null || !Guid.TryParse(result.Data.UserId, out Guid userId))
         {
             return Result<ModeratorCreatedResponse>.Failure(new[] { "Failed to parse user ID" });
