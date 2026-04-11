@@ -122,9 +122,21 @@ public class IdentityService : IIdentityService
             // User exists but is not confirmed. Allow re-registration by updating password & details.
             if (await _userManager.HasPasswordAsync(existingUser))
             {
-                await _userManager.RemovePasswordAsync(existingUser);
+                var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
+                var resetResult = await _userManager.ResetPasswordAsync(existingUser, token, password);
+                if (!resetResult.Succeeded)
+                {
+                    return Result<AuthenticationResponse>.Failure(resetResult.Errors.Select(e => e.Description));
+                }
             }
-            await _userManager.AddPasswordAsync(existingUser, password);
+            else
+            {
+                var addResult = await _userManager.AddPasswordAsync(existingUser, password);
+                if (!addResult.Succeeded)
+                {
+                    return Result<AuthenticationResponse>.Failure(addResult.Errors.Select(e => e.Description));
+                }
+            }
 
             existingUser.FirstName = firstName;
             existingUser.LastName = lastName;
