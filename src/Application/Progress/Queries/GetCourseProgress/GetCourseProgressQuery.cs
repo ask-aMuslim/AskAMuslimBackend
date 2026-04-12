@@ -26,10 +26,19 @@ public class GetCourseProgressQueryHandler : IRequestHandler<GetCourseProgressQu
 
     public async Task<CourseProgressDto> Handle(GetCourseProgressQuery request, CancellationToken cancellationToken)
     {
-        if (_user.Id == null)
+        if (string.IsNullOrWhiteSpace(_user.Id) || !Guid.TryParse(_user.Id, out var userId))
             throw new UnauthorizedAccessException();
 
-        var studentId = Guid.Parse(_user.Id);
+        var student = await _context.Students
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
+
+        if (student == null)
+        {
+            return new CourseProgressDto(0, 0, 0, false);
+        }
+
+        var studentId = student.Id;
 
         var enrollment = await _context.Enrollments
             .AsNoTracking()
