@@ -20,10 +20,15 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
 
     public async Task<bool> Handle(CompleteLessonCommand request, CancellationToken cancellationToken)
     {
-        if (_user.Id == null)
+        if (string.IsNullOrWhiteSpace(_user.Id) || !Guid.TryParse(_user.Id, out var userId))
             throw new UnauthorizedAccessException();
 
-        var studentId = Guid.Parse(_user.Id);
+        var student = await _context.Students
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken)
+            ?? throw new InvalidOperationException("Student profile not found for the current user.");
+
+        var studentId = student.Id;
 
         var lesson = await _context.Lessons
             .FirstOrDefaultAsync(l => l.Id == request.LessonId && l.CourseId == request.CourseId, cancellationToken)
