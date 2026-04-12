@@ -27,17 +27,8 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .WithMessage("Religion status must be a valid value");
 
         RuleFor(v => v.Languages)
-            .Must(languages => languages == null || languages.All(language => !string.IsNullOrWhiteSpace(language)))
-            .WithMessage("Languages must not contain empty values");
-
-        RuleFor(v => v.Languages)
-            .Must(languages => languages == null || languages.Distinct(StringComparer.OrdinalIgnoreCase).Count() == languages.Count)
+            .Must(languages => languages == null || languages.Distinct().Count() == languages.Count)
             .WithMessage("Languages must not contain duplicate values");
-
-        RuleForEach(v => v.Languages)
-            .MaximumLength(100)
-            .When(v => v.Languages != null)
-            .WithMessage("Each language must not exceed 100 characters");
 
         RuleFor(v => v.PhoneNumber)
             .MaximumLength(20)

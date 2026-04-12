@@ -12,7 +12,7 @@ public record UpdateStudentProfileCommand : IRequest<Result<Guid>>
     public string? ImageUrl { get; init; }
     public string? Gender { get; init; }
     public ReligiousStatus? ReligionStatus { get; init; }
-    public List<string>? Languages { get; init; }
+    public List<int>? Languages { get; init; }
 
     // Basic Profile Information
     public string? Address { get; init; }
@@ -81,42 +81,24 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
 
         if (request.Languages != null)
         {
-            var normalizedLanguageValues = request.Languages
-                .Select(language => language?.Trim())
-                .Where(language => !string.IsNullOrWhiteSpace(language))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            var distinctLanguageIds = request.Languages.Distinct().ToList();
 
-            if (normalizedLanguageValues.Count != request.Languages.Count)
+            if (distinctLanguageIds.Count != request.Languages.Count)
             {
-                return Result<Guid>.Failure(new[] { "Languages must not contain empty, duplicate, or whitespace-only values" });
+                return Result<Guid>.Failure(new[] { "Languages must not contain duplicate values" });
             }
 
-            var appLanguages = await _context.AppLanguages.ToListAsync(cancellationToken);
+            var appLanguages = await _context.AppLanguages
+                .Where(l => distinctLanguageIds.Contains(l.Id))
+                .ToListAsync(cancellationToken);
 
-            var resolvedLanguages = new List<Domain.Entities.AppLanguage>();
-
-            foreach (var languageValue in normalizedLanguageValues)
+            if (appLanguages.Count != distinctLanguageIds.Count)
             {
-                var resolvedLanguage = appLanguages.FirstOrDefault(language =>
-                    string.Equals(language.Code, languageValue, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(language.Name, languageValue, StringComparison.OrdinalIgnoreCase));
-
-                if (resolvedLanguage == null)
-                {
-                    return Result<Guid>.Failure(new[] { $"Language '{languageValue}' is invalid" });
-                }
-
-                resolvedLanguages.Add(resolvedLanguage);
-            }
-
-            if (resolvedLanguages.Select(language => language.Id).Distinct().Count() != resolvedLanguages.Count)
-            {
-                return Result<Guid>.Failure(new[] { "Languages must not reference the same language more than once" });
+                return Result<Guid>.Failure(new[] { "One or more language IDs are invalid" });
             }
 
             user.Languages.Clear();
-            foreach (var language in resolvedLanguages)
+            foreach (var language in appLanguages)
             {
                 user.Languages.Add(language);
             }
