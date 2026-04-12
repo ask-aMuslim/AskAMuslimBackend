@@ -108,9 +108,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.AppLanguage", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -2114,8 +2116,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("LanguageId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("int");
 
                     b.HasKey("UserId", "LanguageId");
 
