@@ -13,4 +13,7 @@ public class EnrollmentDto
     public EnrollmentStatus Status { get; init; }
     public double LevelProgress { get; init; }
     public double CourseProgress { get; init; }
+    public int CompletedLessonsCount { get; init; }
+    public int RemainingLessonsCount { get; init; }
+    public int LessonsInCourse { get; init; }
 }
