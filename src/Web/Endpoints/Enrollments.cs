@@ -16,28 +16,26 @@ public class Enrollments : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetEnrollment, "{id}").WithName("GetEnrollment").WithSummary("Get an enrollment by id");
-        groupBuilder.MapGet(GetByCourse, "by-course/{courseId}").WithName("GetEnrollmentsByCourse").WithSummary("Get enrollments by course id");
-        groupBuilder.MapGet(GetByStudent, "by-student/{studentId}")
-            .RequireAuthorization()
+        groupBuilder.RequireAuthorization();
+
+        groupBuilder.MapGet(GetEnrollment, "{id:guid}").WithName("GetEnrollment").WithSummary("Get an enrollment by id");
+        groupBuilder.MapGet(GetByCourse, "by-course/{courseId:guid}").WithName("GetEnrollmentsByCourse").WithSummary("Get enrollments by course id");
+        groupBuilder.MapGet(GetByStudent, "my")
             .WithName("GetEnrollmentsByStudent")
-            .WithSummary("Get enrollments by student id (own enrollments or admin)");
+            .WithSummary("Get enrollments for the current authenticated student");
         groupBuilder.MapPost(CreateEnrollment)
-            .RequireAuthorization()
             .WithName("CreateEnrollment")
             .WithSummary("Create a new enrollment");
         groupBuilder.MapPut(UpdateEnrollmentStatus, "{id}/status")
-            .RequireAuthorization()
             .WithName("UpdateEnrollmentStatus")
             .WithSummary("Update enrollment status");
         groupBuilder.MapDelete(DeleteEnrollment, "{id}")
             .RequireAuthorization(Policies.ManageAllCourses)
             .WithName("DeleteEnrollment")
             .WithSummary("Delete an enrollment");
-        groupBuilder.MapGet(GetUnCompletedEnrollments, "{studentId}")
+        groupBuilder.MapGet(GetUnCompletedEnrollments, "uncompleted")
             .WithName("MyUcompletedCourses")
-            .WithSummary("Get uncompleted enrollments for the current user")
-            .RequireAuthorization();
+            .WithSummary("Get uncompleted enrollments for the current authenticated student");
     }
 
     public async Task<IResult> GetEnrollment(ISender sender, Guid id)
@@ -52,9 +50,9 @@ public class Enrollments : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetByStudent(ISender sender, Guid studentId)
+    public async Task<IResult> GetByStudent(ISender sender)
     {
-        var result = await sender.Send(new GetEnrollmentsByStudentQuery(studentId));
+        var result = await sender.Send(new GetEnrollmentsByStudentQuery());
         return result.ToHttpResult();
     }
 
@@ -76,9 +74,9 @@ public class Enrollments : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetUnCompletedEnrollments(ISender sender, Guid studentId)
+    public async Task<IResult> GetUnCompletedEnrollments(ISender sender)
     {
-        var result = await sender.Send(new GetUnCompletedEnrollmentsQuery(studentId));
+        var result = await sender.Send(new GetUnCompletedEnrollmentsQuery());
         return result.ToHttpResult();
     }
 }

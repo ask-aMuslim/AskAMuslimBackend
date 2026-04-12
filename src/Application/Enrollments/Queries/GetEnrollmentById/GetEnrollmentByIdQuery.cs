@@ -26,7 +26,13 @@ public class GetEnrollmentByIdQueryHandler : IRequestHandler<GetEnrollmentByIdQu
             EnrolledAt = s.EnrolledAt,
             Status = s.Status,
             LevelProgress = s.LevelProgress,
-            CourseProgress = s.CourseProgress
+            CourseProgress = s.CourseProgress,
+            CompletedLessonsCount = s.CompletedLessonsCount,
+                RemainingLessonsCount =
+                    ((s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount) - s.CompletedLessonsCount) > 0
+                        ? (s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount) - s.CompletedLessonsCount
+                        : 0,
+                LessonsInCourse = s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount
     })
             .FirstOrDefaultAsync(cancellationToken);
             

@@ -1148,7 +1148,12 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -1201,27 +1206,20 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
-    "/api/Enrollments/by-student/{studentId}": {
+    "/api/Enrollments/my": {
       "get": {
         "tags": [
           "Enrollments"
         ],
         "operationId": "GetByStudent2",
-        "parameters": [
-          {
-            "name": "studentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
         "responses": {
           "200": {
             "description": ""
@@ -1306,24 +1304,12 @@
         ]
       }
     },
-    "/api/Enrollments/{studentId}": {
+    "/api/Enrollments/uncompleted": {
       "get": {
         "tags": [
           "Enrollments"
         ],
         "operationId": "GetUnCompletedEnrollments",
-        "parameters": [
-          {
-            "name": "studentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
         "responses": {
           "200": {
             "description": ""
