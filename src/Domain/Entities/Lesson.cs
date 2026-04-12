@@ -19,4 +19,5 @@ public class Lesson : BaseAuditableEntity
     public Course? Course { get; set; }
     public ICollection<StudentQuestion> StudentQuestions { get; set; } = new HashSet<StudentQuestion>();
     public ICollection<StudentNote> StudentNotes { get; set; } = new HashSet<StudentNote>();
+    public ICollection<LessonFeedback> LessonFeedbacks { get; set; } = new HashSet<LessonFeedback>();
 }

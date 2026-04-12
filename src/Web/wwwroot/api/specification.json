@@ -2326,6 +2326,86 @@
         ]
       }
     },
+    "/api/LessonFeedback/{id}": {
+      "get": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "GetById2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/LessonFeedback/by-lesson/{lessonId}": {
+      "get": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "GetByLesson",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/LessonFeedback": {
+      "post": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "Create2",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonFeedbackCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Lessons": {
       "get": {
         "tags": [
@@ -2855,7 +2935,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "Create2",
+        "operationId": "Create3",
         "requestBody": {
           "x-name": "command",
           "content": {
@@ -2885,7 +2965,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "GetById2",
+        "operationId": "GetById3",
         "parameters": [
           {
             "name": "id",
@@ -5495,7 +5575,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetById3",
+        "operationId": "GetById4",
         "parameters": [
           {
             "name": "id",
@@ -5548,7 +5628,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetByLesson",
+        "operationId": "GetByLesson2",
         "parameters": [
           {
             "name": "lessonId",
@@ -5737,7 +5817,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetById4",
+        "operationId": "GetById5",
         "parameters": [
           {
             "name": "id",
@@ -5790,7 +5870,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetByLesson2",
+        "operationId": "GetByLesson3",
         "parameters": [
           {
             "name": "lessonId",
@@ -7099,6 +7179,24 @@
             "format": "guid"
           },
           "label": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CreateLessonFeedbackCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comment": {
             "type": "string",
             "nullable": true
           }
