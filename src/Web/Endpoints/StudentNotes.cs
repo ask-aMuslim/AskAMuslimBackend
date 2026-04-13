@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.StudentNotes.Commands.CreateStudentNote;
 using AskAMuslimBackend.Application.StudentNotes.Commands.DeleteStudentNote;
+using AskAMuslimBackend.Application.StudentNotes.Commands.UpdateStudentNote;
 using AskAMuslimBackend.Application.StudentNotes.Queries;
 using AskAMuslimBackend.Application.StudentNotes.Queries.GetStudentNoteById;
 using AskAMuslimBackend.Application.StudentNotes.Queries.GetStudentNotesByLesson;
@@ -18,6 +19,10 @@ public class StudentNotes : EndpointGroupBase
             .RequireAuthorization()
             .WithName("CreateStudentNote")
             .WithSummary("Create a new student note");
+        groupBuilder.MapPut(UpdateNote, "{id}")
+            .RequireAuthorization()
+            .WithName("UpdateStudentNote")
+            .WithSummary("Update a student note");
         groupBuilder.MapDelete(DeleteNote, "{id}")
             .RequireAuthorization()
             .WithName("DeleteStudentNote")
@@ -40,6 +45,12 @@ public class StudentNotes : EndpointGroupBase
     {
         var result = await sender.Send(command);
         return result.ToCreatedResult($"/{nameof(StudentNotes)}/{result.Data}");
+    }
+
+    public async Task<IResult> UpdateNote(ISender sender, Guid id, UpdateStudentNoteCommand command)
+    {
+        var result = await sender.Send(command with { Id = id });
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> DeleteNote(ISender sender, Guid id)

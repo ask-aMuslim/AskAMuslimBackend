@@ -100,6 +100,29 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        var religiousStatus = user.ReligionStatus ?? ReligiousStatus.NonMuslim;
+
+        var hasBaseRequiredFields =
+            !string.IsNullOrWhiteSpace(user.Gender) &&
+            user.Languages.Any() &&
+            !string.IsNullOrWhiteSpace(profile.Country) &&
+            profile.DateOfBirth.HasValue;
+
+        var hasReligiousRequiredFields = religiousStatus switch
+        {
+            ReligiousStatus.RevertedMuslim =>
+                profile.DateOfIslamConversion.HasValue &&
+                !string.IsNullOrWhiteSpace(profile.ReasonForConversion) &&
+                !string.IsNullOrWhiteSpace(profile.OldReligion),
+
+            ReligiousStatus.NonMuslim =>
+                !string.IsNullOrWhiteSpace(profile.ReasonOfReligion),
+
+            _ => true
+        };
+
+        var isProfileCompleted = hasBaseRequiredFields && hasReligiousRequiredFields;
+
         return Result<StudentProfileDto?>.Success(new StudentProfileDto
         {
             Id = profile.Id,
@@ -118,7 +141,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
                     Code = l.Code
                 })
                 .ToList(),
-            ReligiousStatus = user.ReligionStatus ?? ReligiousStatus.NonMuslim,
+            ReligiousStatus = religiousStatus,
             Address = profile.Address,
             Country = profile.Country,
             CountryCode = profile.CountryCode,
@@ -130,7 +153,8 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             DateOfIslamConversion = profile.DateOfIslamConversion,
             OldReligion = profile.OldReligion,
             ReasonOfReligion = profile.ReasonOfReligion,
-            ReasonForConversion = profile.ReasonForConversion
+            ReasonForConversion = profile.ReasonForConversion,
+            IsProfileCompleted = isProfileCompleted
         });
     }
 }

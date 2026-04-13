@@ -5594,6 +5594,46 @@
           }
         }
       },
+      "put": {
+        "tags": [
+          "StudentNotes"
+        ],
+        "operationId": "UpdateNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentNoteCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
       "delete": {
         "tags": [
           "StudentNotes"
@@ -8337,6 +8377,19 @@
             "type": "string",
             "format": "guid"
           },
+          "text": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "UpdateStudentNoteCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
           "text": {
             "type": "string"
           },
