@@ -34,6 +34,7 @@ public class StudentProfileDto
     public string? OldReligion { get; set; }
     public string? ReasonOfReligion { get; set; }
     public string? ReasonForConversion { get; set; }
+    public bool IsProfileCompleted { get; set; }
 }
 
 public class StudentProfileLanguageDto
