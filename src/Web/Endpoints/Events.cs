@@ -5,6 +5,7 @@ using AskAMuslimBackend.Application.Events.Commands.UpdateEvent;
 using AskAMuslimBackend.Application.Events.Queries;
 using AskAMuslimBackend.Application.Events.Queries.GetEventById;
 using AskAMuslimBackend.Application.Events.Queries.GetEventsWithPagination;
+using AskAMuslimBackend.Application.Events.Queries.GetLatestEvent;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -17,6 +18,7 @@ public class Events : EndpointGroupBase
     {
         groupBuilder.MapGet(GetEventsWithPagination).WithName("GetEvents").WithSummary("Get events");
         groupBuilder.MapGet(GetEventById, "{id}").WithName("GetEvent").WithSummary("Get event by id");
+        groupBuilder.MapGet(GetLatestEvent, "latest").WithName("GetLatestEvent").WithSummary("Get latest event");
         groupBuilder.MapPost(CreateEvent)
             .RequireAuthorization(Policies.ManageEvents)
             .WithName("CreateEvent")
@@ -40,6 +42,12 @@ public class Events : EndpointGroupBase
     public async Task<IResult> GetEventById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetEventByIdQuery(id));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetLatestEvent(ISender sender)
+    {
+        var result = await sender.Send(new GetLatestEventQuery());
         return result.ToHttpResult();
     }
 
