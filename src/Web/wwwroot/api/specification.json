@@ -1148,7 +1148,12 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -1201,27 +1206,20 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
-    "/api/Enrollments/by-student/{studentId}": {
+    "/api/Enrollments/my": {
       "get": {
         "tags": [
           "Enrollments"
         ],
         "operationId": "GetByStudent2",
-        "parameters": [
-          {
-            "name": "studentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
         "responses": {
           "200": {
             "description": ""
@@ -1306,24 +1304,12 @@
         ]
       }
     },
-    "/api/Enrollments/{studentId}": {
+    "/api/Enrollments/uncompleted": {
       "get": {
         "tags": [
           "Enrollments"
         ],
         "operationId": "GetUnCompletedEnrollments",
-        "parameters": [
-          {
-            "name": "studentId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
         "responses": {
           "200": {
             "description": ""
@@ -2353,6 +2339,86 @@
         ]
       }
     },
+    "/api/LessonFeedback/{id}": {
+      "get": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "GetById2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/LessonFeedback/by-lesson/{lessonId}": {
+      "get": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "GetByLesson",
+        "parameters": [
+          {
+            "name": "lessonId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/LessonFeedback": {
+      "post": {
+        "tags": [
+          "LessonFeedback"
+        ],
+        "operationId": "Create2",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLessonFeedbackCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Lessons": {
       "get": {
         "tags": [
@@ -2882,7 +2948,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "Create2",
+        "operationId": "Create3",
         "requestBody": {
           "x-name": "command",
           "content": {
@@ -2912,7 +2978,7 @@
         "tags": [
           "MeetingRequests"
         ],
-        "operationId": "GetById2",
+        "operationId": "GetById3",
         "parameters": [
           {
             "name": "id",
@@ -5522,7 +5588,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetById3",
+        "operationId": "GetById4",
         "parameters": [
           {
             "name": "id",
@@ -5540,6 +5606,46 @@
             "description": ""
           }
         }
+      },
+      "put": {
+        "tags": [
+          "StudentNotes"
+        ],
+        "operationId": "UpdateNote",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentNoteCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       },
       "delete": {
         "tags": [
@@ -5575,7 +5681,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetByLesson",
+        "operationId": "GetByLesson2",
         "parameters": [
           {
             "name": "lessonId",
@@ -5764,7 +5870,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetById4",
+        "operationId": "GetById5",
         "parameters": [
           {
             "name": "id",
@@ -5817,7 +5923,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetByLesson2",
+        "operationId": "GetByLesson3",
         "parameters": [
           {
             "name": "lessonId",
@@ -7131,6 +7237,24 @@
           }
         }
       },
+      "CreateLessonFeedbackCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "LessonType": {
         "type": "integer",
         "description": "",
@@ -8266,6 +8390,19 @@
             "type": "string",
             "format": "guid"
           },
+          "text": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "UpdateStudentNoteCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
           "text": {
             "type": "string"
           },

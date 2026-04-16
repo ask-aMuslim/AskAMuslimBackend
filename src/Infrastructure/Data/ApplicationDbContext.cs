@@ -34,6 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<StudentNote> StudentNotes => Set<StudentNote>();
     public DbSet<StudentQuestion> StudentQuestions => Set<StudentQuestion>();
+    public DbSet<LessonFeedback> LessonFeedbacks => Set<LessonFeedback>();
     public DbSet<QA> QAs => Set<QA>();
     public DbSet<QATranslation> QATranslations => Set<QATranslation>();
     public DbSet<QATag> QATags => Set<QATag>();

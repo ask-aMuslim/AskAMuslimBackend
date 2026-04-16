@@ -684,6 +684,45 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("Lessons", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.LessonFeedback", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("LessonFeedbacks");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Level", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2298,6 +2337,25 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Course");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.LessonFeedback", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Lesson", "Lesson")
+                        .WithMany("LessonFeedbacks")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Student", "Student")
+                        .WithMany("LessonFeedbacks")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.MeetingRequest", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Moderator")
@@ -2706,6 +2764,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Lesson", b =>
                 {
+                    b.Navigation("LessonFeedbacks");
+
                     b.Navigation("StudentNotes");
 
                     b.Navigation("StudentQuestions");
@@ -2750,6 +2810,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("AdminNotes");
 
                     b.Navigation("Enrollments");
+
+                    b.Navigation("LessonFeedbacks");
 
                     b.Navigation("Profile");
 
