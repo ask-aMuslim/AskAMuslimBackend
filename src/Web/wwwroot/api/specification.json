@@ -1706,6 +1706,19 @@
         ]
       }
     },
+    "/api/Events/latest": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "GetLatestEvent",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/InquiryRequests": {
       "get": {
         "tags": [
