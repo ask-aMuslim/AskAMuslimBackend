@@ -6913,11 +6913,11 @@
         "additionalProperties": false,
         "properties": {
           "status": {
-            "$ref": "#/components/schemas/EventStatus"
+            "$ref": "#/components/schemas/EventRegistrationStatus"
           }
         }
       },
-      "EventStatus": {
+      "EventRegistrationStatus": {
         "type": "integer",
         "description": "",
         "x-enumNames": [

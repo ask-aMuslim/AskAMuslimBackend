@@ -1,6 +1,6 @@
 namespace AskAMuslimBackend.Domain.Enums;
 
-public enum EventStatus
+public enum EventRegistrationStatus
 {
     Pending = 1,
     Approved = 2,
