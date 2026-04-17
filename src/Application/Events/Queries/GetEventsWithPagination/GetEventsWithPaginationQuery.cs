@@ -28,7 +28,7 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
 
     public async Task<Result<PaginatedList<EventDto>>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var utcNow = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         var query = _context.Events
             .Include(e => e.Registrations)
@@ -42,9 +42,9 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
         {
             query = request.EventStatus.Value switch
             {
-                EventStatus.Upcoming => query.Where(e => e.StartDateTime > utcNow),
-                EventStatus.Live => query.Where(e => e.StartDateTime <= utcNow && e.EndDateTime >= utcNow),
-                EventStatus.Finished => query.Where(e => e.EndDateTime < utcNow),
+                EventStatus.Upcoming => query.Where(e => e.StartDateTime > now),
+                EventStatus.Live => query.Where(e => e.StartDateTime <= now && e.EndDateTime >= now),
+                EventStatus.Finished => query.Where(e => e.EndDateTime < now),
                 _ => query
             };
         }
@@ -59,8 +59,24 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
                 (e.Description != null && e.Description.Contains(request.SearchTerm)) ||
                 (e.SpeakerName != null && e.SpeakerName.Contains(request.SearchTerm)));
 
-        var events = await query
+        var pagedEventData = await query
             .OrderBy(e => e.StartDateTime)
+            .Select(s => new
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                SpeakerName = s.SpeakerName,
+                ImageUrl = s.ImageUrl,
+                StartDateTime = s.StartDateTime,
+                EndDateTime = s.EndDateTime,
+                MeetingLink = s.MeetingLink,
+                IsPublished = s.IsPublished,
+                TotalRegistrations = s.Registrations.Count
+            })
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
+
+        var mappedItems = pagedEventData.Items
             .Select(s => new EventDto
             {
                 Id = s.Id,
@@ -70,13 +86,22 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
                 ImageUrl = s.ImageUrl,
                 StartDateTime = s.StartDateTime,
                 EndDateTime = s.EndDateTime,
-                Status = utcNow < s.StartDateTime ? EventStatus.Upcoming : utcNow <= s.EndDateTime ? EventStatus.Live : EventStatus.Finished,
+                Status = DetermineEventStatus(s.StartDateTime, s.EndDateTime, now),
                 MeetingLink = s.MeetingLink,
                 IsPublished = s.IsPublished,
-                TotalRegistrations = s.Registrations.Count
+                TotalRegistrations = s.TotalRegistrations
             })
-            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
+            .ToList();
+
+        var events = new PaginatedList<EventDto>(
+            mappedItems,
+            pagedEventData.TotalCount,
+            pagedEventData.PageNumber,
+            request.PageSize ?? 10);
 
         return Result<PaginatedList<EventDto>>.Success(events);
     }
+
+    private static EventStatus DetermineEventStatus(DateTime startDateTime, DateTime endDateTime, DateTime now)
+        => now < startDateTime ? EventStatus.Upcoming : now <= endDateTime ? EventStatus.Live : EventStatus.Finished;
 }

@@ -22,13 +22,13 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
     public async Task<Result<LatestEventDto>> Handle(GetNextEventQuery request, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.UserId;
-        var utcNow = DateTime.UtcNow;
+        var now = DateTime.Now;
 
-        var eventDto = await _context.Events
+        var eventData = await _context.Events
             .AsNoTracking()
             .Where(e => e.IsPublished)
             .OrderByDescending(e => e.StartDateTime)
-            .Select(s => new LatestEventDto
+            .Select(s => new
             {
                 Id = s.Id,
                 Title = s.Title,
@@ -37,7 +37,6 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
                 ImageUrl = s.ImageUrl,
                 StartDateTime = s.StartDateTime,
                 EndDateTime = s.EndDateTime,
-                Status = utcNow < s.StartDateTime ? EventStatus.Upcoming : utcNow <= s.EndDateTime ? EventStatus.Live : EventStatus.Finished,
                 MeetingLink = s.MeetingLink,
                 IsPublished = s.IsPublished,
                 TotalRegistrations = s.Registrations.Count,
@@ -45,13 +44,32 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (eventDto == null)
+        if (eventData == null)
         {
             return Result<LatestEventDto>.Failure(new[] { "Event not found" });
         }
 
+        var eventDto = new LatestEventDto
+        {
+            Id = eventData.Id,
+            Title = eventData.Title,
+            Description = eventData.Description,
+            SpeakerName = eventData.SpeakerName,
+            ImageUrl = eventData.ImageUrl,
+            StartDateTime = eventData.StartDateTime,
+            EndDateTime = eventData.EndDateTime,
+            Status = DetermineEventStatus(eventData.StartDateTime, eventData.EndDateTime, now),
+            MeetingLink = eventData.MeetingLink,
+            IsPublished = eventData.IsPublished,
+            TotalRegistrations = eventData.TotalRegistrations,
+            IsRegistered = eventData.IsRegistered
+        };
+
         return Result<LatestEventDto>.Success(eventDto);
     }
+
+    private static EventStatus DetermineEventStatus(DateTime startDateTime, DateTime endDateTime, DateTime now)
+        => now < startDateTime ? EventStatus.Upcoming : now <= endDateTime ? EventStatus.Live : EventStatus.Finished;
 }
 
 public class LatestEventDto
