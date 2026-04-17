@@ -28,7 +28,7 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
 
     public async Task<Result<PaginatedList<EventDto>>> Handle(GetEventsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         var query = _context.Events
             .Include(e => e.Registrations)

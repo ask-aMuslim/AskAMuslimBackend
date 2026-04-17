@@ -18,7 +18,7 @@ public class GetEventByIdQueryHandler : IRequestHandler<GetEventByIdQuery, Resul
 
     public async Task<Result<EventDto>> Handle(GetEventByIdQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         var eventData = await _context.Events
             .AsNoTracking()
