@@ -22,7 +22,7 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
     public async Task<Result<LatestEventDto>> Handle(GetNextEventQuery request, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.UserId;
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
 
         var eventData = await _context.Events
             .AsNoTracking()
