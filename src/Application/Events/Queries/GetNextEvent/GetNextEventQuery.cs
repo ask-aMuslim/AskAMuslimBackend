@@ -1,32 +1,32 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AskAMuslimBackend.Application.Events.Queries;
 using Microsoft.EntityFrameworkCore;
 
-namespace AskAMuslimBackend.Application.Events.Queries.GetLatestEvent;
+namespace AskAMuslimBackend.Application.Events.Queries.GetNextEvent;
 
-public record GetLatestEventQuery : IRequest<Result<LatestEventDto>>;
+public record GetNextEventQuery : IRequest<Result<NextEventDto>>;
 
-public class GetLatestEventQueryHandler : IRequestHandler<GetLatestEventQuery, Result<LatestEventDto>>
+public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Result<NextEventDto>>
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetLatestEventQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public GetNextEventQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<LatestEventDto>> Handle(GetLatestEventQuery request, CancellationToken cancellationToken)
+    public async Task<Result<NextEventDto>> Handle(GetNextEventQuery request, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.UserId;
+        var now = DateTime.UtcNow;
 
         var eventDto = await _context.Events
             .AsNoTracking()
-            .Where(e => e.IsPublished)
-            .OrderByDescending(e => e.StartDateTime)
-            .Select(s => new LatestEventDto
+            .Where(e => e.IsPublished && e.StartDateTime >= now)
+            .OrderBy(e => e.StartDateTime)
+            .Select(s => new NextEventDto
             {
                 Id = s.Id,
                 Title = s.Title,
@@ -44,14 +44,14 @@ public class GetLatestEventQueryHandler : IRequestHandler<GetLatestEventQuery, R
 
         if (eventDto == null)
         {
-            return Result<LatestEventDto>.Failure(new[] { "Event not found" });
+            return Result<NextEventDto>.Failure(new[] { "Event not found" });
         }
 
-        return Result<LatestEventDto>.Success(eventDto);
+        return Result<NextEventDto>.Success(eventDto);
     }
 }
 
-public class LatestEventDto
+public class NextEventDto
 {
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;

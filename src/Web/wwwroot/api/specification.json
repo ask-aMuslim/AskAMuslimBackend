@@ -1706,12 +1706,12 @@
         ]
       }
     },
-    "/api/Events/latest": {
+    "/api/Events/next": {
       "get": {
         "tags": [
           "Events"
         ],
-        "operationId": "GetLatestEvent",
+        "operationId": "GetNextEvent",
         "responses": {
           "200": {
             "description": ""
