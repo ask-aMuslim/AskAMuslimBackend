@@ -3,22 +3,22 @@ using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Events.Queries;
 using Microsoft.EntityFrameworkCore;
 
-namespace AskAMuslimBackend.Application.Events.Queries.GetLatestEvent;
+namespace AskAMuslimBackend.Application.Events.Queries.GetNextEvent;
 
-public record GetLatestEventQuery : IRequest<Result<LatestEventDto>>;
+public record GetNextEventQuery : IRequest<Result<LatestEventDto>>;
 
-public class GetLatestEventQueryHandler : IRequestHandler<GetLatestEventQuery, Result<LatestEventDto>>
+public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Result<LatestEventDto>>
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetLatestEventQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public GetNextEventQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
     }
 
-    public async Task<Result<LatestEventDto>> Handle(GetLatestEventQuery request, CancellationToken cancellationToken)
+    public async Task<Result<LatestEventDto>> Handle(GetNextEventQuery request, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.UserId;
 
