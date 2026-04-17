@@ -24,10 +24,10 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
         var currentUserId = _currentUserService.UserId;
         var now = DateTime.UtcNow;
 
-        var eventData = await _context.Events
+        var liveEventData = await _context.Events
             .AsNoTracking()
-            .Where(e => e.IsPublished)
-            .OrderByDescending(e => e.StartDateTime)
+            .Where(e => e.IsPublished && e.StartDateTime <= now && e.EndDateTime >= now)
+            .OrderBy(e => e.StartDateTime)
             .Select(s => new
             {
                 Id = s.Id,
@@ -43,6 +43,31 @@ public class GetNextEventQueryHandler : IRequestHandler<GetNextEventQuery, Resul
                 IsRegistered = currentUserId.HasValue && s.Registrations.Any(r => r.UserId == currentUserId.Value)
             })
             .FirstOrDefaultAsync(cancellationToken);
+
+        var eventData = liveEventData;
+
+        if (eventData == null)
+        {
+            eventData = await _context.Events
+                .AsNoTracking()
+                .Where(e => e.IsPublished && e.StartDateTime > now)
+                .OrderBy(e => e.StartDateTime)
+                .Select(s => new
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Description = s.Description,
+                    SpeakerName = s.SpeakerName,
+                    ImageUrl = s.ImageUrl,
+                    StartDateTime = s.StartDateTime,
+                    EndDateTime = s.EndDateTime,
+                    MeetingLink = s.MeetingLink,
+                    IsPublished = s.IsPublished,
+                    TotalRegistrations = s.Registrations.Count,
+                    IsRegistered = currentUserId.HasValue && s.Registrations.Any(r => r.UserId == currentUserId.Value)
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
 
         if (eventData == null)
         {
