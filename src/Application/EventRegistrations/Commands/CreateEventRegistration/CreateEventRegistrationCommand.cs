@@ -10,25 +10,30 @@ namespace AskAMuslimBackend.Application.EventRegistrations.Commands.CreateEventR
 public record CreateEventRegistrationCommand : IRequest<Result<Guid>>
 {
     public Guid EventId { get; init; }
-    public Guid UserId { get; init; }
-    public string? QuestionText { get; init; }
 }
 
 public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEventRegistrationCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _currentUser;
     private readonly ILocalizationService _localizer;
 
-    public CreateEventRegistrationCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
+    public CreateEventRegistrationCommandHandler(IApplicationDbContext context, IUser currentUser, ILocalizationService localizer)
     {
         _context = context;
+        _currentUser = currentUser;
         _localizer = localizer;
     }
 
     public async Task<Result<Guid>> Handle(CreateEventRegistrationCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(_currentUser.Id) || !Guid.TryParse(_currentUser.Id, out var userId))
+        {
+            return Result<Guid>.Failure(new[] { _localizer["Auth.NotAuthenticated"] });
+        }
+
         var eventExists = await _context.Events.AnyAsync(e => e.Id == request.EventId, cancellationToken);
-        var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId, cancellationToken);
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId, cancellationToken);
 
         var errors = new List<string>();
         if (!eventExists) errors.Add(_localizer["Events.NotFound"]);
@@ -37,7 +42,7 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
 
         var alreadyRegistered = await _context.EventRegistrations
             .AsNoTracking()
-            .AnyAsync(r => r.EventId == request.EventId && r.UserId == request.UserId, cancellationToken);
+            .AnyAsync(r => r.EventId == request.EventId && r.UserId == userId, cancellationToken);
         if (alreadyRegistered)
         {
             return Result<Guid>.Failure(new[] { _localizer["EventRegistrations.AlreadyRegistered"] });
@@ -46,8 +51,7 @@ public class CreateEventRegistrationCommandHandler : IRequestHandler<CreateEvent
         var entity = new EventRegistration
         {
             EventId = request.EventId,
-            UserId = request.UserId,
-            QuestionText = request.QuestionText,
+            UserId = userId,
             Status = EventRegistrationStatus.Pending
         };
         _context.EventRegistrations.Add(entity);
@@ -61,7 +65,5 @@ public class CreateEventRegistrationCommandValidator : AbstractValidator<CreateE
     public CreateEventRegistrationCommandValidator()
     {
         RuleFor(x => x.EventId).NotEmpty();
-        RuleFor(x => x.UserId).NotEmpty();
-        RuleFor(x => x.QuestionText).MaximumLength(2000);
     }
 }

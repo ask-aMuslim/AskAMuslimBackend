@@ -1440,6 +1440,36 @@
         ]
       }
     },
+    "/api/EventRegistrations/my-status/{eventId}": {
+      "get": {
+        "tags": [
+          "EventRegistrations"
+        ],
+        "operationId": "GetMyRegistrationStatus",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/EventRegistrations": {
       "post": {
         "tags": [
@@ -1452,6 +1482,36 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateEventRegistrationCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/EventRegistrations/park-question": {
+      "put": {
+        "tags": [
+          "EventRegistrations"
+        ],
+        "operationId": "ParkEventQuestion",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkEventQuestionCommand"
               }
             }
           },
@@ -6910,14 +6970,19 @@
           "eventId": {
             "type": "string",
             "format": "guid"
-          },
-          "userId": {
+          }
+        }
+      },
+      "ParkEventQuestionCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventRegistrationId": {
             "type": "string",
             "format": "guid"
           },
           "questionText": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           }
         }
       },

@@ -1,10 +1,12 @@
 using AskAMuslimBackend.Application.EventRegistrations.Commands.CreateEventRegistration;
 using AskAMuslimBackend.Application.EventRegistrations.Commands.DeleteEventRegistration;
+using AskAMuslimBackend.Application.EventRegistrations.Commands.ParkEventQuestion;
 using AskAMuslimBackend.Application.EventRegistrations.Commands.UpdateEventRegistrationStatus;
 using AskAMuslimBackend.Application.EventRegistrations.Queries;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationById;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByEvent;
 using AskAMuslimBackend.Application.EventRegistrations.Queries.GetEventRegistrationsByUser;
+using AskAMuslimBackend.Application.EventRegistrations.Queries.GetMyEventRegistrationStatus;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -27,10 +29,18 @@ public class EventRegistrations : EndpointGroupBase
             .RequireAuthorization(Policies.ViewEvents)
             .WithName("GetEventRegistrationsByUser")
             .WithSummary("Get registrations for a user");
+        groupBuilder.MapGet(GetMyRegistrationStatus, "my-status/{eventId}")
+            .RequireAuthorization()
+            .WithName("GetMyEventRegistrationStatus")
+            .WithSummary("Get current user registration status for an event");
         groupBuilder.MapPost(CreateRegistration)
             .RequireAuthorization()
             .WithName("CreateEventRegistration")
             .WithSummary("Create a new event registration");
+        groupBuilder.MapPut(ParkEventQuestion, "park-question")
+            .RequireAuthorization()
+            .WithName("ParkEventQuestion")
+            .WithSummary("Park a question for an event registration");
         groupBuilder.MapPut(UpdateRegistrationStatus, "{id}/status")
             .RequireAuthorization(Policies.ManageEventRegistrations)
             .WithName("UpdateEventRegistrationStatus")
@@ -59,10 +69,22 @@ public class EventRegistrations : EndpointGroupBase
         return result.ToHttpResult();
     }
 
+    public async Task<IResult> GetMyRegistrationStatus(ISender sender, Guid eventId)
+    {
+        var result = await sender.Send(new GetMyEventRegistrationStatusQuery(eventId));
+        return result.ToHttpResult();
+    }
+
     public async Task<IResult> CreateRegistration(ISender sender, CreateEventRegistrationCommand command)
     {
         var result = await sender.Send(command);
         return result.ToCreatedResult($"/{nameof(EventRegistrations)}/{result.Data}");
+    }
+
+    public async Task<IResult> ParkEventQuestion(ISender sender, ParkEventQuestionCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> UpdateRegistrationStatus(ISender sender, Guid id, UpdateEventRegistrationStatusCommand command)
