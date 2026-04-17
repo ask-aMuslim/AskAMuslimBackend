@@ -12,5 +12,5 @@ public class EventRegistrationDto
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
     public string? QuestionText { get; init; }
-    public EventStatus Status { get; init; }
+    public EventRegistrationStatus Status { get; init; }
 }

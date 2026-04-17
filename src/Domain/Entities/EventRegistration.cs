@@ -5,7 +5,7 @@ public class EventRegistration : BaseAuditableEntity
     public Guid EventId { get; set; }
     public Guid UserId { get; set; }
     public string? QuestionText { get; set; }
-    public EventStatus Status { get; set; } = EventStatus.Pending;
+    public EventRegistrationStatus Status { get; set; } = EventRegistrationStatus.Pending;
 
     // Navigation
     public Event? Event { get; set; }

@@ -1529,17 +1529,20 @@
             "x-position": 1
           },
           {
-            "name": "From",
+            "name": "EventStatus",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/EventStatus"
+                }
+              ]
             },
             "x-position": 2
           },
           {
-            "name": "To",
+            "name": "From",
             "in": "query",
             "schema": {
               "type": "string",
@@ -1549,17 +1552,17 @@
             "x-position": 3
           },
           {
-            "name": "PageNumber",
+            "name": "To",
             "in": "query",
             "schema": {
-              "type": "integer",
-              "format": "int32",
+              "type": "string",
+              "format": "date-time",
               "nullable": true
             },
             "x-position": 4
           },
           {
-            "name": "PageSize",
+            "name": "PageNumber",
             "in": "query",
             "schema": {
               "type": "integer",
@@ -1569,13 +1572,23 @@
             "x-position": 5
           },
           {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 6
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
               "type": "string",
               "nullable": true
             },
-            "x-position": 6
+            "x-position": 7
           }
         ],
         "responses": {
@@ -1706,12 +1719,12 @@
         ]
       }
     },
-    "/api/Events/latest": {
+    "/api/Events/next": {
       "get": {
         "tags": [
           "Events"
         ],
-        "operationId": "GetLatestEvent",
+        "operationId": "GetNextEvent",
         "responses": {
           "200": {
             "description": ""
@@ -6913,11 +6926,11 @@
         "additionalProperties": false,
         "properties": {
           "status": {
-            "$ref": "#/components/schemas/EventStatus"
+            "$ref": "#/components/schemas/EventRegistrationStatus"
           }
         }
       },
-      "EventStatus": {
+      "EventRegistrationStatus": {
         "type": "integer",
         "description": "",
         "x-enumNames": [
@@ -6931,6 +6944,20 @@
           2,
           3,
           4
+        ]
+      },
+      "EventStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Upcoming",
+          "Live",
+          "Finished"
+        ],
+        "enum": [
+          1,
+          2,
+          3
         ]
       },
       "CreateEventCommand": {

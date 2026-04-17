@@ -11,7 +11,7 @@ public record UpdateEventRegistrationStatusCommand : IRequest<Result>
 {
     [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
-    public EventStatus Status { get; init; }
+    public EventRegistrationStatus Status { get; init; }
 }
 
 public class UpdateEventRegistrationStatusCommandHandler : IRequestHandler<UpdateEventRegistrationStatusCommand, Result>

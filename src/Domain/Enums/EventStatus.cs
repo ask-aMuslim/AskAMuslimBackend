@@ -2,8 +2,7 @@ namespace AskAMuslimBackend.Domain.Enums;
 
 public enum EventStatus
 {
-    Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    Cancelled = 4,
+    Upcoming = 1,
+    Live = 2,
+    Finished = 3,
 }
