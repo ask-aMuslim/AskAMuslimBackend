@@ -1,11 +1,19 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Common.Mappings;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.Common.Pagination;
 
 namespace AskAMuslimBackend.Application.Forms.Queries.GetForms;
 
-public record GetFormsQuery : IRequest<Result<List<FormDto>>>;
+public record GetFormsQuery : IRequest<Result<PaginatedList<FormDto>>>, IPaginationQuery
+{
+    public int? PageNumber { get; init; } = 1;
+    public int? PageSize { get; init; } = 10;
+    public string? SearchTerm { get; init; }
+    public bool? IsPublished { get; init; }
+}
 
-public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<List<FormDto>>>
+public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<PaginatedList<FormDto>>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -14,11 +22,25 @@ public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<List<F
         _context = context;
     }
 
-    public async Task<Result<List<FormDto>>> Handle(GetFormsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedList<FormDto>>> Handle(GetFormsQuery request, CancellationToken cancellationToken)
     {
-        var forms = await _context.Forms
+        var query = _context.Forms
             .Include(f => f.Fields)
                 .ThenInclude(f => f.Options)
+            .AsQueryable();
+
+        if (request.IsPublished.HasValue)
+        {
+            query = query.Where(f => f.IsPublished == request.IsPublished.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            query = query.Where(f => f.Title.Contains(request.SearchTerm) || (f.Description != null && f.Description.Contains(request.SearchTerm)));
+        }
+
+        var forms = await query
+            .OrderByDescending(f => f.Created)
             .Select(f => new FormDto
             {
                 Id = f.Id,
@@ -41,8 +63,8 @@ public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<List<F
                     }).ToList()
                 }).ToList()
             })
-            .ToListAsync(cancellationToken);
+            .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
 
-        return Result<List<FormDto>>.Success(forms);
+        return Result<PaginatedList<FormDto>>.Success(forms);
     }
 }
