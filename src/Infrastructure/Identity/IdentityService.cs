@@ -911,6 +911,10 @@ public class IdentityService : IIdentityService
             { Domain.Constants.Policies.ViewTags, Domain.Enums.Permission.ViewTags },
             { Domain.Constants.Policies.ManageTags, Domain.Enums.Permission.CreateTag | Domain.Enums.Permission.EditTag | Domain.Enums.Permission.DeleteTag },
 
+            // Forms
+            { Domain.Constants.Policies.ViewForms, Domain.Enums.Permission.ViewForms },
+            { Domain.Constants.Policies.ManageForms, Domain.Enums.Permission.ManageForms },
+
             // Settings & System
             { Domain.Constants.Policies.ViewSettings, Domain.Enums.Permission.ViewSettings },
             { Domain.Constants.Policies.ManageSettings, Domain.Enums.Permission.ViewSettings },
