@@ -278,6 +278,12 @@ public static class DependencyInjection
             options.AddPolicy(Policies.ManageTags, policy =>
                 policy.AddRequirements(new PermissionRequirement(new[] { Permission.CreateTag, Permission.EditTag, Permission.DeleteTag }, requireAll: false)));
 
+            // Forms
+            options.AddPolicy(Policies.ViewForms, policy =>
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewSettings, Permission.ViewDashboard }, requireAll: true)));
+            options.AddPolicy(Policies.ManageForms, policy =>
+                policy.AddRequirements(new PermissionRequirement(new[] { Permission.ViewSettings, Permission.ViewDashboard, Permission.ManageAdminRoles }, requireAll: true)));
+
             // Settings & System
             options.AddPolicy(Policies.ViewSettings, policy =>
                 policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings)));

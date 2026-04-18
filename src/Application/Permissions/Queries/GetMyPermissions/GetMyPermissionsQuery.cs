@@ -203,6 +203,15 @@ public class GetMyPermissionsQueryHandler : IRequestHandler<GetMyPermissionsQuer
             },
             new PermissionCategoryDto
             {
+                Category = "Forms",
+                Permissions = new List<PermissionDto>
+                {
+                    new() { Name = nameof(Permission.ViewForms), DisplayName = "View Forms", Category = "Forms", Value = (long)Permission.ViewForms, IsGranted = HasPermission(userPermissions, Permission.ViewForms) },
+                    new() { Name = nameof(Permission.ManageForms), DisplayName = "Manage Forms", Category = "Forms", Value = (long)Permission.ManageForms, IsGranted = HasPermission(userPermissions, Permission.ManageForms) }
+                }
+            },
+            new PermissionCategoryDto
+            {
                 Category = "Settings & System",
                 Permissions = new List<PermissionDto>
                 {
