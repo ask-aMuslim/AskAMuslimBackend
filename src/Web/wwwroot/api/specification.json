@@ -1982,19 +1982,32 @@
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "answersJson",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
           }
         ],
         "requestBody": {
-          "x-name": "command",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CreateFormSubmissionCommand"
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  }
+                }
               }
             }
-          },
-          "required": true,
-          "x-position": 2
+          }
         },
         "responses": {
           "200": {
@@ -7374,7 +7387,8 @@
           "Date",
           "Checkbox",
           "Radio",
-          "Select"
+          "Select",
+          "File"
         ],
         "enum": [
           0,
@@ -7384,7 +7398,8 @@
           4,
           5,
           6,
-          7
+          7,
+          8
         ]
       },
       "CreateFormFieldOptionCommand": {
@@ -7477,19 +7492,6 @@
           "order": {
             "type": "integer",
             "format": "int32"
-          }
-        }
-      },
-      "CreateFormSubmissionCommand": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "formId": {
-            "type": "string",
-            "format": "guid"
-          },
-          "answersJson": {
-            "type": "string"
           }
         }
       },
