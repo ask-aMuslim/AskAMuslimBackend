@@ -9,5 +9,6 @@ public enum FormFieldType
     Date = 4,
     Checkbox = 5,
     Radio = 6,
-    Select = 7
+    Select = 7,
+    File = 8
 }
