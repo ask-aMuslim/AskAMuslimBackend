@@ -434,6 +434,154 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("EventRegistrations", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Form", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Forms");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormField", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("FormId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormId");
+
+                    b.ToTable("FormFields");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormFieldOption", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("FormFieldId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormFieldId");
+
+                    b.ToTable("FormFieldOptions");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnswersJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("FormId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormId");
+
+                    b.ToTable("FormSubmissions");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.InquiryRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2299,6 +2447,39 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormField", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Form", "Form")
+                        .WithMany("Fields")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Form");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormFieldOption", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.FormField", "FormField")
+                        .WithMany("Options")
+                        .HasForeignKey("FormFieldId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FormField");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormSubmission", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Form", "Form")
+                        .WithMany("Submissions")
+                        .HasForeignKey("FormId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Form");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.InquiryRequest", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Moderator")
@@ -2755,6 +2936,18 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Event", b =>
                 {
                     b.Navigation("Registrations");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Form", b =>
+                {
+                    b.Navigation("Fields");
+
+                    b.Navigation("Submissions");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.FormField", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Instructor", b =>

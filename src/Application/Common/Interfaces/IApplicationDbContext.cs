@@ -56,5 +56,11 @@ public interface IApplicationDbContext
     DbSet<Volunteer> Volunteers { get; }
     DbSet<LearnIslamRequest> LearnIslamRequests { get; }
 
+    // Forms
+    DbSet<Form> Forms { get; }
+    DbSet<FormField> FormFields { get; }
+    DbSet<FormFieldOption> FormFieldOptions { get; }
+    DbSet<FormSubmission> FormSubmissions { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }
