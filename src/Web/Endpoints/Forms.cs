@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Forms.Commands.CreateForm;
 using AskAMuslimBackend.Application.Forms.Commands.CreateFormSubmission;
+using AskAMuslimBackend.Application.Forms.Commands.UpdateForm;
 using AskAMuslimBackend.Application.Forms.Queries.GetForms;
 using AskAMuslimBackend.Application.Forms.Queries.GetFormSubmissions;
 using AskAMuslimBackend.Domain.Constants;
@@ -14,9 +15,14 @@ public class Forms : EndpointGroupBase
     {
         groupBuilder.MapGet(GetForms).WithName("GetForms").WithSummary("Get all forms");
         groupBuilder.MapGet(GetFormById, "{id}").WithName("GetForm").WithSummary("Get form by ID");
+        
         groupBuilder.MapPost(CreateForm)
             .RequireAuthorization(Policies.ManageForms)
             .WithName("CreateForm");
+
+        groupBuilder.MapPut(UpdateForm, "{id}")
+            .RequireAuthorization(Policies.ManageForms)
+            .WithName("UpdateForm");
 
         // Form submissions
         groupBuilder.MapGet(GetFormSubmissions, "{formId}/submissions")
@@ -44,6 +50,14 @@ public class Forms : EndpointGroupBase
     {
         var result = await sender.Send(command);
         return result.ToCreatedResult($"/{nameof(Forms)}/{result.Data}");
+    }
+
+    public async Task<IResult> UpdateForm(ISender sender, Guid id, UpdateFormCommand command)
+    {
+        if (id != command.Id) return Results.BadRequest();
+
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
     }
 
     public async Task<IResult> GetFormSubmissions(ISender sender, Guid formId)
