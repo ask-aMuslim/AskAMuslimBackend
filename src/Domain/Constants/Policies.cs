@@ -73,7 +73,11 @@ public abstract class Policies
     // Tags
     public const string ViewTags = nameof(ViewTags);
     public const string ManageTags = nameof(ManageTags);
-    
+
+    // Forms
+    public const string ViewForms = nameof(ViewForms);
+    public const string ManageForms = nameof(ManageForms);
+
     // Settings & System
     public const string ViewSettings = nameof(ViewSettings);
     public const string ManageSettings = nameof(ManageSettings);
