@@ -66,6 +66,12 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Volunteer> Volunteers => Set<Volunteer>();
     public DbSet<LearnIslamRequest> LearnIslamRequests => Set<LearnIslamRequest>();
 
+    // Forms
+    public DbSet<Form> Forms => Set<Form>();
+    public DbSet<FormField> FormFields => Set<FormField>();
+    public DbSet<FormFieldOption> FormFieldOptions => Set<FormFieldOption>();
+    public DbSet<FormSubmission> FormSubmissions => Set<FormSubmission>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
