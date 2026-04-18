@@ -9,6 +9,7 @@ public record GetMyEventRegistrationStatusQuery(Guid EventId) : IRequest<Result<
 
 public class MyEventRegistrationStatusDto
 {
+    public Guid? EventRegistrationId { get; init; }
     public bool IsRegistered { get; init; }
     public string? QuestionText { get; init; }
     public EventRegistrationStatus? EventRegistrationStatus { get; init; }
@@ -39,6 +40,7 @@ public class GetMyEventRegistrationStatusQueryHandler : IRequestHandler<GetMyEve
             .Where(r => r.EventId == request.EventId && r.UserId == userId)
             .Select(r => new
             {
+                r.Id,
                 r.QuestionText,
                 r.Status
             })
@@ -54,6 +56,7 @@ public class GetMyEventRegistrationStatusQueryHandler : IRequestHandler<GetMyEve
 
         return Result<MyEventRegistrationStatusDto>.Success(new MyEventRegistrationStatusDto
         {
+            EventRegistrationId = registration.Id,
             IsRegistered = true,
             QuestionText = registration.QuestionText,
             EventRegistrationStatus = registration.Status
