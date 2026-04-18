@@ -6,6 +6,8 @@ using AskAMuslimBackend.Application.Forms.Queries.GetFormSubmissions;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -31,7 +33,8 @@ public class Forms : EndpointGroupBase
         
         groupBuilder.MapPost(CreateFormSubmission, "{formId}/submissions")
             .WithName("SubmitForm")
-            .WithSummary("Submit form answers");
+            .WithSummary("Submit form answers")
+            .DisableAntiforgery();
     }
 
     public async Task<IResult> GetForms(ISender sender, [AsParameters] GetFormsQuery query)
@@ -66,9 +69,18 @@ public class Forms : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> CreateFormSubmission(ISender sender, Guid formId, CreateFormSubmissionCommand command)
+    public async Task<IResult> CreateFormSubmission(
+        ISender sender, 
+        Guid formId, 
+        [FromForm] string answersJson, 
+        IFormFileCollection? files)
     {
-        if (formId != command.FormId) return Results.BadRequest();
+        var command = new CreateFormSubmissionCommand
+        {
+            FormId = formId,
+            AnswersJson = answersJson,
+            Files = files?.ToList()
+        };
 
         var result = await sender.Send(command);
         return result.ToCreatedResult($"/{nameof(Forms)}/{formId}/submissions/{result.Data}");
