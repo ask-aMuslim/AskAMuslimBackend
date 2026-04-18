@@ -28,9 +28,9 @@ public class Forms : EndpointGroupBase
             .WithSummary("Submit form answers");
     }
 
-    public async Task<IResult> GetForms(ISender sender)
+    public async Task<IResult> GetForms(ISender sender, [AsParameters] GetFormsQuery query)
     {
-        var result = await sender.Send(new GetFormsQuery());
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
