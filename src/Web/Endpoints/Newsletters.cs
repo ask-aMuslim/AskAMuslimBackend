@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Newsletters.Commands.SendNewsletter;
 using AskAMuslimBackend.Application.Newsletters.Commands.SubscribeToNewsletter;
+using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
@@ -17,9 +18,8 @@ public class Newsletters : EndpointGroupBase
             .Produces<Result<Guid>>(StatusCodes.Status200OK)
             .Produces<Result<Guid>>(StatusCodes.Status400BadRequest);
 
-        // Require SuperAdmin directly or proper permissions policy
         groupBuilder.MapPost(SendNewsletter, "send")
-            .RequireAuthorization("RequireSuperAdmin")
+            .RequireAuthorization(Policies.SuperAdminOnly)
             .WithName("SendNewsletter")
             .WithSummary("Send newsletter to subscribers")
             .WithDescription("Sends an HTML email template to all active newsletter subscribers")
