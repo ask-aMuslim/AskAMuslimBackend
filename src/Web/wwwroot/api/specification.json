@@ -1798,6 +1798,46 @@
           "Forms"
         ],
         "operationId": "GetForms",
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "IsPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -1856,6 +1896,46 @@
             "description": ""
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Forms"
+        ],
+        "operationId": "UpdateForm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFormCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/Forms/{formId}/submissions": {
@@ -1902,19 +1982,32 @@
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "answersJson",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
           }
         ],
         "requestBody": {
-          "x-name": "command",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CreateFormSubmissionCommand"
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "nullable": true,
+                    "items": {}
+                  }
+                }
               }
             }
-          },
-          "required": true,
-          "x-position": 2
+          }
         },
         "responses": {
           "200": {
@@ -7294,7 +7387,8 @@
           "Date",
           "Checkbox",
           "Radio",
-          "Select"
+          "Select",
+          "File"
         ],
         "enum": [
           0,
@@ -7304,7 +7398,8 @@
           4,
           5,
           6,
-          7
+          7,
+          8
         ]
       },
       "CreateFormFieldOptionCommand": {
@@ -7323,16 +7418,80 @@
           }
         }
       },
-      "CreateFormSubmissionCommand": {
+      "UpdateFormCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "formId": {
+          "id": {
             "type": "string",
             "format": "guid"
           },
-          "answersJson": {
+          "title": {
             "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateFormFieldCommand"
+            }
+          }
+        }
+      },
+      "UpdateFormFieldCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FormFieldType"
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateFormFieldOptionCommand"
+            }
+          }
+        }
+      },
+      "UpdateFormFieldOptionCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
