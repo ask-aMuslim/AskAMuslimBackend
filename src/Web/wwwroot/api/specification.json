@@ -8274,8 +8274,8 @@
           "CreateAdmin",
           "EditAdmin",
           "DeleteAdmin",
-          "ManageAdminRoles",
           "ManageRolesAndPermissions",
+          "ManageAdminRoles",
           "ViewAllStudents",
           "ViewEnrolledStudents",
           "EditStudent",
@@ -8337,10 +8337,12 @@
           "CreateTag",
           "EditTag",
           "DeleteTag",
+          "ViewSettings",
           "ManageSystemBackup",
           "ViewAuditLogs",
-          "ViewSettings",
           "ManageSettings",
+          "ViewForms",
+          "ManageForms",
           "AllPermissions"
         ],
         "enum": [
@@ -8420,6 +8422,8 @@
           -9223372036854775808,
           -9223372036854775808,
           -9223372036854775808,
+          -9223372036854775807,
+          -9223372036854775743,
           -1
         ]
       },
