@@ -42,7 +42,10 @@ public static class DependencyInjection
                           if (origin == "https://aam-web.ask-a-muslim.com" ||
                               origin == "https://adminpanel.ask-a-muslim.com" ||
                               origin == "https://admin.islam-port.com" ||
-                              origin == "https://islam-port.com")
+                              origin == "https://islam-port.com" ||
+                              origin == "https://noor-ed.com" ||
+                              origin == "https://www.noor-ed.com" ||
+                              origin == "https://admin.noor-ed.com")
                               return true;
                           
                           // Allow localhost for development (Angular, Android emulator, etc.)
