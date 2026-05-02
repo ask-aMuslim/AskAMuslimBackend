@@ -41,8 +41,11 @@ public static class DependencyInjection
                           // Allow web and admin panel
                           if (origin == "https://aam-web.ask-a-muslim.com" ||
                               origin == "https://adminpanel.ask-a-muslim.com" ||
-                              origin == "https://islam-port.vercel.app" ||
-                              origin == "https://noor-frontend-xi.vercel.app")
+                              origin == "https://admin.islam-port.com" ||
+                              origin == "https://islam-port.com" ||
+                              origin == "https://noor-ed.com" ||
+                              origin == "https://www.noor-ed.com" ||
+                              origin == "https://admin.noor-ed.com")
                               return true;
                           
                           // Allow localhost for development (Angular, Android emulator, etc.)
