@@ -2183,6 +2183,10 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CvUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)

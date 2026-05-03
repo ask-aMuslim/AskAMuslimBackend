@@ -27,6 +27,7 @@ public class GetVolunteersQueryHandler : IRequestHandler<GetVolunteersQuery, Res
                 Phone = v.Phone,
                 Type = v.Type,
                 Message = v.Message,
+                CvUrl = v.CvUrl,
                 Created = v.Created.DateTime // Assuming Created is DateTimeOffset
             })
             .ToListAsync(cancellationToken);

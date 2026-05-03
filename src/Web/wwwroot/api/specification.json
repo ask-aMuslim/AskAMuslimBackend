@@ -6775,18 +6775,17 @@
           "Volunteers"
         ],
         "operationId": "CreateVolunteer",
-        "requestBody": {
-          "x-name": "command",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateVolunteerCommand"
-              }
-            }
-          },
-          "required": true,
-          "x-position": 1
-        },
+        "parameters": [
+          {
+            "name": "command",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CreateVolunteerCommand"
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -9285,6 +9284,11 @@
           },
           "message": {
             "type": "string"
+          },
+          "cvFile": {
+            "type": "string",
+            "format": "binary",
+            "nullable": true
           }
         }
       },
