@@ -22,6 +22,56 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Achievement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ActiveVolunteers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CoursesCompleted")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Dialogues")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventsHeld")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HijriMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HijriYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("NewMuslims")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SocialMediaReach")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HijriYear", "HijriMonth")
+                        .IsUnique();
+
+                    b.ToTable("Achievements", (string)null);
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Admin", b =>
                 {
                     b.Property<Guid>("Id")

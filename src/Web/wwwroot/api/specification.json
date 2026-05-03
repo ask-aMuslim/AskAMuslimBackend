@@ -6,6 +6,114 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/Achievements": {
+      "get": {
+        "tags": [
+          "Achievements"
+        ],
+        "operationId": "GetAchievementSummary",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Achievements"
+        ],
+        "operationId": "CreateAchievement",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAchievementCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Achievements/{hijriYear}": {
+      "get": {
+        "tags": [
+          "Achievements"
+        ],
+        "operationId": "GetAchievementYear",
+        "parameters": [
+          {
+            "name": "hijriYear",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Achievements/{hijriYear}/{hijriMonth}": {
+      "put": {
+        "tags": [
+          "Achievements"
+        ],
+        "operationId": "UpdateAchievement",
+        "parameters": [
+          {
+            "name": "hijriYear",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "hijriMonth",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAchievementCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/AdminNotes/{studentId}": {
       "get": {
         "tags": [
@@ -6705,6 +6813,74 @@
   },
   "components": {
     "schemas": {
+      "CreateAchievementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "hijriYear": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hijriMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newMuslims": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dialogues": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coursesCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeVolunteers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "socialMediaReach": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventsHeld": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UpdateAchievementCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "newMuslims": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dialogues": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coursesCompleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeVolunteers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "socialMediaReach": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eventsHeld": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "CreateAdminNoteCommand": {
         "type": "object",
         "additionalProperties": false,

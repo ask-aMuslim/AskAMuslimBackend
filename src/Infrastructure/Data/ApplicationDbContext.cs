@@ -43,6 +43,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
     public DbSet<Report> Reports => Set<Report>();
+    public DbSet<Achievement> Achievements => Set<Achievement>();
 
     // User Management
     public DbSet<Student> Students => Set<Student>();
