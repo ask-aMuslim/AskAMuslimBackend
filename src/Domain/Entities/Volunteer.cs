@@ -10,4 +10,5 @@ public class Volunteer : BaseAuditableEntity
     public string Phone { get; set; } = null!;
     public VolunteerType Type { get; set; }
     public string Message { get; set; } = string.Empty;
+    public string? CvUrl { get; set; }
 }

@@ -10,5 +10,6 @@ public class VolunteerDto
     public string Phone { get; init; } = string.Empty;
     public VolunteerType Type { get; init; }
     public string Message { get; init; } = string.Empty;
+    public string? CvUrl { get; init; }
     public DateTime Created { get; init; }
 }

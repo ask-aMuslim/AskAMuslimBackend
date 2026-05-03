@@ -18,8 +18,11 @@ public class VolunteerConfiguration : IEntityTypeConfiguration<Volunteer>
 
         builder.Property(t => t.Phone)
             .HasMaxLength(50);
-            
+
         builder.Property(t => t.Message)
             .HasMaxLength(2000);
+
+        builder.Property(t => t.CvUrl)
+            .HasMaxLength(500);
     }
 }
