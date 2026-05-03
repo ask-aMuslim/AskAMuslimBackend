@@ -35,6 +35,7 @@ public interface IApplicationDbContext
     DbSet<Event> Events { get; }
     DbSet<EventRegistration> EventRegistrations { get; }
     DbSet<Report> Reports { get; }
+    DbSet<Achievement> Achievements { get; }
 
     // User Management
     DbSet<Student> Students { get; }
