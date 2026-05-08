@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Forms.Commands.CreateForm;
 using AskAMuslimBackend.Application.Forms.Commands.CreateFormSubmission;
+using AskAMuslimBackend.Application.Forms.Commands.DeleteForm;
 using AskAMuslimBackend.Application.Forms.Commands.UpdateForm;
 using AskAMuslimBackend.Application.Forms.Queries.GetForms;
 using AskAMuslimBackend.Application.Forms.Queries.GetFormSubmissions;
@@ -17,7 +18,7 @@ public class Forms : EndpointGroupBase
     {
         groupBuilder.MapGet(GetForms).WithName("GetForms").WithSummary("Get all forms");
         groupBuilder.MapGet(GetFormById, "{id}").WithName("GetForm").WithSummary("Get form by ID");
-        
+
         groupBuilder.MapPost(CreateForm)
             .RequireAuthorization(Policies.ManageForms)
             .WithName("CreateForm");
@@ -26,11 +27,15 @@ public class Forms : EndpointGroupBase
             .RequireAuthorization(Policies.ManageForms)
             .WithName("UpdateForm");
 
+        groupBuilder.MapDelete(DeleteForm, "{id}")
+            .RequireAuthorization(Policies.ManageForms)
+            .WithName("DeleteForm");
+
         // Form submissions
         groupBuilder.MapGet(GetFormSubmissions, "{formId}/submissions")
             .RequireAuthorization(Policies.ViewForms)
             .WithName("GetFormSubmissions");
-        
+
         groupBuilder.MapPost(CreateFormSubmission, "{formId}/submissions")
             .WithName("SubmitForm")
             .WithSummary("Submit form answers")
@@ -63,6 +68,12 @@ public class Forms : EndpointGroupBase
         return result.ToHttpResult();
     }
 
+    public async Task<IResult> DeleteForm(ISender sender, Guid id)
+    {
+        var result = await sender.Send(new DeleteFormCommand(id));
+        return result.ToHttpResult();
+    }
+
     public async Task<IResult> GetFormSubmissions(ISender sender, Guid formId)
     {
         var result = await sender.Send(new GetFormSubmissionsQuery(formId));
@@ -70,9 +81,9 @@ public class Forms : EndpointGroupBase
     }
 
     public async Task<IResult> CreateFormSubmission(
-        ISender sender, 
-        Guid formId, 
-        [FromForm] string answersJson, 
+        ISender sender,
+        Guid formId,
+        [FromForm] string answersJson,
         IFormFileCollection? files)
     {
         var command = new CreateFormSubmissionCommand

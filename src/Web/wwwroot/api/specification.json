@@ -2044,6 +2044,34 @@
             "JWT": []
           }
         ]
+      },
+      "delete": {
+        "tags": [
+          "Forms"
+        ],
+        "operationId": "DeleteForm",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       }
     },
     "/api/Forms/{formId}/submissions": {
