@@ -1,12 +1,20 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace AskAMuslimBackend.Application.Forms.Queries.GetFormSubmissions;
 
+public class FormFieldMetadataDto
+{
+    public string Label { get; set; } = string.Empty;
+    public FormFieldType Type { get; set; } = FormFieldType.Text;
+}
+
 public class FormAnswerDto
 {
+    public FormFieldType Type { get; set; } = FormFieldType.Text;
     public string FieldName { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
 }
@@ -43,8 +51,14 @@ public class GetFormSubmissionsQueryHandler : IRequestHandler<GetFormSubmissions
             return Result<List<FormSubmissionDto>>.Failure(["Form not found"]);
         }
 
-        // Create a mapping of field ID to field name
-        var fieldMapping = form.Fields.ToDictionary(f => f.Id.ToString(), f => f.Label);
+        // Create a mapping of field ID to field metadata
+        var fieldMapping = form.Fields.ToDictionary(
+            f => f.Id.ToString(),
+            f => new FormFieldMetadataDto
+            {
+                Label = f.Label,
+                Type = f.Type
+            });
 
         // Load submissions
         var submissions = await _context.FormSubmissions
@@ -68,7 +82,7 @@ public class GetFormSubmissionsQueryHandler : IRequestHandler<GetFormSubmissions
         return Result<List<FormSubmissionDto>>.Success(submissionDtos);
     }
 
-    private static List<FormAnswerDto> ParseAnswers(string answersJson, Dictionary<string, string> fieldMapping)
+    private static List<FormAnswerDto> ParseAnswers(string answersJson, Dictionary<string, FormFieldMetadataDto> fieldMapping)
     {
         if (string.IsNullOrWhiteSpace(answersJson))
         {
@@ -84,11 +98,12 @@ public class GetFormSubmissionsQueryHandler : IRequestHandler<GetFormSubmissions
             {
                 var fieldId = property.Name;
                 var value = property.Value.GetString() ?? string.Empty;
-                var fieldName = fieldMapping.TryGetValue(fieldId, out var name) ? name : fieldId;
+                var fieldMetadata = fieldMapping.TryGetValue(fieldId, out var metadata) ? metadata : null;
 
                 answers.Add(new FormAnswerDto
                 {
-                    FieldName = fieldName,
+                    Type = fieldMetadata?.Type ?? FormFieldType.Text,
+                    FieldName = fieldMetadata?.Label ?? fieldId,
                     Value = value
                 });
             }
