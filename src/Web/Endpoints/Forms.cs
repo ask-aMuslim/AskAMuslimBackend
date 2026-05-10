@@ -16,8 +16,8 @@ public class Forms : EndpointGroupBase
 {
     public override void Map(RouteGroupBuilder groupBuilder)
     {
-        groupBuilder.MapGet(GetForms).WithName("GetForms").WithSummary("Get all forms");
-        groupBuilder.MapGet(GetFormById, "{id}").WithName("GetForm").WithSummary("Get form by ID");
+        groupBuilder.MapGet(GetForms).WithName("GetForms").WithSummary("Get all forms").AllowAnonymous();
+        groupBuilder.MapGet(GetFormById, "{id}").WithName("GetForm").WithSummary("Get form by ID").AllowAnonymous();
 
         groupBuilder.MapPost(CreateForm)
             .RequireAuthorization(Policies.ManageForms)
@@ -39,6 +39,7 @@ public class Forms : EndpointGroupBase
         groupBuilder.MapPost(CreateFormSubmission, "{formId}/submissions")
             .WithName("SubmitForm")
             .WithSummary("Submit form answers")
+            .AllowAnonymous()
             .DisableAntiforgery();
     }
 
