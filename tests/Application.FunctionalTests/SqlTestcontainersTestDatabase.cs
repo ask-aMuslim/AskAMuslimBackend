@@ -1,24 +1,28 @@
 ﻿using System.Data.Common;
 using AskAMuslimBackend.Infrastructure.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Npgsql;
 using Respawn;
-using Testcontainers.MsSql;
+using Respawn.Graph;
+using Testcontainers.PostgreSql;
 
 namespace AskAMuslimBackend.Application.FunctionalTests;
 
 public class SqlTestcontainersTestDatabase : ITestDatabase
 {
     private const string DefaultDatabase = "AskAMuslimBackendTestDb";
-    private readonly MsSqlContainer _container;
+    private readonly PostgreSqlContainer _container;
     private DbConnection _connection = null!;
     private string _connectionString = null!;
     private Respawner _respawner = null!;
 
     public SqlTestcontainersTestDatabase()
     {
-        _container = new MsSqlBuilder()
+        _container = new PostgreSqlBuilder()
+            .WithDatabase(DefaultDatabase)
+            .WithUsername("postgres")
+            .WithPassword("postgres")
             .WithAutoRemove(true)
             .Build();
     }
@@ -26,19 +30,13 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
     public async Task InitialiseAsync()
     {
         await _container.StartAsync();
-        await _container.ExecScriptAsync($"CREATE DATABASE {DefaultDatabase}");
 
-        var builder = new SqlConnectionStringBuilder(_container.GetConnectionString())
-        {
-            InitialCatalog = DefaultDatabase
-        };
+        _connectionString = _container.GetConnectionString();
 
-        _connectionString = builder.ConnectionString;
-
-        _connection = new SqlConnection(_connectionString);
+        _connection = new NpgsqlConnection(_connectionString);
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(_connectionString)
+            .UseNpgsql(_connectionString)
             .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.PendingModelChangesWarning))
             .Options;
 
@@ -47,7 +45,12 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
 
-        _respawner = await Respawner.CreateAsync(_connectionString);
+        await _connection.OpenAsync();
+        _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = new[] { "public" }
+        });
     }
 
     public DbConnection GetConnection()
@@ -62,7 +65,7 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
 
     public async Task ResetAsync()
     {
-        await _respawner.ResetAsync(_connectionString);
+        await _respawner.ResetAsync(_connection);
     }
 
     public async Task DisposeAsync()

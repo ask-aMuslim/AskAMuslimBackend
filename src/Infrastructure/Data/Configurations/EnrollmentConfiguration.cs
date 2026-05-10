@@ -21,7 +21,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
             .HasMaxLength(50);
 
         builder.Property(e => e.EnrolledAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            .HasDefaultValueSql("timezone('utc', now())");
 
         builder.HasOne(e => e.Course)
             .WithMany(c => c.Enrollments)

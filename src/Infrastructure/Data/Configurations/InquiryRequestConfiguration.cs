@@ -53,7 +53,7 @@ public class InquiryRequestConfiguration : IEntityTypeConfiguration<InquiryReque
                 v => string.IsNullOrWhiteSpace(v) ? new List<Language>() :
                      JsonSerializer.Deserialize<List<Language>>(v, LanguageJsonOptions) ?? new List<Language>())
             .HasColumnName("LanguagesJson")
-            .HasColumnType("nvarchar(max)")
+            .HasColumnType("text")
             .Metadata.SetValueComparer(languagesComparer);
 
         builder.HasIndex(i => new { i.ModeratorId, i.Created });

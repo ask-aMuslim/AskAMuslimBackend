@@ -1,16 +1,17 @@
 ﻿using System.Data.Common;
 using AskAMuslimBackend.Infrastructure.Data;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Respawn;
+using Respawn.Graph;
 
 namespace AskAMuslimBackend.Application.FunctionalTests;
 
 public class SqlTestDatabase : ITestDatabase
 {
     private readonly string _connectionString = null!;
-    private SqlConnection _connection = null!;
+    private NpgsqlConnection _connection = null!;
     private Respawner _respawner = null!;
 
     public SqlTestDatabase()
@@ -29,10 +30,10 @@ public class SqlTestDatabase : ITestDatabase
 
     public async Task InitialiseAsync()
     {
-        _connection = new SqlConnection(_connectionString);
+        _connection = new NpgsqlConnection(_connectionString);
 
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseSqlServer(_connectionString)
+            .UseNpgsql(_connectionString)
             .Options;
 
         var context = new ApplicationDbContext(options);
@@ -40,7 +41,12 @@ public class SqlTestDatabase : ITestDatabase
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
 
-        _respawner = await Respawner.CreateAsync(_connectionString);
+        await _connection.OpenAsync();
+        _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.Postgres,
+            SchemasToInclude = new[] { "public" }
+        });
     }
 
     public DbConnection GetConnection()
@@ -55,7 +61,7 @@ public class SqlTestDatabase : ITestDatabase
 
     public async Task ResetAsync()
     {
-        await _respawner.ResetAsync(_connectionString);
+        await _respawner.ResetAsync(_connection);
     }
 
     public async Task DisposeAsync()

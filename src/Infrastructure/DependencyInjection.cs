@@ -11,7 +11,7 @@ using AskAMuslimBackend.Infrastructure.Services.BackgroundJobs;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Hangfire;
-using Hangfire.SqlServer;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -39,13 +39,13 @@ public static class DependencyInjection
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
             options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-            options.UseSqlServer(connectionString, sqlServerOptions =>
+            options.UseNpgsql(connectionString, npgsqlOptions =>
             {
-                sqlServerOptions.EnableRetryOnFailure(
+                npgsqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 5,
                     maxRetryDelay: TimeSpan.FromSeconds(30),
-                    errorNumbersToAdd: null);
-                sqlServerOptions.CommandTimeout(60);
+                    errorCodesToAdd: null);
+                npgsqlOptions.CommandTimeout(60);
             });
             options.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
         });
@@ -115,13 +115,11 @@ public static class DependencyInjection
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
             {
-                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                QueuePollInterval = TimeSpan.Zero,
-                UseRecommendedIsolationLevel = true,
-                DisableGlobalLocks = true
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                InvisibilityTimeout = TimeSpan.FromMinutes(5),
+                DistributedLockTimeout = TimeSpan.FromMinutes(5)
             });
 
         builder.Services.AddScoped<IBackgroundJobService, BackgroundNotificationJobService>();

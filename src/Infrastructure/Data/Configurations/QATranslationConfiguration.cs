@@ -15,7 +15,7 @@ public class QATranslationConfiguration : IEntityTypeConfiguration<QATranslation
             .HasConversion<string>();
         builder.Property(t => t.QuestionText).IsRequired();
         builder.Property(t => t.AnswerText).IsRequired();
-        builder.Property(t => t.AnswerTextJson).HasColumnType("nvarchar(max)");
+        builder.Property(t => t.AnswerTextJson).HasColumnType("text");
 
         builder.HasIndex(t => new { t.QAId, t.Language }).IsUnique();
     }

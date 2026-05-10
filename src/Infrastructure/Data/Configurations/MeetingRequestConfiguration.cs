@@ -43,7 +43,7 @@ public class MeetingRequestConfiguration : IEntityTypeConfiguration<MeetingReque
                     ? new List<Language>()
                     : JsonSerializer.Deserialize<List<Language>>(v, LanguageJsonOptions) ?? new List<Language>())
             .HasColumnName("LanguagesJson")
-            .HasColumnType("nvarchar(max)")
+            .HasColumnType("text")
             .Metadata.SetValueComparer(languagesComparer);
 
         builder.Property(m => m.Status)

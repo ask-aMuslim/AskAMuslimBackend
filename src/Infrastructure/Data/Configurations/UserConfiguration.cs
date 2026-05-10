@@ -52,6 +52,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValue(true);
 
         builder.Property(u => u.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("timezone('utc', now())");
     }
 }

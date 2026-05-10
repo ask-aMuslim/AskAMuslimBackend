@@ -20,7 +20,7 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
     {
         var now = DateTime.UtcNow;
         var today = now.Date;
-        var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+        var firstDayOfMonth = DateTime.SpecifyKind(new DateTime(now.Year, now.Month, 1), DateTimeKind.Utc);
 
         // User Statistics
         var totalStudents = await _context.Students.CountAsync(cancellationToken);
@@ -63,8 +63,7 @@ public class GetAggregatedStatisticsQueryHandler : IRequestHandler<GetAggregated
         var dailyLoginData = new List<DailyLoginData>();
         for (int i = 29; i >= 0; i--)
         {
-            var date = today.AddDays(-i);
-            var nextDate = date.AddDays(1);
+            var date = DateTime.SpecifyKind(today.AddDays(-i), DateTimeKind.Utc);
             var count = await _context.Users
                 .CountAsync(u => u.LastLoginAt.HasValue && 
                                  u.LastLoginAt.Value.Date == date, 

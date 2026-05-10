@@ -65,6 +65,13 @@ public class ApplicationDbContextInitialiser
                 return;
             }
 
+            var runMigrations = _configuration.GetValue("Database:RunMigrations", true);
+            if (!runMigrations)
+            {
+                _logger.LogInformation("Database migrations are disabled via Database:RunMigrations.");
+                return;
+            }
+
             // Use migrations for all environments since we don't have CREATE DATABASE permissions
             await _context.Database.MigrateAsync();
         }
