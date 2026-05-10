@@ -17,6 +17,7 @@ public class GetFormByIdQueryHandler : IRequestHandler<GetFormByIdQuery, Result<
     public async Task<Result<FormDto>> Handle(GetFormByIdQuery request, CancellationToken cancellationToken)
     {
         var form = await _context.Forms
+            .AsNoTracking()
             .Include(f => f.Fields)
                 .ThenInclude(f => f.Options)
             .Where(f => f.Id == request.Id)
