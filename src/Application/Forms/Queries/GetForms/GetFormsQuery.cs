@@ -25,6 +25,7 @@ public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<Pagina
     public async Task<Result<PaginatedList<FormDto>>> Handle(GetFormsQuery request, CancellationToken cancellationToken)
     {
         var query = _context.Forms
+            .AsNoTracking()
             .Include(f => f.Fields)
                 .ThenInclude(f => f.Options)
             .AsQueryable();
