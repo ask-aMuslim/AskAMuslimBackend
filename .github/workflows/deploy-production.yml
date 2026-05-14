@@ -38,15 +38,9 @@ jobs:
 
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Debug SSH Key
-        run: |
-          echo "🔑 Public key from private key:"
-          ssh-keygen -y -f ~/.ssh/deploy_key
-
       - name: Deploy AskAMuslim
         run: |
           ssh \
-            -v \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
