@@ -39,14 +39,22 @@ public static class DependencyInjection
                 policy.SetIsOriginAllowed(origin =>
                       {
                           // Allow web and admin panel
-                          if (origin == "https://aam-web.ask-a-muslim.com" ||
-                              origin == "https://adminpanel.ask-a-muslim.com" ||
-                              origin == "https://admin.islam-port.com" ||
-                              origin == "https://islam-port.com" ||
-                              origin == "https://noor-ed.com" ||
-                              origin == "https://www.noor-ed.com" ||
-                              origin == "https://admin.noor-ed.com")
-                              return true;
+                          if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                          {
+                              var host = uri.Host.ToLower();
+
+                              string[] allowedDomains =
+                              {
+                                  "ask-a-muslim.com",
+                                  "islam-port.com",
+                                  "noor-ed.com",
+                                  "askamuslim.com"
+                              };
+
+                              return allowedDomains.Any(domain =>
+                                  host == domain ||
+                                  host.EndsWith("." + domain));
+                          }
                           
                           // Allow localhost for development (Angular, Android emulator, etc.)
                           if (origin.StartsWith("http://localhost") || 
