@@ -1,75 +1,149 @@
-name: Deploy API to Production
+name: Deploy API
 
 on:
   push:
     branches:
-      - production
+      - master
+      - askamuslim/prod
+      - port/prod
 
 jobs:
-  deploy:
-    name: Deploy to Production Server
+
+  deploy-askamuslim:
+    name: Deploy AskAMuslim
     runs-on: ubuntu-latest
-    
+
+    if: |
+      github.ref_name == 'master' ||
+      github.ref_name == 'askamuslim/prod'
+
+    environment:
+      name: askamuslim
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup SSH Key
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
+
           echo "$SSH_KEY" > ~/.ssh/deploy_key
+
           chmod 600 ~/.ssh/deploy_key
+
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-        
-      - name: Deploy to Server via SSH
+
+      - name: Deploy to AskAMuslim Server
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            echo "🚀 Starting deployment..."
-            
-            # Navigate to API directory
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+
+            set -e
+
+            echo "🚀 Deploying AskAMuslim..."
+
             cd /srv/docker/api/AskAMuslimBackend
-            
-            # Pull latest changes
-            echo "📥 Pulling latest code from production branch..."
+
             git fetch origin
-            git reset --hard origin/production
-            
-            # Navigate to docker directory
+
+            if [ "${{ github.ref_name }}" = "master" ]; then
+              git reset --hard origin/master
+            else
+              git reset --hard origin/askamuslim/prod
+            fi
+
             cd /srv/docker
-            
-            # Rebuild and restart API container
-            echo "🔨 Rebuilding API Docker image..."
-            docker compose build api
-            
-            echo "♻️ Restarting API container..."
-            docker compose up -d api
-            
-            # Wait for health check
-            echo "⏳ Waiting for API to become healthy..."
+
+            docker compose up -d --build api
+
+            echo "⏳ Waiting for health check..."
+
             for i in {1..30}; do
               if docker compose ps api | grep -q "healthy"; then
-                echo "✅ API is healthy and running!"
+                echo "✅ API healthy!"
                 break
               fi
-              echo "Waiting... ($i/30)"
+
+              echo "Waiting... (\$i/30)"
               sleep 2
             done
-            
-            # Show final status
-            echo "📊 Deployment Status:"
-            docker compose ps api
-            
-            echo "✨ Deployment completed successfully!"
+
+            docker compose ps
+
+            echo "✨ AskAMuslim deployment complete!"
           EOF
-            
-      - name: Notify Deployment Status
-        if: always()
+
+
+  deploy-islam-port:
+    name: Deploy Islam Port
+    runs-on: ubuntu-latest
+
+    if: |
+      github.ref_name == 'master' ||
+      github.ref_name == 'port/prod'
+
+    environment:
+      name: islam-port
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Key
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ Deployment succeeded!"
-          else
-            echo "❌ Deployment failed!"
-            exit 1
-          fi
+          mkdir -p ~/.ssh
+
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Islam Port Server
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+
+            set -e
+
+            echo "🚀 Deploying Islam Port..."
+
+            cd /srv/docker/api/AskAMuslimBackend
+
+            git fetch origin
+
+            if [ "${{ github.ref_name }}" = "master" ]; then
+              git reset --hard origin/master
+            else
+              git reset --hard origin/port/prod
+            fi
+
+            cd /srv/docker
+
+            docker compose up -d --build api
+
+            echo "⏳ Waiting for health check..."
+
+            for i in {1..30}; do
+              if docker compose ps api | grep -q "healthy"; then
+                echo "✅ API healthy!"
+                break
+              fi
+
+              echo "Waiting... (\$i/30)"
+              sleep 2
+            done
+
+            docker compose ps
+
+            echo "✨ Islam Port deployment complete!"
+          EOF
