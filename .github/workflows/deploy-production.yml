@@ -1,11 +1,13 @@
-name: Deploy API
+name: Deploy APIs
 
 on:
   push:
     branches:
       - master
+
       - askamuslim/prod
       - port/prod
+      - noor/prod
 
 jobs:
 
@@ -21,10 +23,10 @@ jobs:
       name: askamuslim
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key
+      - name: Setup SSH
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
@@ -36,7 +38,7 @@ jobs:
 
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to AskAMuslim Server
+      - name: Deploy AskAMuslim
         run: |
           ssh \
             -i ~/.ssh/deploy_key \
@@ -47,7 +49,7 @@ jobs:
 
             echo "🚀 Deploying AskAMuslim..."
 
-            cd /srv/docker/api/AskAMuslimBackend
+            cd ${{ secrets.APP_PATH }}
 
             git fetch origin
 
@@ -57,26 +59,13 @@ jobs:
               git reset --hard origin/askamuslim/prod
             fi
 
-            cd /srv/docker
-
             docker compose up -d --build api
-
-            echo "⏳ Waiting for health check..."
-
-            for i in {1..30}; do
-              if docker compose ps api | grep -q "healthy"; then
-                echo "✅ API healthy!"
-                break
-              fi
-
-              echo "Waiting... (\$i/30)"
-              sleep 2
-            done
 
             docker compose ps
 
-            echo "✨ AskAMuslim deployment complete!"
+            echo "✅ AskAMuslim deployed!"
           EOF
+
 
 
   deploy-islam-port:
@@ -91,10 +80,10 @@ jobs:
       name: islam-port
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup SSH Key
+      - name: Setup SSH
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
@@ -106,7 +95,7 @@ jobs:
 
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Islam Port Server
+      - name: Deploy Islam Port
         run: |
           ssh \
             -i ~/.ssh/deploy_key \
@@ -117,7 +106,7 @@ jobs:
 
             echo "🚀 Deploying Islam Port..."
 
-            cd /srv/docker/api/AskAMuslimBackend
+            cd ${{ secrets.APP_PATH }}
 
             git fetch origin
 
@@ -127,23 +116,66 @@ jobs:
               git reset --hard origin/port/prod
             fi
 
-            cd /srv/docker
-
             docker compose up -d --build api
-
-            echo "⏳ Waiting for health check..."
-
-            for i in {1..30}; do
-              if docker compose ps api | grep -q "healthy"; then
-                echo "✅ API healthy!"
-                break
-              fi
-
-              echo "Waiting... (\$i/30)"
-              sleep 2
-            done
 
             docker compose ps
 
-            echo "✨ Islam Port deployment complete!"
+            echo "✅ Islam Port deployed!"
+          EOF
+
+
+
+  deploy-noor-ed:
+    name: Deploy Noor ED
+    runs-on: ubuntu-latest
+
+    if: |
+      github.ref_name == 'master' ||
+      github.ref_name == 'noor/prod'
+
+    environment:
+      name: noor-ed
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Noor ED
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+
+            set -e
+
+            echo "🚀 Deploying Noor ED..."
+
+            cd ${{ secrets.APP_PATH }}
+
+            git fetch origin
+
+            if [ "${{ github.ref_name }}" = "master" ]; then
+              git reset --hard origin/master
+            else
+              git reset --hard origin/noor/prod
+            fi
+
+            docker compose up -d --build api
+
+            docker compose ps
+
+            echo "✅ Noor ED deployed!"
           EOF
