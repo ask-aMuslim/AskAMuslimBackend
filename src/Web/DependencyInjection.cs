@@ -37,46 +37,40 @@ public static class DependencyInjection
             options.AddDefaultPolicy(policy =>
             {
                 policy.SetIsOriginAllowed(origin =>
-                      {
-                          // Allow web and admin panel
-                          if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
-                          {
-                              var host = uri.Host.ToLower();
+                {
+                    if (string.IsNullOrEmpty(origin)) return false;
 
-                              string[] allowedDomains =
-                              {
-                                  "ask-a-muslim.com",
-                                  "islam-port.com",
-                                  "noor-ed.com",
-                                  "askamuslim.com"
-                              };
+                    // Allow localhost for development (Angular, Android emulator, etc.)
+                    if (origin.StartsWith("http://localhost") ||
+                        origin.StartsWith("http://127.0.0.1"))
+                        return true;
 
-                              return allowedDomains.Any(domain =>
-                                  host == domain ||
-                                  host.EndsWith("." + domain));
-                          }
-                          
-                          // Allow localhost for development (Angular, Android emulator, etc.)
-                          if (origin.StartsWith("http://localhost") || 
-                              origin.StartsWith("http://127.0.0.1"))
-                              return true;
-                          
-                          // Allow Android emulator (10.0.2.2 is the special alias for host machine)
-                          if (origin.StartsWith("http://10.0.2.2"))
-                              return true;
-                          
-                          // Allow Android app (no origin or custom schemes)
-                          if (string.IsNullOrEmpty(origin) || 
-                              origin.StartsWith("android-app://") ||
-                              origin.StartsWith("capacitor://") ||
-                              origin.StartsWith("ionic://"))
-                              return true;
-                          
-                          return false;
-                      })
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
+                    // Allow Android emulator (10.0.2.2 is the special alias for host machine)
+                    if (origin.StartsWith("http://10.0.2.2"))
+                        return true;
+
+                    if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                    {
+                        var host = uri.Host.ToLower();
+
+                        string[] allowedDomains =
+                        {
+                            "ask-a-muslim.com",
+                            "islam-port.com",
+                            "noor-ed.com",
+                            "askamuslim.com"
+                        };
+
+                        return allowedDomains.Any(domain =>
+                            host == domain ||
+                            host.EndsWith("." + domain));
+                    }
+
+                    return false;
+                })
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
             });
         });
 
