@@ -9,6 +9,7 @@ public record CreateFormFieldCommand
 {
     public string Label { get; init; } = string.Empty;
     public FormFieldType Type { get; init; } = FormFieldType.Text;
+    public bool IsMultiSelect { get; init; }
     public bool IsRequired { get; init; }
     public int Order { get; init; }
     public List<CreateFormFieldOptionCommand> Options { get; init; } = new();
@@ -53,6 +54,7 @@ public class CreateFormCommandHandler : IRequestHandler<CreateFormCommand, Resul
             {
                 Label = field.Label,
                 Type = field.Type,
+                IsMultiSelect = field.IsMultiSelect,
                 IsRequired = field.IsRequired,
                 Order = field.Order,
                 Form = form
@@ -74,7 +76,7 @@ public class CreateFormCommandHandler : IRequestHandler<CreateFormCommand, Resul
 
         _context.Forms.Add(form);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return Result<Guid>.Success(form.Id);
     }
 }

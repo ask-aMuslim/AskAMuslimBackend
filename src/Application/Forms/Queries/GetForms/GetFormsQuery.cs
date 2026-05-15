@@ -53,6 +53,7 @@ public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<Pagina
                     Id = field.Id,
                     Label = field.Label,
                     Type = field.Type,
+                    IsMultiSelect = field.IsMultiSelect,
                     IsRequired = field.IsRequired,
                     Order = field.Order,
                     Options = field.Options.Select(opt => new FormFieldOptionDto
