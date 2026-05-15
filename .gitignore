@@ -487,3 +487,4 @@ appsettings.*.json
 /src/Web/appsettings.Development.json
 /src/Web/emailService.json
 /src/Web/emailService.json
+*csproj.lscache
