@@ -7564,6 +7564,9 @@
           "type": {
             "$ref": "#/components/schemas/FormFieldType"
           },
+          "isMultiSelect": {
+            "type": "boolean"
+          },
           "isRequired": {
             "type": "boolean"
           },
@@ -7663,6 +7666,9 @@
           },
           "type": {
             "$ref": "#/components/schemas/FormFieldType"
+          },
+          "isMultiSelect": {
+            "type": "boolean"
           },
           "isRequired": {
             "type": "boolean"
