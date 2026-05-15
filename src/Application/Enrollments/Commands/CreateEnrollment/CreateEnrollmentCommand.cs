@@ -108,7 +108,7 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
         }
 
         var totalLessonsCount = await _context.Lessons
-            .CountAsync(l => l.CourseId == request.CourseId, cancellationToken);
+            .CountAsync(l => l.CourseId == request.CourseId && l.IsPublished, cancellationToken);
 
         var entity = new Enrollment
         {

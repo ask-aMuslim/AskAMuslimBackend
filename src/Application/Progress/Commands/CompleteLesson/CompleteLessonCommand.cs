@@ -31,12 +31,12 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
         var studentId = student.Id;
 
         var lesson = await _context.Lessons
-            .FirstOrDefaultAsync(l => l.Id == request.LessonId && l.CourseId == request.CourseId, cancellationToken)
-            ?? throw new InvalidOperationException("Lesson not found or does not belong to the specified course.");
+            .FirstOrDefaultAsync(l => l.Id == request.LessonId && l.CourseId == request.CourseId && l.IsPublished, cancellationToken)
+            ?? throw new InvalidOperationException("Lesson not found, is not published, or does not belong to the specified course.");
 
         // Prerequisite check: Must have completed the previous lesson's quiz if it has one
         var previousLesson = await _context.Lessons
-            .Where(l => l.CourseId == request.CourseId && l.Order < lesson.Order)
+            .Where(l => l.CourseId == request.CourseId && l.Order < lesson.Order && l.IsPublished)
             .OrderByDescending(l => l.Order)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -111,11 +111,19 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
                 throw new InvalidOperationException("Student is not enrolled in this course.");
             }
 
-            enrollment.TotalLessonsCount = enrollment.Course!.Lessons.Count;
-            
+            enrollment.TotalLessonsCount = enrollment.Course!.Lessons.Count(l => l.IsPublished);
+
+            // Count completed published lessons excluding the current lesson (which we just completed in-memory)
             var currentCompletedCount = await _context.StudentProgresses
-                .CountAsync(sp => sp.StudentId == studentId && sp.CourseId == request.CourseId && sp.IsCompleted, cancellationToken);
-            
+                .AsNoTracking()
+                .Where(sp => sp.StudentId == studentId && sp.CourseId == request.CourseId && sp.IsCompleted && sp.LessonId != request.LessonId)
+                .Join(
+                    _context.Lessons.AsNoTracking().Where(l => l.CourseId == request.CourseId && l.IsPublished),
+                    sp => sp.LessonId,
+                    l => l.Id,
+                    (sp, _) => sp.Id)
+                .CountAsync(cancellationToken);
+
             enrollment.CompletedLessonsCount = currentCompletedCount + 1;
             enrollment.LastUpdatedAt = DateTime.UtcNow;
 

@@ -17,6 +17,7 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
     public LessonType? Type { get; init; }
     [System.Text.Json.Serialization.JsonIgnore]
     public Language? Language { get; init; }
+    
 }
 
 public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWithPaginationQuery, Result<PaginatedList<LessonBriefDto>>>
