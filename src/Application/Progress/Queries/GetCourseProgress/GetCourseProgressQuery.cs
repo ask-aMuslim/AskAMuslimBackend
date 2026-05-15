@@ -40,6 +40,16 @@ public class GetCourseProgressQueryHandler : IRequestHandler<GetCourseProgressQu
 
         var studentId = student.Id;
 
+        var isCoursePublished = await _context.Courses
+            .Where(c => c.Id == request.CourseId)
+            .Select(c => c.IsPublished)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (!isCoursePublished)
+        {
+            return new CourseProgressDto(0, 0, 0, false);
+        }
+
         var enrollment = await _context.Enrollments
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == request.CourseId, cancellationToken);
@@ -49,13 +59,26 @@ public class GetCourseProgressQueryHandler : IRequestHandler<GetCourseProgressQu
             return new CourseProgressDto(0, 0, 0, false);
         }
 
-        var isCompleted = enrollment.CompletedLessonsCount >= enrollment.TotalLessonsCount && enrollment.TotalLessonsCount > 0;
+        var totalLessonsCount = await _context.Lessons
+            .AsNoTracking()
+            .CountAsync(l => l.CourseId == request.CourseId && l.IsPublished, cancellationToken);
 
-        return new CourseProgressDto(
-            enrollment.CompletedLessonsCount,
-            enrollment.TotalLessonsCount,
-            enrollment.CourseProgress,
-            isCompleted
-        );
+        var completedLessonsCount = await _context.StudentProgresses
+            .AsNoTracking()
+            .Where(sp => sp.StudentId == studentId && sp.CourseId == request.CourseId && sp.IsCompleted)
+            .Join(
+                _context.Lessons.AsNoTracking().Where(l => l.CourseId == request.CourseId && l.IsPublished),
+                sp => sp.LessonId,
+                l => l.Id,
+                (sp, _) => sp.Id)
+            .CountAsync(cancellationToken);
+
+        var progressPercentage = totalLessonsCount == 0
+            ? 0
+            : Math.Round(((double)completedLessonsCount / totalLessonsCount) * 100, 2);
+
+        var isCompleted = completedLessonsCount >= totalLessonsCount && totalLessonsCount > 0;
+
+        return new CourseProgressDto(completedLessonsCount, totalLessonsCount, progressPercentage, isCompleted);
     }
 }

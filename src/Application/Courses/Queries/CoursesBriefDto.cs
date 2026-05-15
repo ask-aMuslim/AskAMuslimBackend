@@ -17,6 +17,8 @@ public class CourseBriefDto
 
     public bool IsPublished { get; init; }
 
+    public bool HasQuiz { get; init; }
+
     public double Rating { get; init; }
 
     public int Order { get; init; }

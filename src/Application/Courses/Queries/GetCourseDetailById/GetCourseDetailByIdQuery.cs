@@ -24,6 +24,7 @@ public class GetCourseDetailByIdQueryHandler : IRequestHandler<GetCourseDetailBy
             Description = s.Description,
             ThumbnailUrl = s.ThumbnailUrl,
             IsPublished = s.IsPublished,
+            HasQuiz = s.HasQuiz,
             Rating = s.Rating,
             Order = s.Order,
             LevelId = s.LevelId,
