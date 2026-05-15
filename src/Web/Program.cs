@@ -21,12 +21,13 @@ app.UseHsts();
 
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
+// Enable CORS early so static files, swagger and other middleware honor it
+app.UseCors();
+
 app.UseStaticFiles();
 
 // Serve uploaded files from configured upload path (maps to /uploads)
 app.UseUploadStaticFiles();
-
-app.UseCors();
 
 // Request localization – resolves culture from Accept-Language header
 var supportedCultures = new[] { "en", "ar", "fr", "es", "de", "pt" };
