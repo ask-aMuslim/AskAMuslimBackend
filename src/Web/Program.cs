@@ -12,7 +12,7 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Initialize database in all environments (except during NSwag generation)
+// Initialize database in all environments
 
 await app.InitialiseDatabaseAsync();
 

@@ -18,6 +18,7 @@ public class FormFieldDto
     public Guid Id { get; set; }
     public string Label { get; set; } = string.Empty;
     public FormFieldType Type { get; set; }
+    public bool IsMultiSelect { get; set; }
     public bool IsRequired { get; set; }
     public int Order { get; set; }
 

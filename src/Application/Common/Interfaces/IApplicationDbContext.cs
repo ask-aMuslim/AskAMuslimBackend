@@ -1,4 +1,4 @@
-﻿using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Common.Interfaces;
@@ -36,6 +36,7 @@ public interface IApplicationDbContext
     DbSet<EventRegistration> EventRegistrations { get; }
     DbSet<Report> Reports { get; }
     DbSet<Achievement> Achievements { get; }
+    DbSet<Mosque> Mosques { get; }
 
     // User Management
     DbSet<Student> Students { get; }
