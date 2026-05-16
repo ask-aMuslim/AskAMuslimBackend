@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace AskAMuslimBackend.Infrastructure.Data;
 
@@ -67,6 +68,10 @@ public class ApplicationDbContextInitialiser
 
             // Use migrations for all environments since we don't have CREATE DATABASE permissions
             await _context.Database.MigrateAsync();
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
+        {
+            _logger.LogWarning(ex, "Database migration hit an existing table. Continuing startup because the schema is already present.");
         }
         catch (Exception ex)
         {
