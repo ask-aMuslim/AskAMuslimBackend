@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Data.Common;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
@@ -21,16 +22,23 @@ public static class InitialiserExtensions
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContextInitialiser>>();
 
-        logger.LogInformation("🚀 InitialiseDatabaseAsync called - starting database initialization...");
+        logger.LogInformation(
+            "InitialiseDatabaseAsync invoked for environment {EnvironmentName}.",
+            app.Environment.EnvironmentName);
         await initialiser.InitialiseAsync();
-        logger.LogInformation("✅ InitialiseAsync completed - calling SeedAsync...");
+        logger.LogInformation("Database migration step completed. Starting seed step.");
         await initialiser.SeedAsync();
-        logger.LogInformation("✅ Database initialization and seeding complete!");
+        logger.LogInformation("Database initialization and seeding completed successfully.");
     }
 }
 
 public class ApplicationDbContextInitialiser
 {
+    private const int DefaultDevelopmentCommandTimeoutSeconds = 60;
+    private const int DefaultProductionCommandTimeoutSeconds = 180;
+    private const int DefaultDevelopmentInitializationTimeoutSeconds = 120;
+    private const int DefaultProductionInitializationTimeoutSeconds = 300;
+
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
@@ -56,18 +64,73 @@ public class ApplicationDbContextInitialiser
 
     public async Task InitialiseAsync()
     {
+        var previousCommandTimeout = _context.Database.GetCommandTimeout();
+        var commandTimeoutSeconds = GetCommandTimeoutSeconds();
+        var initializationTimeoutSeconds = GetInitializationTimeoutSeconds();
+        var connectionDiagnostics = GetConnectionDiagnostics();
+
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(initializationTimeoutSeconds));
+
         try
         {
-            // Check if database can be connected
-            var canConnect = await _context.Database.CanConnectAsync();
-            if (!canConnect)
+            _context.Database.SetCommandTimeout(commandTimeoutSeconds);
+
+            _logger.LogInformation(
+                "Checking pending migrations in environment {EnvironmentName}. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}. CommandTimeoutSeconds: {CommandTimeoutSeconds}. InitializationTimeoutSeconds: {InitializationTimeoutSeconds}.",
+                _env.EnvironmentName,
+                connectionDiagnostics.Provider,
+                connectionDiagnostics.DataSource,
+                connectionDiagnostics.Database,
+                commandTimeoutSeconds,
+                initializationTimeoutSeconds);
+
+            var pendingMigrations = (await _context.Database.GetPendingMigrationsAsync(timeoutCts.Token)).ToArray();
+
+            if (pendingMigrations.Length == 0)
             {
-                _logger.LogWarning("Cannot connect to database. Skipping initialization.");
+                _logger.LogInformation(
+                    "No pending database migrations were found for database {Database}.",
+                    connectionDiagnostics.Database);
                 return;
             }
 
-            // Use migrations for all environments since we don't have CREATE DATABASE permissions
-            await _context.Database.MigrateAsync();
+            _logger.LogInformation(
+                "Applying {MigrationCount} pending migration(s) to database {Database}: {MigrationNames}",
+                pendingMigrations.Length,
+                connectionDiagnostics.Database,
+                string.Join(", ", pendingMigrations));
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await _context.Database.MigrateAsync(timeoutCts.Token);
+            });
+
+            _logger.LogInformation(
+                "Database migrations applied successfully to database {Database}.",
+                connectionDiagnostics.Database);
+        }
+        catch (OperationCanceledException ex) when (timeoutCts.IsCancellationRequested)
+        {
+            _logger.LogError(
+                ex,
+                "Database initialization timed out after {InitializationTimeoutSeconds} seconds in environment {EnvironmentName}. Verify connectivity, startup latency, and schema migration permissions for database {Database} on {DataSource}.",
+                initializationTimeoutSeconds,
+                _env.EnvironmentName,
+                connectionDiagnostics.Database,
+                connectionDiagnostics.DataSource);
+            throw;
+        }
+        catch (Exception ex) when (ex is DbException or TimeoutException or InvalidOperationException)
+        {
+            _logger.LogError(
+                ex,
+                "Database initialization failed in environment {EnvironmentName}. Verify connection string 'AskAMuslimBackendDb', network access, and that the application identity can apply schema changes. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}.",
+                _env.EnvironmentName,
+                connectionDiagnostics.Provider,
+                connectionDiagnostics.DataSource,
+                connectionDiagnostics.Database);
+            throw;
         }
         catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.DuplicateTable)
         {
@@ -75,25 +138,32 @@ public class ApplicationDbContextInitialiser
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while initialising the database.");
+            _logger.LogError(
+                ex,
+                "An unexpected error occurred while initialising the database in environment {EnvironmentName}.",
+                _env.EnvironmentName);
             throw;
+        }
+        finally
+        {
+            _context.Database.SetCommandTimeout(previousCommandTimeout);
         }
     }
 
     public async Task SeedAsync()
     {
+        var previousCommandTimeout = _context.Database.GetCommandTimeout();
+        var commandTimeoutSeconds = GetCommandTimeoutSeconds();
+
         _logger.LogInformation("========== DATABASE SEEDING STARTED ==========");
         try
         {
-            // Check if database can be connected before seeding
-            var canConnect = await _context.Database.CanConnectAsync();
-            if (!canConnect)
-            {
-                _logger.LogError("❌ SEEDING FAILED: Cannot connect to database. Skipping seeding.");
-                return;
-            }
+            _context.Database.SetCommandTimeout(commandTimeoutSeconds);
 
-            _logger.LogInformation("✅ Database connection successful. Starting seeding process...");
+            _logger.LogInformation(
+                "Starting seeding process in environment {EnvironmentName} with command timeout {CommandTimeoutSeconds} seconds.",
+                _env.EnvironmentName,
+                commandTimeoutSeconds);
             await TrySeedAsync();
             _logger.LogInformation("========== DATABASE SEEDING COMPLETED ==========");
         }
@@ -101,8 +171,15 @@ public class ApplicationDbContextInitialiser
         {
             _logger.LogError(ex, "❌ SEEDING FAILED: An error occurred during seeding. Details: {Message}", ex.Message);
             _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
-            // Do not rethrow here to avoid failing build tooling (e.g., NSwag) which executes the app during generation.
-            // In a normal run, seeding issues should be investigated and resolved.
+
+            if (!IsRunningUnderNSwag())
+            {
+                throw;
+            }
+        }
+        finally
+        {
+            _context.Database.SetCommandTimeout(previousCommandTimeout);
         }
     }
 
@@ -817,5 +894,50 @@ public class ApplicationDbContextInitialiser
             UserRole.NonMuslim => Domain.Constants.Roles.NonMuslim,
             _ => role.ToString()
         };
+    }
+
+    private int GetCommandTimeoutSeconds()
+    {
+        var defaultTimeout = _env.IsProduction()
+            ? DefaultProductionCommandTimeoutSeconds
+            : DefaultDevelopmentCommandTimeoutSeconds;
+
+        return Math.Max(
+            30,
+            _configuration.GetValue<int?>("DatabaseInitialization:CommandTimeoutSeconds") ?? defaultTimeout);
+    }
+
+    private int GetInitializationTimeoutSeconds()
+    {
+        var defaultTimeout = _env.IsProduction()
+            ? DefaultProductionInitializationTimeoutSeconds
+            : DefaultDevelopmentInitializationTimeoutSeconds;
+
+        return Math.Max(
+            60,
+            _configuration.GetValue<int?>("DatabaseInitialization:InitializationTimeoutSeconds") ?? defaultTimeout);
+    }
+
+    private (string Provider, string DataSource, string Database) GetConnectionDiagnostics()
+    {
+        var connection = _context.Database.GetDbConnection();
+
+        return (
+            Provider: _context.Database.ProviderName ?? "Unknown",
+            DataSource: string.IsNullOrWhiteSpace(connection.DataSource) ? "Unknown" : connection.DataSource,
+            Database: string.IsNullOrWhiteSpace(connection.Database) ? "Unknown" : connection.Database);
+    }
+
+    private static bool IsRunningUnderNSwag()
+    {
+        try
+        {
+            var args = Environment.GetCommandLineArgs();
+            return args.Any(a => a.Contains("dotnet-nswag", StringComparison.OrdinalIgnoreCase) || a.Contains("nswag", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
