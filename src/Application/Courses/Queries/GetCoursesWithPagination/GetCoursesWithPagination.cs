@@ -13,7 +13,6 @@ public record GetCoursesWithPaginationQuery : IRequest<Result<PaginatedList<Cour
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
-    [System.Text.Json.Serialization.JsonIgnore]
     public Language? Language { get; init; }
 }
 

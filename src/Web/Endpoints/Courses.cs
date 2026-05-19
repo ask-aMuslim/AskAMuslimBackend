@@ -8,7 +8,6 @@ using AskAMuslimBackend.Application.Courses.Queries.GetCourseDetailById;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 using AskAMuslimBackend.Domain.Constants;
-using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -42,10 +41,9 @@ public class Courses : EndpointGroupBase
             .WithSummary("Remove a prerequisite from a course");
     }
 
-    public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query, HttpRequest request)
+    public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
     {
-        var language = LanguageResolver.Resolve(request.Headers);
-        var result = await sender.Send(query with { Language = language });
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
