@@ -12,7 +12,6 @@ public record GetLevelsWithPaginationQuery : IRequest<Result<PaginatedList<Level
     public int? PageSize { get; init; } = 10;
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
-    [System.Text.Json.Serialization.JsonIgnore]
     public Language? Language { get; init; }
 }
 

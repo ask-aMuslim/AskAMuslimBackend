@@ -15,7 +15,6 @@ public record GetLessonsWithPaginationQuery : IRequest<Result<PaginatedList<Less
     public string? SearchTerm { get; init; }
     public bool? IsPublished { get; init; }
     public LessonType? Type { get; init; }
-    [System.Text.Json.Serialization.JsonIgnore]
     public Language? Language { get; init; }
     
 }
