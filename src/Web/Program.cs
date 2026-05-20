@@ -63,11 +63,14 @@ app.UseAuthentication();
 app.UseJwtBlacklist(); // Must be after UseAuthentication() and before UseAuthorization()
 app.UseAuthorization();
 
-// Add Hangfire Dashboard (admin-only access)
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
+// Add Hangfire Dashboard (admin-only access), but skip it during NSwag generation.
+if (!IsRunningUnderNSwag())
 {
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new HangfireAuthorizationFilter() }
+    });
+}
 
 app.UseExceptionHandler(options => { });
 

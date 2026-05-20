@@ -27,9 +27,13 @@ public static class DependencyInjection
         // Localization – reads from embedded JSON files in Localization/*.json
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 
-        // Add Hangfire services
+        // Add Hangfire client services always; only the server should be skipped during NSwag generation.
         builder.Services.AddHangfire(configuration => { });
-        builder.Services.AddHangfireServer();
+
+        if (!Program.IsRunningUnderNSwag())
+        {
+            builder.Services.AddHangfireServer();
+        }
 
         // Add CORS
         builder.Services.AddCors(options =>
