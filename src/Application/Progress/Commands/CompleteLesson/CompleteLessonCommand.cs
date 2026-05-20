@@ -1,11 +1,12 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
+using AskAMuslimBackend.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Progress.Commands.CompleteLesson;
 
-public record CompleteLessonCommand(Guid CourseId, Guid LessonId, double? VideoProgressPercentage) : IRequest<bool>;
+public record CompleteLessonCommand(Guid CourseId, Guid LessonId, double? ProgressPercentage, bool MarkAsRead = false) : IRequest<bool>;
 
 public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonCommand, bool>
 {
@@ -54,10 +55,36 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
             }
         }
 
-        bool shouldComplete = true;
-        if (request.VideoProgressPercentage.HasValue && request.VideoProgressPercentage < 90)
+        // Determine completion based on lesson type, an explicit mark, or reported progress
+        var progress = request.ProgressPercentage;
+        var markAsRead = request.MarkAsRead;
+        bool shouldComplete = false;
+
+        if (markAsRead)
         {
-            shouldComplete = false;
+            shouldComplete = true;
+        }
+        else if (progress.HasValue)
+        {
+            switch (lesson.Type)
+            {
+                case LessonType.Video:
+                case LessonType.Audio:
+                    shouldComplete = progress.Value >= 90;
+                    break;
+                case LessonType.Article:
+                case LessonType.Document:
+                    shouldComplete = progress.Value >= 80;
+                    break;
+                default:
+                    shouldComplete = progress.Value >= 90;
+                    break;
+            }
+        }
+        else
+        {
+            // Backwards-compatible behavior: if neither progress nor explicit mark provided, treat as completed
+            shouldComplete = true;
         }
 
         var studentProgress = await _context.StudentProgresses
@@ -65,16 +92,16 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
 
         if (studentProgress == null)
         {
-            studentProgress = new StudentProgress
-            {
-                StudentId = studentId,
-                CourseId = request.CourseId,
-                LessonId = request.LessonId,
-                IsCompleted = shouldComplete,
-                ProgressPercentage = request.VideoProgressPercentage,
-                LastAccessedAt = DateTime.UtcNow,
-                CompletedAt = shouldComplete ? DateTime.UtcNow : null
-            };
+                studentProgress = new StudentProgress
+                {
+                    StudentId = studentId,
+                    CourseId = request.CourseId,
+                    LessonId = request.LessonId,
+                    IsCompleted = shouldComplete,
+                    ProgressPercentage = request.ProgressPercentage,
+                    LastAccessedAt = DateTime.UtcNow,
+                    CompletedAt = shouldComplete ? DateTime.UtcNow : null
+                };
             _context.StudentProgresses.Add(studentProgress);
         }
         else
@@ -83,14 +110,14 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
             
             if (studentProgress.IsCompleted)
             {
-                if (request.VideoProgressPercentage.HasValue && request.VideoProgressPercentage > studentProgress.ProgressPercentage)
-                    studentProgress.ProgressPercentage = request.VideoProgressPercentage;
-                
+                if (request.ProgressPercentage.HasValue && request.ProgressPercentage > studentProgress.ProgressPercentage)
+                    studentProgress.ProgressPercentage = request.ProgressPercentage;
+
                 await _context.SaveChangesAsync(cancellationToken);
                 return false;
             }
 
-            studentProgress.ProgressPercentage = request.VideoProgressPercentage ?? studentProgress.ProgressPercentage;
+            studentProgress.ProgressPercentage = request.ProgressPercentage ?? studentProgress.ProgressPercentage;
             
             if (shouldComplete)
             {

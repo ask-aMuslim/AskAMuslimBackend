@@ -110,17 +110,20 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
 
-        // Configure Hangfire
-        GlobalConfiguration.Configuration
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
-            {
-                QueuePollInterval = TimeSpan.FromSeconds(15),
-                InvisibilityTimeout = TimeSpan.FromMinutes(5),
-                DistributedLockTimeout = TimeSpan.FromMinutes(5)
-            });
+        // Configure Hangfire unless the app is being launched by NSwag.
+        if (!IsRunningUnderNSwag())
+        {
+            GlobalConfiguration.Configuration
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+                {
+                    QueuePollInterval = TimeSpan.FromSeconds(15),
+                    InvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    DistributedLockTimeout = TimeSpan.FromMinutes(5)
+                });
+        }
 
         builder.Services.AddScoped<IBackgroundJobService, BackgroundNotificationJobService>();
         builder.Services.AddScoped<NotificationJobExecutor>();
@@ -308,5 +311,18 @@ public static class DependencyInjection
             options.AddPolicy(Policies.ManageSystem, policy =>
                 policy.AddRequirements(new PermissionRequirement(Permission.ViewSettings)));
         });
+    }
+
+    private static bool IsRunningUnderNSwag()
+    {
+        try
+        {
+            var args = Environment.GetCommandLineArgs();
+            return args.Any(a => a.Contains("dotnet-nswag", StringComparison.OrdinalIgnoreCase) || a.Contains("nswag", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

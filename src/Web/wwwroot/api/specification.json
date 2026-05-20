@@ -9476,10 +9476,13 @@
             "type": "string",
             "format": "guid"
           },
-          "videoProgressPercentage": {
+          "progressPercentage": {
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "markAsRead": {
+            "type": "boolean"
           }
         }
       },
