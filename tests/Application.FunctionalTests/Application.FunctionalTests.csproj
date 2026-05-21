@@ -34,6 +34,7 @@
       <PackageReference Include="Respawn" />
       <PackageReference Include="Shouldly" />
       <PackageReference Include="System.Configuration.ConfigurationManager" />
+      <PackageReference Include="System.Formats.Asn1" />
       <PackageReference Include="Testcontainers.PostgreSql" />
     </ItemGroup>
     
