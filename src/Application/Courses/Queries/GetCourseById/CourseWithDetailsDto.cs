@@ -17,7 +17,7 @@ public class CourseWithDetailsDto
     public Guid LevelId { get; init; }
     public string? LevelName { get; init; }
     public int LessonsCount { get; init; }
-    public TimeSpan? CourseDuration { get; init; }
+    public TimeSpan? CourseDuration { get; set; }
     public bool IsCompleted { get; set; }
     public double CourseProgress { get; set; }
 
