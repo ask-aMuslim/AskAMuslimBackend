@@ -64,12 +64,17 @@ public class GetQuizAttemptByIdQueryHandler : IRequestHandler<GetQuizAttemptById
                     })
                     .ToList();
 
+                // Identify the correct option for this question
+                var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                var correctOptionId = correctOption?.Id;
+
                 questionDtos.Add(new QuizAttemptQuestionDto
                 {
                     QuestionId = question.Id,
                     Text = question.Text,
                     Order = question.Order,
                     Options = options,
+                    CorrectOptionId = correctOptionId,
                     SelectedOptionId = studentAnswer?.SelectedOptionId,
                     IsCorrect = studentAnswer?.IsCorrect ?? false
                 });

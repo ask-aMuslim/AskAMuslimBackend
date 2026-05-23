@@ -1,3 +1,4 @@
+using AskAMuslimBackend.Application.Common.Helpers;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Validators;
@@ -46,15 +47,12 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             return Result<Guid>.Failure(new[] { _localizer["Courses.DoesNotExist"] });
         }
 
-        var duration = request.Duration;
-        if (!duration.HasValue && request.Type == LessonType.Video && !string.IsNullOrWhiteSpace(request.ContentUrl))
-        {
-            var videoId = ExtractYouTubeVideoId(request.ContentUrl);
-            if (!string.IsNullOrEmpty(videoId))
-            {
-                duration = await _youTubeService.FetchVideoDurationAsync(videoId, cancellationToken);
-            }
-        }
+        var duration = await LessonDurationResolver.ResolveAsync(
+            request.Type,
+            request.ContentUrl,
+            request.Duration,
+            _youTubeService,
+            cancellationToken);
 
         var lesson = new Lesson
         {
@@ -75,21 +73,6 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         _context.Lessons.Add(lesson);
         await _context.SaveChangesAsync(cancellationToken);
         return Result<Guid>.Success(lesson.Id);
-    }
-
-    private static string? ExtractYouTubeVideoId(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url)) return null;
-        // youtu.be/{id}
-        var shortMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtu\.be/([a-zA-Z0-9_-]{11})");
-        if (shortMatch.Success) return shortMatch.Groups[1].Value;
-        // v={id}
-        var normalMatch = System.Text.RegularExpressions.Regex.Match(url, @"[?&]v=([a-zA-Z0-9_-]{11})");
-        if (normalMatch.Success) return normalMatch.Groups[1].Value;
-        // /embed/{id}
-        var embedMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtube\.com/embed/([a-zA-Z0-9_-]{11})");
-        if (embedMatch.Success) return embedMatch.Groups[1].Value;
-        return null;
     }
 }
 

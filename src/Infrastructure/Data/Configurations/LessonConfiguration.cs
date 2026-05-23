@@ -41,7 +41,8 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
             .HasDefaultValue(false);
 
         builder.Property(l => l.Duration)
-            .HasColumnType("interval");
+            .HasColumnType("interval")
+            .HasDefaultValue(new TimeSpan(0, 5, 0));
 
         builder.Property(l => l.Language)
             .HasConversion<string>()
