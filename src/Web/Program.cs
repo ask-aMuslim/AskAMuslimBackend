@@ -13,7 +13,7 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 // Initialize database in all environments.
-/*app.Logger.LogInformation(
+app.Logger.LogInformation(
     "Starting automatic database initialization for environment {EnvironmentName}.",
     app.Environment.EnvironmentName);
 
@@ -28,7 +28,7 @@ catch (Exception ex)
         "Automatic database initialization failed during startup in environment {EnvironmentName}. Verify the connection string 'AskAMuslimBackendDb', network access, and database migration permissions.",
         app.Environment.EnvironmentName);
     throw;
-}*/
+}
 
 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 app.UseHsts();
