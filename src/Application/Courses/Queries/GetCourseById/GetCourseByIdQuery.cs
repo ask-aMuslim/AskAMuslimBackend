@@ -37,7 +37,7 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Res
                 LevelId = c.LevelId,
                 LevelName = c.Level != null ? c.Level.Title : null,
                 LessonsCount = c.Lessons.Count(l => l.IsPublished),
-                CourseDuration = (TimeSpan?)c.Lessons.Where(l => l.IsPublished && l.Duration.HasValue).Select(l => l.Duration!.Value).AsEnumerable().Aggregate(TimeSpan.Zero, (acc, ts) => acc + ts),
+                CourseDuration = null, // calculated below after fetch
                 Tags = c.CourseTags.Select(ct => new Tags.Queries.TagBriefDto
                 {
                     Id = ct.Tag!.Id,
@@ -77,6 +77,12 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Res
         {
             return Result<CourseWithDetailsDto?>.Success(null);
         }
+
+        // Calculate total duration from fetched lessons in-memory
+        course.CourseDuration = course.Lessons
+            .Where(l => l.LessonDuration.HasValue)
+            .Select(l => l.LessonDuration!.Value)
+            .Aggregate(TimeSpan.Zero, (acc, ts) => acc + ts);
 
         // Attempt to resolve student from current user
         Guid? studentId = null;
