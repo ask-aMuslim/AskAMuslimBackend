@@ -47,12 +47,19 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         }
 
         var duration = request.Duration;
-        if (!duration.HasValue && request.Type == LessonType.Video && !string.IsNullOrWhiteSpace(request.ContentUrl))
+        if (!duration.HasValue && !string.IsNullOrWhiteSpace(request.ContentUrl))
         {
-            var videoId = ExtractYouTubeVideoId(request.ContentUrl);
-            if (!string.IsNullOrEmpty(videoId))
+            if (request.Type == LessonType.Video)
             {
-                duration = await _youTubeService.FetchVideoDurationAsync(videoId, cancellationToken);
+                var videoId = ExtractYouTubeVideoId(request.ContentUrl);
+                if (!string.IsNullOrEmpty(videoId))
+                {
+                    duration = await _youTubeService.FetchVideoDurationAsync(videoId, cancellationToken);
+                }
+            }
+            else if (request.Type == LessonType.Audio)
+            {
+                duration = await _youTubeService.FetchAudioDurationAsync(request.ContentUrl, cancellationToken);
             }
         }
 

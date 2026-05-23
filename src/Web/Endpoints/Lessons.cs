@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Lessons.Commands.CreateLesson;
 using AskAMuslimBackend.Application.Lessons.Commands.DeleteLesson;
+using AskAMuslimBackend.Application.Lessons.Commands.SetLessonDuration;
 using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
@@ -21,6 +22,10 @@ public class Lessons : EndpointGroupBase
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("UpdateLesson")
             .WithSummary("Update a lesson");
+        groupBuilder.MapPut(SetDuration, "{id}/duration")
+            .RequireAuthorization(Policies.ManageLessons)
+            .WithName("SetLessonDuration")
+            .WithSummary("Auto-resolve or manually set lesson duration. Auto for Video/Audio; manual override optional.");
         groupBuilder.MapDelete(DeleteLesson, "{id}")
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("DeleteLesson")
@@ -48,6 +53,12 @@ public class Lessons : EndpointGroupBase
     public async Task<IResult> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)
     {
         var result = await sender.Send(command with { Id = id });
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> SetDuration(ISender sender, Guid id, SetLessonDurationCommand command)
+    {
+        var result = await sender.Send(command with { LessonId = id });
         return result.ToHttpResult();
     }
 

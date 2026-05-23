@@ -1,5 +1,3 @@
-using AskAMuslimBackend.Domain.Enums;
-
 namespace AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptById;
 
 public class QuizAttemptDetailDto
@@ -25,6 +23,9 @@ public class QuizAttemptQuestionDto
     public string Text { get; init; } = string.Empty;
     public int Order { get; init; }
     public List<QuizAttemptOptionDto> Options { get; init; } = new();
+
+    // Correct answer (the single correct option for this question)
+    public Guid? CorrectOptionId { get; init; }
 
     // Student selection
     public Guid? SelectedOptionId { get; init; }

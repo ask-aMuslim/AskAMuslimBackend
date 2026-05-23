@@ -3027,6 +3027,48 @@
         ]
       }
     },
+    "/api/Lessons/{id}/duration": {
+      "put": {
+        "tags": [
+          "Lessons"
+        ],
+        "operationId": "SetDuration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetLessonDurationCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Levels": {
       "get": {
         "tags": [
@@ -8664,6 +8706,21 @@
           },
           "language": {
             "$ref": "#/components/schemas/Language"
+          }
+        }
+      },
+      "SetLessonDurationCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "manualDuration": {
+            "type": "string",
+            "format": "duration",
+            "nullable": true
           }
         }
       },

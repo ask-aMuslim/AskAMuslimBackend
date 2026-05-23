@@ -161,4 +161,32 @@ internal class YouTubeService : IYouTubeService
         if (match.Success) return match.Groups[2].Value;
         return null;
     }
+
+    private static string? ExtractYouTubeVideoId(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        var shortMatch = Regex.Match(url, @"youtu\.be/([a-zA-Z0-9_-]{11})");
+        if (shortMatch.Success) return shortMatch.Groups[1].Value;
+        var normalMatch = Regex.Match(url, @"[?&]v=([a-zA-Z0-9_-]{11})");
+        if (normalMatch.Success) return normalMatch.Groups[1].Value;
+        var embedMatch = Regex.Match(url, @"youtube\.com/embed/([a-zA-Z0-9_-]{11})");
+        if (embedMatch.Success) return embedMatch.Groups[1].Value;
+        return null;
+    }
+
+    public Task<TimeSpan?> FetchAudioDurationAsync(string url, CancellationToken cancellationToken)
+    {
+        // If it's a YouTube link, delegate to video duration
+        var videoId = ExtractYouTubeVideoId(url);
+        if (!string.IsNullOrEmpty(videoId))
+        {
+            return FetchVideoDurationAsync(videoId, cancellationToken);
+        }
+
+        // For direct audio files (.mp3, .wav, .ogg, .m4a, .aac) 
+        // and other platforms (SoundCloud, Bandcamp, Spotify, etc.)
+        // We cannot reliably fetch duration without heavy dependencies.
+        // Admins should manually provide duration for these.
+        return Task.FromResult<TimeSpan?>(null);
+    }
 }
