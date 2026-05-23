@@ -6,4 +6,5 @@ public interface IYouTubeService
 {
     Task<YouTubeChannelResult?> FetchChannelAsync(string channelInput, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<YouTubeVideoResult>> FetchChannelVideosAsync(string youTubeChannelId, int maxResults, CancellationToken cancellationToken);
+    Task<TimeSpan?> FetchVideoDurationAsync(string videoId, CancellationToken cancellationToken);
 }

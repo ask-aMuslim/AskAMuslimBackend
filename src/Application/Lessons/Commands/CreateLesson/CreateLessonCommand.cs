@@ -19,6 +19,7 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
+    public TimeSpan? Duration { get; init; }
     public bool IsPublished { get; init; } = false;
     public Language Language { get; init; } = Language.English;
 }
@@ -27,11 +28,13 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
 {
     private readonly IApplicationDbContext _context;
     private readonly ILocalizationService _localizer;
+    private readonly IYouTubeService _youTubeService;
 
-    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
+    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer, IYouTubeService youTubeService)
     {
         _context = context;
         _localizer = localizer;
+        _youTubeService = youTubeService;
     }
 
     public async Task<Result<Guid>> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
@@ -41,6 +44,16 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         if (!courseExists)
         {
             return Result<Guid>.Failure(new[] { _localizer["Courses.DoesNotExist"] });
+        }
+
+        var duration = request.Duration;
+        if (!duration.HasValue && request.Type == LessonType.Video && !string.IsNullOrWhiteSpace(request.ContentUrl))
+        {
+            var videoId = ExtractYouTubeVideoId(request.ContentUrl);
+            if (!string.IsNullOrEmpty(videoId))
+            {
+                duration = await _youTubeService.FetchVideoDurationAsync(videoId, cancellationToken);
+            }
         }
 
         var lesson = new Lesson
@@ -54,6 +67,7 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             Transcript = request.Transcript,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order,
+            Duration = duration,
             IsPublished = request.IsPublished,
             Language = request.Language
         };
@@ -61,6 +75,21 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         _context.Lessons.Add(lesson);
         await _context.SaveChangesAsync(cancellationToken);
         return Result<Guid>.Success(lesson.Id);
+    }
+
+    private static string? ExtractYouTubeVideoId(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        // youtu.be/{id}
+        var shortMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtu\.be/([a-zA-Z0-9_-]{11})");
+        if (shortMatch.Success) return shortMatch.Groups[1].Value;
+        // v={id}
+        var normalMatch = System.Text.RegularExpressions.Regex.Match(url, @"[?&]v=([a-zA-Z0-9_-]{11})");
+        if (normalMatch.Success) return normalMatch.Groups[1].Value;
+        // /embed/{id}
+        var embedMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtube\.com/embed/([a-zA-Z0-9_-]{11})");
+        if (embedMatch.Success) return embedMatch.Groups[1].Value;
+        return null;
     }
 }
 

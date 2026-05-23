@@ -1082,41 +1082,6 @@
         ]
       }
     },
-    "/api/Courses/{id}/detail": {
-      "get": {
-        "tags": [
-          "Courses"
-        ],
-        "operationId": "GetCourseDetailById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "studentId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid",
-              "nullable": true
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/api/Courses/roadmap/{levelId}": {
       "get": {
         "tags": [
@@ -8608,6 +8573,11 @@
             "type": "integer",
             "format": "int32"
           },
+          "duration": {
+            "type": "string",
+            "format": "duration",
+            "nullable": true
+          },
           "isPublished": {
             "type": "boolean"
           },
@@ -8648,6 +8618,11 @@
           },
           "thumbnailUrl": {
             "type": "string",
+            "nullable": true
+          },
+          "duration": {
+            "type": "string",
+            "format": "duration",
             "nullable": true
           },
           "order": {
