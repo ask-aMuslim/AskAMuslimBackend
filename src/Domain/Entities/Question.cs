@@ -4,6 +4,7 @@ public class Question : BaseAuditableEntity
 {
     public Guid QuizId { get; set; }
     public string Text { get; set; } = string.Empty;
+    public int Order { get; set; }
 
     // Navigation
     public Quiz? Quiz { get; set; }

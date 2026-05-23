@@ -11,6 +11,7 @@ public record UpdateOptionCommand : IRequest<Result>
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
     public bool IsCorrect { get; init; }
+    public string? Explanation { get; init; }
 }
 
 public class UpdateOptionCommandHandler : IRequestHandler<UpdateOptionCommand, Result>
@@ -31,6 +32,7 @@ public class UpdateOptionCommandHandler : IRequestHandler<UpdateOptionCommand, R
 
         entity.Text = request.Text;
         entity.IsCorrect = request.IsCorrect;
+        entity.Explanation = request.Explanation ?? string.Empty;
 
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();
@@ -45,5 +47,8 @@ public class UpdateOptionCommandValidator : AbstractValidator<UpdateOptionComman
         RuleFor(x => x.Text)
             .NotEmpty().WithMessage("Text is required.")
             .MaximumLength(500).WithMessage("Text must not exceed 500 characters.");
+        RuleFor(x => x.Explanation)
+            .MaximumLength(1000).When(x => !string.IsNullOrWhiteSpace(x.Explanation))
+            .WithMessage("Explanation must not exceed 1000 characters.");
     }
 }

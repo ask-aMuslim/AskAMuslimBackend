@@ -6042,6 +6042,36 @@
         ]
       }
     },
+    "/api/QuizAttempts/{id}": {
+      "get": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "GetById4",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/QuizAttempts": {
       "post": {
         "tags": [
@@ -6592,7 +6622,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetById4",
+        "operationId": "GetById5",
         "parameters": [
           {
             "name": "id",
@@ -6874,7 +6904,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetById5",
+        "operationId": "GetById6",
         "parameters": [
           {
             "name": "id",
@@ -9164,6 +9194,10 @@
           },
           "isCorrect": {
             "type": "boolean"
+          },
+          "explanation": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -9176,6 +9210,10 @@
           },
           "isCorrect": {
             "type": "boolean"
+          },
+          "explanation": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -9582,6 +9620,11 @@
           },
           "text": {
             "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -9591,6 +9634,11 @@
         "properties": {
           "text": {
             "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
