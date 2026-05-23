@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -44,6 +44,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
     public DbSet<Report> Reports => Set<Report>();
     public DbSet<Achievement> Achievements => Set<Achievement>();
+    public DbSet<Mosque> Mosques => Set<Mosque>();
 
     // User Management
     public DbSet<Student> Students => Set<Student>();

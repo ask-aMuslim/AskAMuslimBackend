@@ -11,6 +11,7 @@ public record UpdateFormFieldCommand
     public Guid? Id { get; init; }
     public string Label { get; init; } = string.Empty;
     public FormFieldType Type { get; init; } = FormFieldType.Text;
+    public bool IsMultiSelect { get; init; }
     public bool IsRequired { get; init; }
     public int Order { get; init; }
     public List<UpdateFormFieldOptionCommand> Options { get; init; } = new();
@@ -61,7 +62,7 @@ public class UpdateFormCommandHandler : IRequestHandler<UpdateFormCommand, Resul
         // Process fields to remove
         var incomingFieldIds = request.Fields.Where(f => f.Id.HasValue).Select(f => f.Id!.Value).ToList();
         var fieldsToRemove = form.Fields.Where(f => !incomingFieldIds.Contains(f.Id)).ToList();
-        
+
         foreach (var field in fieldsToRemove)
         {
             form.Fields.Remove(field);
@@ -78,12 +79,13 @@ public class UpdateFormCommandHandler : IRequestHandler<UpdateFormCommand, Resul
                 {
                     existingField.Label = fieldCommand.Label;
                     existingField.Type = fieldCommand.Type;
+                    existingField.IsMultiSelect = fieldCommand.IsMultiSelect;
                     existingField.IsRequired = fieldCommand.IsRequired;
                     existingField.Order = fieldCommand.Order;
 
                     var incomingOptionIds = fieldCommand.Options.Where(o => o.Id.HasValue).Select(o => o.Id!.Value).ToList();
                     var optionsToRemove = existingField.Options.Where(o => !incomingOptionIds.Contains(o.Id)).ToList();
-                    
+
                     foreach (var option in optionsToRemove)
                     {
                         existingField.Options.Remove(option);
@@ -116,12 +118,13 @@ public class UpdateFormCommandHandler : IRequestHandler<UpdateFormCommand, Resul
                     continue;
                 }
             }
-            
+
             // Add new field
             var newField = new FormField
             {
                 Label = fieldCommand.Label,
                 Type = fieldCommand.Type,
+                IsMultiSelect = fieldCommand.IsMultiSelect,
                 IsRequired = fieldCommand.IsRequired,
                 Order = fieldCommand.Order,
                 Form = form
@@ -142,7 +145,7 @@ public class UpdateFormCommandHandler : IRequestHandler<UpdateFormCommand, Resul
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return Result<Guid>.Success(form.Id);
     }
 }

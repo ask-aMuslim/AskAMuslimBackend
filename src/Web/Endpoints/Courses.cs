@@ -4,11 +4,9 @@ using AskAMuslimBackend.Application.Courses.Commands.DeleteCourse;
 using AskAMuslimBackend.Application.Courses.Commands.RemoveCoursePrerequisite;
 using AskAMuslimBackend.Application.Courses.Commands.UpdateCourse;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
-using AskAMuslimBackend.Application.Courses.Queries.GetCourseDetailById;
 using AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 using AskAMuslimBackend.Application.Courses.Queries.GetCoursesWithPagination;
 using AskAMuslimBackend.Domain.Constants;
-using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -17,8 +15,7 @@ public class Courses : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetCoursesWithLevelId).WithName("GetCourses").WithSummary("Get courses (optionally filtered by level)");
-        groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id");
-        groupBuilder.MapGet(GetCourseDetailById, "{id}/detail").WithName("GetCourseDetail").WithSummary("Get detailed course info with prerequisites");
+        groupBuilder.MapGet(GetCourseById, "{id}").WithName("GetCourse").WithSummary("Get a course by id with full details");
         groupBuilder.MapGet(GetCourseRoadmap, "roadmap/{levelId}").WithName("GetCourseRoadmap").WithSummary("Get complete course roadmap for a level");
         groupBuilder.MapPost(CreateCourse)
             .RequireAuthorization(Policies.CreateCourse)
@@ -42,10 +39,9 @@ public class Courses : EndpointGroupBase
             .WithSummary("Remove a prerequisite from a course");
     }
 
-    public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query, HttpRequest request)
+    public async Task<IResult> GetCoursesWithLevelId(ISender sender, [AsParameters] GetCoursesWithPaginationQuery query)
     {
-        var language = LanguageResolver.Resolve(request.Headers);
-        var result = await sender.Send(query with { Language = language });
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
@@ -70,12 +66,6 @@ public class Courses : EndpointGroupBase
     public async Task<IResult> DeleteCourse(ISender sender, Guid id)
     {
         var result = await sender.Send(new DeleteCourseCommand(id));
-        return result.ToHttpResult();
-    }
-
-    public async Task<IResult> GetCourseDetailById(ISender sender, Guid id, Guid? studentId = null)
-    {
-        var result = await sender.Send(new GetCourseDetailByIdQuery(id, studentId));
         return result.ToHttpResult();
     }
 

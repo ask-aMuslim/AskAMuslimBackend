@@ -8,4 +8,5 @@ public class OptionBriefDto
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
     public bool IsCorrect { get; init; }
+    public string? Explanation { get; init; }
 }

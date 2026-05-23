@@ -40,6 +40,7 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 Description = c.Description,
                 ThumbnailUrl = c.ThumbnailUrl,
                 IsPublished = c.IsPublished,
+                HasQuiz = c.HasQuiz,
                 Order = c.Order
             })
             .ToListAsync(cancellationToken);
@@ -93,7 +94,18 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 {
                     e.CourseId,
                     e.Status,
-                    e.CourseProgress
+                    TotalLessonsCount = _context.Lessons
+                        .AsNoTracking()
+                        .Count(l => l.CourseId == e.CourseId && l.IsPublished),
+                    CompletedLessonsCount = _context.StudentProgresses
+                        .AsNoTracking()
+                        .Where(sp => sp.StudentId == studentId.Value && sp.CourseId == e.CourseId && sp.IsCompleted)
+                        .Join(
+                            _context.Lessons.AsNoTracking().Where(l => l.CourseId == e.CourseId && l.IsPublished),
+                            sp => sp.LessonId,
+                            l => l.Id,
+                            (sp, _) => sp.Id)
+                        .Count()
                 })
                 .ToListAsync(cancellationToken);
 
@@ -103,7 +115,9 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 if (enrollment != null)
                 {
                     course.EnrollmentStatus = enrollment.Status;
-                    course.Progress = enrollment.CourseProgress;
+                    course.Progress = enrollment.TotalLessonsCount == 0
+                        ? 0
+                        : Math.Round(((double)enrollment.CompletedLessonsCount / enrollment.TotalLessonsCount) * 100, 2);
                 }
 
                 // Check if course is available (all prerequisites completed)
@@ -158,6 +172,7 @@ public class RoadmapCourseDto
     public string? Description { get; init; }
     public string? ThumbnailUrl { get; init; }
     public bool IsPublished { get; init; }
+    public bool HasQuiz { get; init; }
     public int Order { get; init; }
     
     public List<Guid> PrerequisiteIds { get; set; } = new();
