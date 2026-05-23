@@ -1,3 +1,4 @@
+using AskAMuslimBackend.Application.Common.Helpers;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Validators;
@@ -20,6 +21,7 @@ public record UpdateLessonCommand : IRequest<Result>
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
+    public TimeSpan? Duration { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; }
     public Language Language { get; init; } = Language.English;
@@ -29,11 +31,13 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
 {
     private readonly IApplicationDbContext _context;
     private readonly ILocalizationService _localizer;
+    private readonly IYouTubeService _youTubeService;
 
-    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
+    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer, IYouTubeService youTubeService)
     {
         _context = context;
         _localizer = localizer;
+        _youTubeService = youTubeService;
     }
 
     public async Task<Result> Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
@@ -53,6 +57,13 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
             entity.CourseId = request.CourseId;
         }
 
+        var duration = await LessonDurationResolver.ResolveAsync(
+            request.Type,
+            request.ContentUrl,
+            request.Duration,
+            _youTubeService,
+            cancellationToken);
+
         entity.Title = request.Title;
         entity.Description = request.Description;
         entity.ContentJson = request.ContentJson;
@@ -60,6 +71,7 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.ContentUrl = request.ContentUrl;
         entity.Transcript = request.Transcript;
         entity.ThumbnailUrl = request.ThumbnailUrl;
+        entity.Duration = duration;
         entity.Order = request.Order;
         entity.IsPublished = request.IsPublished;
         entity.Language = request.Language;

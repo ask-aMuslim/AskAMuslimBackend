@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.MuslimTube.Models;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace AskAMuslimBackend.Infrastructure.Services;
 
@@ -15,6 +16,31 @@ internal class YouTubeService : IYouTubeService
     {
         _httpClient = httpClient;
         _apiKey = configuration["YouTube:ApiKey"] ?? string.Empty;
+    }
+
+    public async Task<TimeSpan?> FetchVideoDurationAsync(string videoId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+            return null;
+
+        try
+        {
+            var url = $"https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id={videoId}&key={_apiKey}";
+            var doc = await GetJsonAsync(url, cancellationToken);
+            if (doc == null) return null;
+            if (!doc.RootElement.TryGetProperty("items", out var items)) return null;
+            var item = items.EnumerateArray().FirstOrDefault();
+            if (item.ValueKind == JsonValueKind.Undefined) return null;
+            if (!item.TryGetProperty("contentDetails", out var contentDetails)) return null;
+            if (!contentDetails.TryGetProperty("duration", out var durationEl)) return null;
+            var durationString = durationEl.GetString();
+            if (string.IsNullOrWhiteSpace(durationString)) return null;
+            return XmlConvert.ToTimeSpan(durationString);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<YouTubeChannelResult?> FetchChannelAsync(string channelInput, CancellationToken cancellationToken)
@@ -134,5 +160,33 @@ internal class YouTubeService : IYouTubeService
         var match = Regex.Match(trimmed, @"youtube\.com/(channel/)(UC[0-9A-Za-z_-]{22})", RegexOptions.IgnoreCase);
         if (match.Success) return match.Groups[2].Value;
         return null;
+    }
+
+    private static string? ExtractYouTubeVideoId(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        var shortMatch = Regex.Match(url, @"youtu\.be/([a-zA-Z0-9_-]{11})");
+        if (shortMatch.Success) return shortMatch.Groups[1].Value;
+        var normalMatch = Regex.Match(url, @"[?&]v=([a-zA-Z0-9_-]{11})");
+        if (normalMatch.Success) return normalMatch.Groups[1].Value;
+        var embedMatch = Regex.Match(url, @"youtube\.com/embed/([a-zA-Z0-9_-]{11})");
+        if (embedMatch.Success) return embedMatch.Groups[1].Value;
+        return null;
+    }
+
+    public Task<TimeSpan?> FetchAudioDurationAsync(string url, CancellationToken cancellationToken)
+    {
+        // If it's a YouTube link, delegate to video duration
+        var videoId = ExtractYouTubeVideoId(url);
+        if (!string.IsNullOrEmpty(videoId))
+        {
+            return FetchVideoDurationAsync(videoId, cancellationToken);
+        }
+
+        // For direct audio files (.mp3, .wav, .ogg, .m4a, .aac) 
+        // and other platforms (SoundCloud, Bandcamp, Spotify, etc.)
+        // We cannot reliably fetch duration without heavy dependencies.
+        // Admins should manually provide duration for these.
+        return Task.FromResult<TimeSpan?>(null);
     }
 }

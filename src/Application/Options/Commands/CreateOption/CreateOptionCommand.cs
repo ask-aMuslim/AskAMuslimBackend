@@ -10,6 +10,7 @@ public record CreateOptionCommand : IRequest<Result<Guid>>
     public Guid QuestionId { get; init; }
     public string Text { get; init; } = string.Empty;
     public bool IsCorrect { get; init; }
+    public string? Explanation { get; init; }
 }
 
 public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, Result<Guid>>
@@ -35,7 +36,8 @@ public class CreateOptionCommandHandler : IRequestHandler<CreateOptionCommand, R
         {
             QuestionId = request.QuestionId,
             Text = request.Text,
-            IsCorrect = request.IsCorrect
+            IsCorrect = request.IsCorrect,
+            Explanation = request.Explanation ?? string.Empty
         };
 
         _context.Options.Add(entity);
@@ -52,5 +54,8 @@ public class CreateOptionCommandValidator : AbstractValidator<CreateOptionComman
         RuleFor(x => x.Text)
             .NotEmpty().WithMessage("Text is required.")
             .MaximumLength(500).WithMessage("Text must not exceed 500 characters.");
+        RuleFor(x => x.Explanation)
+            .MaximumLength(1000).When(x => !string.IsNullOrWhiteSpace(x.Explanation))
+            .WithMessage("Explanation must not exceed 1000 characters.");
     }
 }

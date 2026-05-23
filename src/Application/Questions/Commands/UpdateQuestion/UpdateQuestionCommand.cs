@@ -10,6 +10,7 @@ public record UpdateQuestionCommand : IRequest<Result>
     [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
+    public int? Order { get; init; }
 }
 
 public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionCommand, Result>
@@ -29,6 +30,11 @@ public class UpdateQuestionCommandHandler : IRequestHandler<UpdateQuestionComman
         if (entity == null) return Result.Failure(new[] { _localizer["Questions.NotFound"] });
 
         entity.Text = request.Text;
+        if (request.Order.HasValue)
+        {
+            entity.Order = request.Order.Value;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

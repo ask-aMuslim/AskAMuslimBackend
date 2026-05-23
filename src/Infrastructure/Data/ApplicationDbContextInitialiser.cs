@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Data.Common;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.AspNetCore.Builder;
@@ -19,17 +20,24 @@ public static class InitialiserExtensions
 
         var initialiser = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitialiser>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContextInitialiser>>();
-        
-        logger.LogInformation("🚀 InitialiseDatabaseAsync called - starting database initialization...");
+
+        logger.LogInformation(
+            "InitialiseDatabaseAsync invoked for environment {EnvironmentName}.",
+            app.Environment.EnvironmentName);
         await initialiser.InitialiseAsync();
-        logger.LogInformation("✅ InitialiseAsync completed - calling SeedAsync...");
+        logger.LogInformation("Database migration step completed. Starting seed step.");
         await initialiser.SeedAsync();
-        logger.LogInformation("✅ Database initialization and seeding complete!");
+        logger.LogInformation("Database initialization and seeding completed successfully.");
     }
 }
 
 public class ApplicationDbContextInitialiser
 {
+    private const int DefaultDevelopmentCommandTimeoutSeconds = 60;
+    private const int DefaultProductionCommandTimeoutSeconds = 180;
+    private const int DefaultDevelopmentInitializationTimeoutSeconds = 120;
+    private const int DefaultProductionInitializationTimeoutSeconds = 300;
+
     private readonly ILogger<ApplicationDbContextInitialiser> _logger;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
@@ -55,47 +63,111 @@ public class ApplicationDbContextInitialiser
 
     public async Task InitialiseAsync()
     {
+        var previousCommandTimeout = _context.Database.GetCommandTimeout();
+        var commandTimeoutSeconds = GetCommandTimeoutSeconds();
+        var initializationTimeoutSeconds = GetInitializationTimeoutSeconds();
+        var connectionDiagnostics = GetConnectionDiagnostics();
+
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(initializationTimeoutSeconds));
+
         try
         {
-            // Check if database can be connected
-            var canConnect = await _context.Database.CanConnectAsync();
-            if (!canConnect)
+            _context.Database.SetCommandTimeout(commandTimeoutSeconds);
+
+            _logger.LogInformation(
+                "Checking EF migration history in environment {EnvironmentName}. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}. CommandTimeoutSeconds: {CommandTimeoutSeconds}. InitializationTimeoutSeconds: {InitializationTimeoutSeconds}.",
+                _env.EnvironmentName,
+                connectionDiagnostics.Provider,
+                connectionDiagnostics.DataSource,
+                connectionDiagnostics.Database,
+                commandTimeoutSeconds,
+                initializationTimeoutSeconds);
+
+            var appliedMigrations = (await _context.Database.GetAppliedMigrationsAsync(timeoutCts.Token)).ToArray();
+
+            var pendingMigrations = (await _context.Database.GetPendingMigrationsAsync(timeoutCts.Token)).ToArray();
+
+            _logger.LogInformation(
+                "EF migration history for database {Database}: {AppliedCount} applied migration(s), {PendingCount} pending migration(s). Latest applied migration: {LatestAppliedMigration}.",
+                connectionDiagnostics.Database,
+                appliedMigrations.Length,
+                pendingMigrations.Length,
+                appliedMigrations.LastOrDefault() ?? "<none>");
+
+            if (pendingMigrations.Length == 0)
             {
-                _logger.LogWarning("Cannot connect to database. Skipping initialization.");
+                _logger.LogInformation(
+                    "No pending database migrations were found for database {Database}.",
+                    connectionDiagnostics.Database);
                 return;
             }
 
-            var runMigrations = _configuration.GetValue("Database:RunMigrations", true);
-            if (!runMigrations)
-            {
-                _logger.LogInformation("Database migrations are disabled via Database:RunMigrations.");
-                return;
-            }
+            _logger.LogInformation(
+                "Applying {MigrationCount} pending migration(s) to database {Database}: {MigrationNames}",
+                pendingMigrations.Length,
+                connectionDiagnostics.Database,
+                string.Join(", ", pendingMigrations));
 
-            // Use migrations for all environments since we don't have CREATE DATABASE permissions
-            await _context.Database.MigrateAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(async () =>
+            {
+                await _context.Database.MigrateAsync(timeoutCts.Token);
+            });
+
+            _logger.LogInformation(
+                "Database migrations applied successfully to database {Database}.",
+                connectionDiagnostics.Database);
+        }
+        catch (OperationCanceledException ex) when (timeoutCts.IsCancellationRequested)
+        {
+            _logger.LogError(
+                ex,
+                "Database initialization timed out after {InitializationTimeoutSeconds} seconds in environment {EnvironmentName}. Verify connectivity, startup latency, and schema migration permissions for database {Database} on {DataSource}.",
+                initializationTimeoutSeconds,
+                _env.EnvironmentName,
+                connectionDiagnostics.Database,
+                connectionDiagnostics.DataSource);
+            throw;
+        }
+        catch (Exception ex) when (ex is DbException or TimeoutException or InvalidOperationException)
+        {
+            _logger.LogError(
+                ex,
+                "Database initialization failed in environment {EnvironmentName}. Verify connection string 'AskAMuslimBackendDb', network access, and that the application identity can apply schema changes. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}.",
+                _env.EnvironmentName,
+                connectionDiagnostics.Provider,
+                connectionDiagnostics.DataSource,
+                connectionDiagnostics.Database);
+            throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while initialising the database.");
+            _logger.LogError(
+                ex,
+                "An unexpected error occurred while initialising the database in environment {EnvironmentName}.",
+                _env.EnvironmentName);
             throw;
+        }
+        finally
+        {
+            _context.Database.SetCommandTimeout(previousCommandTimeout);
         }
     }
 
     public async Task SeedAsync()
     {
+        var previousCommandTimeout = _context.Database.GetCommandTimeout();
+        var commandTimeoutSeconds = GetCommandTimeoutSeconds();
+
         _logger.LogInformation("========== DATABASE SEEDING STARTED ==========");
         try
         {
-            // Check if database can be connected before seeding
-            var canConnect = await _context.Database.CanConnectAsync();
-            if (!canConnect)
-            {
-                _logger.LogError("❌ SEEDING FAILED: Cannot connect to database. Skipping seeding.");
-                return;
-            }
+            _context.Database.SetCommandTimeout(commandTimeoutSeconds);
 
-            _logger.LogInformation("✅ Database connection successful. Starting seeding process...");
+            _logger.LogInformation(
+                "Starting seeding process in environment {EnvironmentName} with command timeout {CommandTimeoutSeconds} seconds.",
+                _env.EnvironmentName,
+                commandTimeoutSeconds);
             await TrySeedAsync();
             _logger.LogInformation("========== DATABASE SEEDING COMPLETED ==========");
         }
@@ -103,8 +175,15 @@ public class ApplicationDbContextInitialiser
         {
             _logger.LogError(ex, "❌ SEEDING FAILED: An error occurred during seeding. Details: {Message}", ex.Message);
             _logger.LogError("Stack trace: {StackTrace}", ex.StackTrace);
-            // Do not rethrow here to avoid failing build tooling (e.g., NSwag) which executes the app during generation.
-            // In a normal run, seeding issues should be investigated and resolved.
+
+            if (!IsRunningUnderNSwag())
+            {
+                throw;
+            }
+        }
+        finally
+        {
+            _context.Database.SetCommandTimeout(previousCommandTimeout);
         }
     }
 
@@ -158,39 +237,39 @@ public class ApplicationDbContextInitialiser
 
             var newUsers = new List<User>();
             var updatedUsers = new List<User>();
-            
+
             foreach (var (email, password, firstName, lastName, userRole, religousStatus) in userSeeds)
             {
                 var existingUser = await _userManager.FindByEmailAsync(email);
-                
+
                 if (existingUser != null)
                 {
                     _logger.LogInformation("User {Email} already exists, updating credentials and info from appsettings...", email);
-                    
+
                     // Update user information to match appsettings
                     var needsUpdate = false;
-                    
+
                     if (existingUser.FirstName != firstName)
                     {
                         _logger.LogInformation("Updating FirstName from '{OldName}' to '{NewName}'", existingUser.FirstName, firstName);
                         existingUser.FirstName = firstName;
                         needsUpdate = true;
                     }
-                    
+
                     if (existingUser.LastName != lastName)
                     {
                         _logger.LogInformation("Updating LastName from '{OldName}' to '{NewName}'", existingUser.LastName, lastName);
                         existingUser.LastName = lastName;
                         needsUpdate = true;
                     }
-                    
+
                     if (existingUser.Role != userRole)
                     {
                         _logger.LogInformation("Updating Role from '{OldRole}' to '{NewRole}'", existingUser.Role, userRole);
                         existingUser.Role = userRole;
                         needsUpdate = true;
                     }
-                    
+
                     if (needsUpdate)
                     {
                         var updateResult = await _userManager.UpdateAsync(existingUser);
@@ -203,12 +282,12 @@ public class ApplicationDbContextInitialiser
                             _logger.LogError("❌ Failed to update user {Email}: {Errors}", email, string.Join(", ", updateResult.Errors.Select(e => e.Description)));
                         }
                     }
-                    
+
                     // Update password if it has changed
                     _logger.LogInformation("Updating password for {Email} to match appsettings...", email);
                     var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
                     var passwordResult = await _userManager.ResetPasswordAsync(existingUser, token, password);
-                    
+
                     if (passwordResult.Succeeded)
                     {
                         _logger.LogInformation("✅ Password updated successfully for: {Email}", email);
@@ -217,7 +296,7 @@ public class ApplicationDbContextInitialiser
                     {
                         _logger.LogWarning("⚠️ Failed to update password for {Email}: {Errors}", email, string.Join(", ", passwordResult.Errors.Select(e => e.Description)));
                     }
-                    
+
                     updatedUsers.Add(existingUser);
                     continue;
                 }
@@ -271,7 +350,7 @@ public class ApplicationDbContextInitialiser
                 {
                     var user = newUsers[i];
                     var isSuperAdmin = i == 0 && user.Role == UserRole.Admin;
-                    
+
                     if (isSuperAdmin)
                     {
                         _logger.LogInformation("🔑 Granting all permissions to SuperAdmin: {Email}", user.Email);
@@ -294,7 +373,7 @@ public class ApplicationDbContextInitialiser
                             userPermission.GrantedDate = DateTime.UtcNow;
                             userPermission.Notes = "SuperAdmin - granted all permissions on initialization";
                         }
-                        
+
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("✅ SuperAdmin permissions granted successfully");
                     }
@@ -309,17 +388,17 @@ public class ApplicationDbContextInitialiser
             if (updatedUsers.Count > 0)
             {
                 _logger.LogInformation("🔧 Ensuring role-specific entities and permissions for {Count} updated users...", updatedUsers.Count);
-                
+
                 for (int i = 0; i < updatedUsers.Count; i++)
                 {
                     var user = updatedUsers[i];
                     // First user (admin from AdminSeed) should be super admin
                     var isSuperAdmin = i == 0 && user.Role == UserRole.Admin;
-                    
+
                     if (user.Role == UserRole.Admin)
                     {
                         var admin = await _context.Admins.FirstOrDefaultAsync(a => a.UserId == user.Id);
-                        
+
                         if (admin == null)
                         {
                             _logger.LogInformation("Creating Admin entity for existing user {Email} (IsSuperAdmin: {IsSuperAdmin})", user.Email, isSuperAdmin);
@@ -338,7 +417,7 @@ public class ApplicationDbContextInitialiser
                             admin.IsSuperAdmin = isSuperAdmin;
                             await _context.SaveChangesAsync();
                         }
-                        
+
                         // Ensure SuperAdmin has all permissions
                         if (isSuperAdmin)
                         {
@@ -362,7 +441,7 @@ public class ApplicationDbContextInitialiser
                                 userPermission.GrantedDate = DateTime.UtcNow;
                                 userPermission.Notes = "SuperAdmin - updated to all permissions on credentials update";
                             }
-                            
+
                             await _context.SaveChangesAsync();
                             _logger.LogInformation("✅ SuperAdmin permissions ensured successfully");
                         }
@@ -416,15 +495,15 @@ public class ApplicationDbContextInitialiser
             {
                 (
                     UserRole.Admin,
-                    Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins | 
-                    Permission.CreateAdmin | Permission.EditAdmin | Permission.DeleteAdmin | 
+                    Permission.ViewDashboard | Permission.ViewAnalytics | Permission.ViewAdmins |
+                    Permission.CreateAdmin | Permission.EditAdmin | Permission.DeleteAdmin |
                     Permission.ManageAdminRoles | Permission.FullStudentAccess | Permission.FullAcademyAccess |
                     Permission.FullQAAccess | Permission.FullMuslimTubeAccess | Permission.ViewNotifications |
                     Permission.SendBulkNotifications | Permission.CreateNotificationTemplate |
                     Permission.ViewMeetingRequests | Permission.ManageMeetingRequests |
                     Permission.ViewInquiryRequests | Permission.ManageInquiryRequests |
-                    Permission.FullEventAccess | Permission.ViewTags | Permission.CreateTag | 
-                    Permission.EditTag | Permission.DeleteTag | Permission.ViewSettings | 
+                    Permission.FullEventAccess | Permission.ViewTags | Permission.CreateTag |
+                    Permission.EditTag | Permission.DeleteTag | Permission.ViewSettings |
                     Permission.ViewReports | Permission.ManageRolesAndPermissions |
                     Permission.ViewFinancialData | Permission.ManageSystemBackup | Permission.ViewAuditLogs,
                     "Default permissions for Administrator role"
@@ -819,5 +898,50 @@ public class ApplicationDbContextInitialiser
             UserRole.NonMuslim => Domain.Constants.Roles.NonMuslim,
             _ => role.ToString()
         };
+    }
+
+    private int GetCommandTimeoutSeconds()
+    {
+        var defaultTimeout = _env.IsProduction()
+            ? DefaultProductionCommandTimeoutSeconds
+            : DefaultDevelopmentCommandTimeoutSeconds;
+
+        return Math.Max(
+            30,
+            _configuration.GetValue<int?>("DatabaseInitialization:CommandTimeoutSeconds") ?? defaultTimeout);
+    }
+
+    private int GetInitializationTimeoutSeconds()
+    {
+        var defaultTimeout = _env.IsProduction()
+            ? DefaultProductionInitializationTimeoutSeconds
+            : DefaultDevelopmentInitializationTimeoutSeconds;
+
+        return Math.Max(
+            60,
+            _configuration.GetValue<int?>("DatabaseInitialization:InitializationTimeoutSeconds") ?? defaultTimeout);
+    }
+
+    private (string Provider, string DataSource, string Database) GetConnectionDiagnostics()
+    {
+        var connection = _context.Database.GetDbConnection();
+
+        return (
+            Provider: _context.Database.ProviderName ?? "Unknown",
+            DataSource: string.IsNullOrWhiteSpace(connection.DataSource) ? "Unknown" : connection.DataSource,
+            Database: string.IsNullOrWhiteSpace(connection.Database) ? "Unknown" : connection.Database);
+    }
+
+    private static bool IsRunningUnderNSwag()
+    {
+        try
+        {
+            var args = Environment.GetCommandLineArgs();
+            return args.Any(a => a.Contains("dotnet-nswag", StringComparison.OrdinalIgnoreCase) || a.Contains("nswag", StringComparison.OrdinalIgnoreCase));
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

@@ -7,5 +7,6 @@ public class QuestionBriefDto
 {
     public Guid Id { get; init; }
     public string Text { get; init; } = string.Empty;
+    public int Order { get; init; }
     public int OptionsCount { get; init; }
 }

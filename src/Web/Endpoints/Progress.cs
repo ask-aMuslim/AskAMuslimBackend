@@ -13,7 +13,7 @@ public class Progress : EndpointGroupBase
         groupBuilder.MapPost(CompleteLesson, "lesson/complete")
             .RequireAuthorization()
             .WithName("CompleteLesson")
-            .WithSummary("Marks a lesson as complete for the current student");
+            .WithSummary("Marks a lesson as complete for the current student, including video, audio, text, or document lessons");
 
         groupBuilder.MapGet(GetCourseProgress, "course/{courseId}")
             .RequireAuthorization()

@@ -12,21 +12,43 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Initialize database in all environments (except during NSwag generation)
+// Initialize database in all environments (except during NSwag generation).
+if (!IsRunningUnderNSwag())
+{
+    app.Logger.LogInformation(
+        "Starting automatic database initialization for environment {EnvironmentName}.",
+        app.Environment.EnvironmentName);
 
-await app.InitialiseDatabaseAsync();
+    try
+    {
+        await app.InitialiseDatabaseAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(
+            ex,
+            "Automatic database initialization failed during startup in environment {EnvironmentName}. Verify the connection string 'AskAMuslimBackendDb', network access, and database migration permissions.",
+            app.Environment.EnvironmentName);
+        throw;
+    }
+}
+else
+{
+    app.Logger.LogInformation("Skipping automatic database initialization because the application is running under NSwag.");
+}
 
 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 app.UseHsts();
 
 app.UseHealthChecks("/health");
 app.UseHttpsRedirection();
+// Enable CORS early so static files, swagger and other middleware honor it
+app.UseCors();
+
 app.UseStaticFiles();
 
 // Serve uploaded files from configured upload path (maps to /uploads)
 app.UseUploadStaticFiles();
-
-app.UseCors();
 
 // Request localization – resolves culture from Accept-Language header
 var supportedCultures = new[] { "en", "ar", "fr", "es", "de", "pt" };
@@ -48,11 +70,14 @@ app.UseAuthentication();
 app.UseJwtBlacklist(); // Must be after UseAuthentication() and before UseAuthorization()
 app.UseAuthorization();
 
-// Add Hangfire Dashboard (admin-only access)
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
+// Add Hangfire Dashboard (admin-only access), but skip it during NSwag generation.
+if (!IsRunningUnderNSwag())
 {
-    Authorization = new[] { new HangfireAuthorizationFilter() }
-});
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new HangfireAuthorizationFilter() }
+    });
+}
 
 app.UseExceptionHandler(options => { });
 

@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.QuizAttempts.Commands.CompleteQuizAttempt;
 using AskAMuslimBackend.Application.QuizAttempts.Commands.CreateQuizAttempt;
 using AskAMuslimBackend.Application.QuizAttempts.Queries;
+using AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptById;
 using AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptsByQuiz;
 using AskAMuslimBackend.Application.QuizAttempts.Queries.GetQuizAttemptsByStudent;
 using AskAMuslimBackend.Web.Infrastructure;
@@ -17,6 +18,10 @@ public class QuizAttempts : EndpointGroupBase
             .RequireAuthorization()
             .WithName("GetQuizAttemptsByStudent")
             .WithSummary("Get quiz attempts for a student (own attempts or admin)");
+        groupBuilder.MapGet(GetById, "{id}")
+            .RequireAuthorization()
+            .WithName("GetQuizAttemptById")
+            .WithSummary("Get a quiz attempt with questions, answers, and corrections");
         groupBuilder.MapPost(StartAttempt)
             .RequireAuthorization()
             .WithName("StartQuizAttempt")
@@ -36,6 +41,12 @@ public class QuizAttempts : EndpointGroupBase
     public async Task<IResult> GetForStudent(ISender sender, Guid studentId)
     {
         var result = await sender.Send(new GetQuizAttemptsByStudentQuery(studentId));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetById(ISender sender, Guid id)
+    {
+        var result = await sender.Send(new GetQuizAttemptByIdQuery(id));
         return result.ToHttpResult();
     }
 

@@ -9,6 +9,7 @@ public record CreateQuestionCommand : IRequest<Result<Guid>>
 {
     public Guid QuizId { get; init; }
     public string Text { get; init; } = string.Empty;
+    public int? Order { get; init; }
 }
 
 public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionCommand, Result<Guid>>
@@ -28,10 +29,23 @@ public class CreateQuestionCommandHandler : IRequestHandler<CreateQuestionComman
             return Result<Guid>.Failure(new[] { "Quiz does not exist." });
         }
 
+        // Auto-assign Order if omitted
+        var order = request.Order ?? 0;
+        if (!request.Order.HasValue)
+        {
+            var maxOrder = await _context.Questions
+                .Where(q => q.QuizId == request.QuizId)
+                .Select(q => (int?)q.Order)
+                .OrderByDescending(o => o)
+                .FirstOrDefaultAsync(cancellationToken);
+            order = (maxOrder ?? 0) + 1;
+        }
+
         var entity = new Question
         {
             QuizId = request.QuizId,
-            Text = request.Text
+            Text = request.Text,
+            Order = order
         };
 
         _context.Questions.Add(entity);

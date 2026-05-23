@@ -1,3 +1,4 @@
+using AskAMuslimBackend.Application.Common.Helpers;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Common.Validators;
@@ -19,6 +20,7 @@ public record CreateLessonCommand : IRequest<Result<Guid>>
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
     public int Order { get; init; }
+    public TimeSpan? Duration { get; init; }
     public bool IsPublished { get; init; } = false;
     public Language Language { get; init; } = Language.English;
 }
@@ -27,11 +29,13 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
 {
     private readonly IApplicationDbContext _context;
     private readonly ILocalizationService _localizer;
+    private readonly IYouTubeService _youTubeService;
 
-    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
+    public CreateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer, IYouTubeService youTubeService)
     {
         _context = context;
         _localizer = localizer;
+        _youTubeService = youTubeService;
     }
 
     public async Task<Result<Guid>> Handle(CreateLessonCommand request, CancellationToken cancellationToken)
@@ -42,6 +46,13 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
         {
             return Result<Guid>.Failure(new[] { _localizer["Courses.DoesNotExist"] });
         }
+
+        var duration = await LessonDurationResolver.ResolveAsync(
+            request.Type,
+            request.ContentUrl,
+            request.Duration,
+            _youTubeService,
+            cancellationToken);
 
         var lesson = new Lesson
         {
@@ -54,6 +65,7 @@ public class CreateLessonCommandHandler : IRequestHandler<CreateLessonCommand, R
             Transcript = request.Transcript,
             ThumbnailUrl = request.ThumbnailUrl,
             Order = request.Order,
+            Duration = duration,
             IsPublished = request.IsPublished,
             Language = request.Language
         };
