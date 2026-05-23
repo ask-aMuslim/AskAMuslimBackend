@@ -840,7 +840,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("character varying(2000)");
 
                     b.Property<TimeSpan?>("Duration")
-                        .HasColumnType("interval");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("interval")
+                        .HasDefaultValue(new TimeSpan(0, 0, 5, 0, 0));
 
                     b.Property<bool>("HasQuiz")
                         .HasColumnType("boolean");
