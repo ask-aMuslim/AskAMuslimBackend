@@ -75,7 +75,7 @@ public class ApplicationDbContextInitialiser
             _context.Database.SetCommandTimeout(commandTimeoutSeconds);
 
             _logger.LogInformation(
-                "Checking pending migrations in environment {EnvironmentName}. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}. CommandTimeoutSeconds: {CommandTimeoutSeconds}. InitializationTimeoutSeconds: {InitializationTimeoutSeconds}.",
+                "Checking EF migration history in environment {EnvironmentName}. Provider: {Provider}. DataSource: {DataSource}. Database: {Database}. CommandTimeoutSeconds: {CommandTimeoutSeconds}. InitializationTimeoutSeconds: {InitializationTimeoutSeconds}.",
                 _env.EnvironmentName,
                 connectionDiagnostics.Provider,
                 connectionDiagnostics.DataSource,
@@ -83,7 +83,16 @@ public class ApplicationDbContextInitialiser
                 commandTimeoutSeconds,
                 initializationTimeoutSeconds);
 
+            var appliedMigrations = (await _context.Database.GetAppliedMigrationsAsync(timeoutCts.Token)).ToArray();
+
             var pendingMigrations = (await _context.Database.GetPendingMigrationsAsync(timeoutCts.Token)).ToArray();
+
+            _logger.LogInformation(
+                "EF migration history for database {Database}: {AppliedCount} applied migration(s), {PendingCount} pending migration(s). Latest applied migration: {LatestAppliedMigration}.",
+                connectionDiagnostics.Database,
+                appliedMigrations.Length,
+                pendingMigrations.Length,
+                appliedMigrations.LastOrDefault() ?? "<none>");
 
             if (pendingMigrations.Length == 0)
             {
