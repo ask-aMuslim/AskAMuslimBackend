@@ -32,10 +32,12 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
         }
 
         var paginatedList = await query
-            .OrderBy(q => q.Text)
+            .OrderBy(q => q.Order)
+            .ThenBy(q => q.Text)
             .Select(s => new QuestionBriefDto {
             Id = s.Id,
             Text = s.Text,
+            Order = s.Order,
             OptionsCount = s.Options.Count
     })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);

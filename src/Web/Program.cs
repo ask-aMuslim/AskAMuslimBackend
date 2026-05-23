@@ -12,22 +12,29 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// Initialize database in all environments.
-app.Logger.LogInformation(
-    "Starting automatic database initialization for environment {EnvironmentName}.",
-    app.Environment.EnvironmentName);
-
-try
+// Initialize database in all environments (except during NSwag generation).
+if (!IsRunningUnderNSwag())
 {
-    await app.InitialiseDatabaseAsync();
-}
-catch (Exception ex)
-{
-    app.Logger.LogCritical(
-        ex,
-        "Automatic database initialization failed during startup in environment {EnvironmentName}. Verify the connection string 'AskAMuslimBackendDb', network access, and database migration permissions.",
+    app.Logger.LogInformation(
+        "Starting automatic database initialization for environment {EnvironmentName}.",
         app.Environment.EnvironmentName);
-    throw;
+
+    try
+    {
+        await app.InitialiseDatabaseAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(
+            ex,
+            "Automatic database initialization failed during startup in environment {EnvironmentName}. Verify the connection string 'AskAMuslimBackendDb', network access, and database migration permissions.",
+            app.Environment.EnvironmentName);
+        throw;
+    }
+}
+else
+{
+    app.Logger.LogInformation("Skipping automatic database initialization because the application is running under NSwag.");
 }
 
 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

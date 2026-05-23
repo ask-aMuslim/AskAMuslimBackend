@@ -16,6 +16,9 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
             .IsRequired()
             .HasMaxLength(500);
 
+        builder.Property(o => o.Explanation)
+            .HasMaxLength(1000);
+
         builder.HasOne(o => o.Question)
             .WithMany(q => q.Options)
             .HasForeignKey(o => o.QuestionId)

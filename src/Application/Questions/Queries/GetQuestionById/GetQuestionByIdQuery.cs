@@ -22,6 +22,7 @@ public class GetQuestionByIdQueryHandler : IRequestHandler<GetQuestionByIdQuery,
             .Select(s => new QuestionBriefDto {
             Id = s.Id,
             Text = s.Text,
+            Order = s.Order,
             OptionsCount = s.Options.Count
     })
             .FirstOrDefaultAsync(cancellationToken);

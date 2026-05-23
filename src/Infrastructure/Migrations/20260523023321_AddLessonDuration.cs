@@ -11,11 +11,10 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<TimeSpan>(
-                name: "Duration",
-                table: "Lessons",
-                type: "interval",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""Lessons""
+                ADD COLUMN IF NOT EXISTS ""Duration"" interval;
+            ");
         }
 
         /// <inheritdoc />
