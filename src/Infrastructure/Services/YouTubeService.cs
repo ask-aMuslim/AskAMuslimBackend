@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.MuslimTube.Models;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace AskAMuslimBackend.Infrastructure.Services;
 
@@ -15,6 +16,31 @@ internal class YouTubeService : IYouTubeService
     {
         _httpClient = httpClient;
         _apiKey = configuration["YouTube:ApiKey"] ?? string.Empty;
+    }
+
+    public async Task<TimeSpan?> FetchVideoDurationAsync(string videoId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_apiKey))
+            return null;
+
+        try
+        {
+            var url = $"https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id={videoId}&key={_apiKey}";
+            var doc = await GetJsonAsync(url, cancellationToken);
+            if (doc == null) return null;
+            if (!doc.RootElement.TryGetProperty("items", out var items)) return null;
+            var item = items.EnumerateArray().FirstOrDefault();
+            if (item.ValueKind == JsonValueKind.Undefined) return null;
+            if (!item.TryGetProperty("contentDetails", out var contentDetails)) return null;
+            if (!contentDetails.TryGetProperty("duration", out var durationEl)) return null;
+            var durationString = durationEl.GetString();
+            if (string.IsNullOrWhiteSpace(durationString)) return null;
+            return XmlConvert.ToTimeSpan(durationString);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<YouTubeChannelResult?> FetchChannelAsync(string channelInput, CancellationToken cancellationToken)

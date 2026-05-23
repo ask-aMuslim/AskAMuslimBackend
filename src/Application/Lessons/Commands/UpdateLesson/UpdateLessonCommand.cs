@@ -20,6 +20,7 @@ public record UpdateLessonCommand : IRequest<Result>
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
     public string? ThumbnailUrl { get; init; }
+    public TimeSpan? Duration { get; init; }
     public int Order { get; init; }
     public bool IsPublished { get; init; }
     public Language Language { get; init; } = Language.English;
@@ -29,11 +30,13 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
 {
     private readonly IApplicationDbContext _context;
     private readonly ILocalizationService _localizer;
+    private readonly IYouTubeService _youTubeService;
 
-    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer)
+    public UpdateLessonCommandHandler(IApplicationDbContext context, ILocalizationService localizer, IYouTubeService youTubeService)
     {
         _context = context;
         _localizer = localizer;
+        _youTubeService = youTubeService;
     }
 
     public async Task<Result> Handle(UpdateLessonCommand request, CancellationToken cancellationToken)
@@ -53,6 +56,16 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
             entity.CourseId = request.CourseId;
         }
 
+        var duration = request.Duration;
+        if (request.Type == LessonType.Video && !string.IsNullOrWhiteSpace(request.ContentUrl))
+        {
+            var videoId = ExtractYouTubeVideoId(request.ContentUrl);
+            if (!string.IsNullOrEmpty(videoId))
+            {
+                duration = await _youTubeService.FetchVideoDurationAsync(videoId, cancellationToken);
+            }
+        }
+
         entity.Title = request.Title;
         entity.Description = request.Description;
         entity.ContentJson = request.ContentJson;
@@ -60,12 +73,25 @@ public class UpdateLessonCommandHandler : IRequestHandler<UpdateLessonCommand, R
         entity.ContentUrl = request.ContentUrl;
         entity.Transcript = request.Transcript;
         entity.ThumbnailUrl = request.ThumbnailUrl;
+        entity.Duration = duration;
         entity.Order = request.Order;
         entity.IsPublished = request.IsPublished;
         entity.Language = request.Language;
 
         await _context.SaveChangesAsync(cancellationToken);
         return Result.Success();
+    }
+
+    private static string? ExtractYouTubeVideoId(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return null;
+        var shortMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtu\.be/([a-zA-Z0-9_-]{11})");
+        if (shortMatch.Success) return shortMatch.Groups[1].Value;
+        var normalMatch = System.Text.RegularExpressions.Regex.Match(url, @"[?&]v=([a-zA-Z0-9_-]{11})");
+        if (normalMatch.Success) return normalMatch.Groups[1].Value;
+        var embedMatch = System.Text.RegularExpressions.Regex.Match(url, @"youtube\.com/embed/([a-zA-Z0-9_-]{11})");
+        if (embedMatch.Success) return embedMatch.Groups[1].Value;
+        return null;
     }
 }
 

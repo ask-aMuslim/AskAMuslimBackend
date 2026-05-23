@@ -839,6 +839,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("interval");
+
                     b.Property<bool>("HasQuiz")
                         .HasColumnType("boolean");
 

@@ -60,23 +60,29 @@ public class GetLessonsWithPaginationQueryHandler : IRequestHandler<GetLessonsWi
         }
 
         var paginatedList = await query
+            .Include(l => l.Course)
+                .ThenInclude(c => c!.Level)
             .OrderBy(l => l.CourseId)
             .ThenBy(l => l.Order)
             .ThenBy(l => l.Title)
-            .Select(s => new LessonBriefDto {
-            Id = s.Id,
-            CourseId = s.CourseId,
-            Title = s.Title,
-            Description = s.Description,
-            ContentJson = s.ContentJson,
-            Type = s.Type,
-            Order = s.Order,
-            ThumbnailUrl = s.ThumbnailUrl,
-            ContentUrl = s.ContentUrl,
-            Transcript = s.Transcript,
-            IsPublished = s.IsPublished,
-            Language = s.Language
-    })
+            .Select(s => new LessonBriefDto
+            {
+                Id = s.Id,
+                CourseId = s.CourseId,
+                Title = s.Title,
+                Description = s.Description,
+                ContentJson = s.ContentJson,
+                Type = s.Type,
+                Order = s.Order,
+                ThumbnailUrl = s.ThumbnailUrl,
+                ContentUrl = s.ContentUrl,
+                Transcript = s.Transcript,
+                IsPublished = s.IsPublished,
+                HasQuiz = s.HasQuiz,
+                Duration = s.Duration,
+                LevelName = s.Course!.Level != null ? s.Course.Level.Title : null,
+                Language = s.Language
+            })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
         
         return Result<PaginatedList<LessonBriefDto>>.Success(paginatedList);
