@@ -488,3 +488,6 @@ appsettings.*.json
 /src/Web/emailService.json
 /src/Web/emailService.json
 *csproj.lscache
+
+# JetBrains Rider config
+.idea/
