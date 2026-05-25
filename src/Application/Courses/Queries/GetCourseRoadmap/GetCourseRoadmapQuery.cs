@@ -62,12 +62,15 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
             .Select(g => new { CourseId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
 
-        var lessonDurationTicks = await _context.Lessons
+        var lessonDurations = await _context.Lessons
             .AsNoTracking()
             .Where(l => courseIds.Contains(l.CourseId) && l.IsPublished && l.Duration.HasValue)
+            .Select(l => new { l.CourseId, l.Duration })
+            .ToListAsync(cancellationToken);
+
+        var lessonDurationTicks = lessonDurations
             .GroupBy(l => l.CourseId)
-            .Select(g => new { CourseId = g.Key, TotalTicks = g.Sum(l => l.Duration!.Value.Ticks) })
-            .ToDictionaryAsync(x => x.CourseId, x => x.TotalTicks, cancellationToken);
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.Duration!.Value.Ticks));
 
         foreach (var course in courses)
         {
@@ -116,25 +119,34 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
             var allPrerequisiteIds = prerequisites.Select(p => p.PrerequisiteCourseId).Distinct().ToList();
             var allRelevantCourseIds = courseIds.Union(allPrerequisiteIds).ToList();
 
+            // Pre-load total lesson counts for all relevant courses in a single query
+            var totalLessonsCounts = await _context.Lessons
+                .AsNoTracking()
+                .Where(l => allRelevantCourseIds.Contains(l.CourseId) && l.IsPublished)
+                .GroupBy(l => l.CourseId)
+                .Select(g => new { CourseId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
+            // Pre-load completed lesson counts for the student in a single query
+            var completedLessonsCounts = await _context.StudentProgresses
+                .AsNoTracking()
+                .Where(sp => sp.StudentId == studentId.Value && sp.IsCompleted)
+                .Join(
+                    _context.Lessons.AsNoTracking().Where(l => allRelevantCourseIds.Contains(l.CourseId) && l.IsPublished),
+                    sp => sp.LessonId,
+                    l => l.Id,
+                    (sp, l) => new { l.CourseId })
+                .GroupBy(x => x.CourseId)
+                .Select(g => new { CourseId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
             var enrollments = await _context.Enrollments
-                .Where(e => e.StudentId == studentId.Value && 
+                .Where(e => e.StudentId == studentId.Value &&
                            allRelevantCourseIds.Contains(e.CourseId))
                 .Select(e => new
                 {
                     e.CourseId,
-                    e.Status,
-                    TotalLessonsCount = _context.Lessons
-                        .AsNoTracking()
-                        .Count(l => l.CourseId == e.CourseId && l.IsPublished),
-                    CompletedLessonsCount = _context.StudentProgresses
-                        .AsNoTracking()
-                        .Where(sp => sp.StudentId == studentId.Value && sp.CourseId == e.CourseId && sp.IsCompleted)
-                        .Join(
-                            _context.Lessons.AsNoTracking().Where(l => l.CourseId == e.CourseId && l.IsPublished),
-                            sp => sp.LessonId,
-                            l => l.Id,
-                            (sp, _) => sp.Id)
-                        .Count()
+                    e.Status
                 })
                 .ToListAsync(cancellationToken);
 
@@ -144,9 +156,11 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 if (enrollment != null)
                 {
                     course.EnrollmentStatus = enrollment.Status;
-                    course.Progress = enrollment.TotalLessonsCount == 0
+                    var totalLessons = totalLessonsCounts.TryGetValue(course.Id, out var tlc) ? tlc : 0;
+                    var completedLessons = completedLessonsCounts.TryGetValue(course.Id, out var clc) ? clc : 0;
+                    course.Progress = totalLessons == 0
                         ? 0
-                        : Math.Round(((double)enrollment.CompletedLessonsCount / enrollment.TotalLessonsCount) * 100, 2);
+                        : Math.Round(((double)completedLessons / totalLessons) * 100, 2);
                 }
 
                 // Check if course is available (all prerequisites completed)
