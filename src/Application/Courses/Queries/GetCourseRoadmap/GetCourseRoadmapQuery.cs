@@ -39,8 +39,8 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
             coursesQuery = coursesQuery.Where(c => c.IsPublished == request.IsPublished.Value);
         }
 
-        var courseData = await coursesQuery
-            .Select(c => new
+        var courses = await coursesQuery
+            .Select(c => new RoadmapCourseDto
             {
                 Id = c.Id,
                 Title = c.Title,
@@ -48,30 +48,34 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 ThumbnailUrl = c.ThumbnailUrl,
                 IsPublished = c.IsPublished,
                 HasQuiz = c.HasQuiz,
-                Order = c.Order,
-                CountOfLessons = c.Lessons.Count(l => l.IsPublished),
-                CourseDurationTicks = c.Lessons
-                    .Where(l => l.IsPublished && l.Duration.HasValue)
-                    .Select(l => (long?)l.Duration!.Value.Ticks)
-                    .Sum() ?? 0L
+                Order = c.Order
             })
             .ToListAsync(cancellationToken);
 
-        var courses = courseData.Select(c => new RoadmapCourseDto
+        var courseIds = courses.Select(c => c.Id).ToList();
+
+        // Load lesson counts per course
+        var lessonCounts = await _context.Lessons
+            .AsNoTracking()
+            .Where(l => courseIds.Contains(l.CourseId) && l.IsPublished)
+            .GroupBy(l => l.CourseId)
+            .Select(g => new { CourseId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
+        var lessonDurationTicks = await _context.Lessons
+            .AsNoTracking()
+            .Where(l => courseIds.Contains(l.CourseId) && l.IsPublished && l.Duration.HasValue)
+            .GroupBy(l => l.CourseId)
+            .Select(g => new { CourseId = g.Key, TotalTicks = g.Sum(l => l.Duration!.Value.Ticks) })
+            .ToDictionaryAsync(x => x.CourseId, x => x.TotalTicks, cancellationToken);
+
+        foreach (var course in courses)
         {
-            Id = c.Id,
-            Title = c.Title,
-            Description = c.Description,
-            ThumbnailUrl = c.ThumbnailUrl,
-            IsPublished = c.IsPublished,
-            HasQuiz = c.HasQuiz,
-            Order = c.Order,
-            CountOfLessons = c.CountOfLessons,
-            CourseDuration = TimeSpan.FromTicks(c.CourseDurationTicks)
-        }).ToList();
+            course.CountOfLessons = lessonCounts.TryGetValue(course.Id, out var count) ? count : 0;
+            course.CourseDuration = TimeSpan.FromTicks(lessonDurationTicks.TryGetValue(course.Id, out var ticks) ? ticks : 0);
+        }
 
         // Get all prerequisites for courses in this level
-        var courseIds = courses.Select(c => c.Id).ToList();
         var prerequisites = await _context.CoursePrerequisites
             .Where(cp => courseIds.Contains(cp.CourseId))
             .Select(cp => new
@@ -199,8 +203,8 @@ public class RoadmapCourseDto
     public bool IsPublished { get; init; }
     public bool HasQuiz { get; init; }
     public int Order { get; init; }
-    public int CountOfLessons { get; init; }
-    public TimeSpan CourseDuration { get; init; }
+    public int CountOfLessons { get; set; }
+    public TimeSpan CourseDuration { get; set; }
     
     public List<Guid> PrerequisiteIds { get; set; } = new();
     public bool IsAvailable { get; set; }
