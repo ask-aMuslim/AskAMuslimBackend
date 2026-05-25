@@ -1005,6 +1005,15 @@
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "isPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 2
           }
         ],
         "responses": {
@@ -1108,6 +1117,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "isPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -7664,7 +7682,7 @@
         }
       },
       "UserRole": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Admin",
@@ -7674,15 +7692,15 @@
           "NonMuslim"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
+          "Admin",
+          "Student",
+          "Instructor",
+          "Preacher",
+          "NonMuslim"
         ]
       },
       "ReligiousStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "NonMuslim",
@@ -7690,9 +7708,9 @@
           "RevertedMuslim"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "NonMuslim",
+          "BornMuslim",
+          "RevertedMuslim"
         ]
       },
       "RegisterCommand": {
@@ -7885,7 +7903,7 @@
         }
       },
       "Language": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "English",
@@ -7896,12 +7914,12 @@
           "Portuguese"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
+          "English",
+          "Arabic",
+          "French",
+          "Spanish",
+          "German",
+          "Portuguese"
         ]
       },
       "CreateCourseCommand": {
@@ -8018,7 +8036,7 @@
         }
       },
       "EnrollmentStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Active",
@@ -8027,10 +8045,10 @@
           "Paused"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Active",
+          "Completed",
+          "Cancelled",
+          "Paused"
         ]
       },
       "CreateEventRegistrationCommand": {
@@ -8066,7 +8084,7 @@
         }
       },
       "EventRegistrationStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8075,14 +8093,14 @@
           "Cancelled"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
         ]
       },
       "EventStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Upcoming",
@@ -8090,9 +8108,9 @@
           "Finished"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "Upcoming",
+          "Live",
+          "Finished"
         ]
       },
       "CreateEventCommand": {
@@ -8226,7 +8244,7 @@
         }
       },
       "FormFieldType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Text",
@@ -8241,16 +8259,16 @@
           "PhoneNumber"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9
+          "Text",
+          "TextArea",
+          "Email",
+          "Number",
+          "Date",
+          "Checkbox",
+          "Radio",
+          "Select",
+          "File",
+          "PhoneNumber"
         ]
       },
       "CreateFormFieldOptionCommand": {
@@ -8350,7 +8368,7 @@
         }
       },
       "MeetingInquiryRequestStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8360,15 +8378,15 @@
           "Completed"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
+          "Pending",
+          "Accepted",
+          "Rejected",
+          "Cancelled",
+          "Completed"
         ]
       },
       "MeetingInquiryTopic": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "GeneralInquiry",
@@ -8381,14 +8399,14 @@
           "Theology"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          "GeneralInquiry",
+          "Quran",
+          "Hadith",
+          "ComparativeReligion",
+          "ConversionGuidance",
+          "IslamicHistory",
+          "Fiqh",
+          "Theology"
         ]
       },
       "CreateInquiryRequestCommand": {
@@ -8515,7 +8533,7 @@
         }
       },
       "LearnIslamKnowledgeLevel": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "None",
@@ -8524,10 +8542,10 @@
           "Advanced"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "None",
+          "Basic",
+          "Intermediate",
+          "Advanced"
         ]
       },
       "UpdateLearnIslamRequestStatusCommand": {
@@ -8544,7 +8562,7 @@
         }
       },
       "LearnIslamRequestStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8553,10 +8571,10 @@
           "Dismissed"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "Pending",
+          "Contacted",
+          "Completed",
+          "Dismissed"
         ]
       },
       "UpdateLearnIslamRequestLabelCommand": {
@@ -8592,7 +8610,7 @@
         }
       },
       "LessonType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Video",
@@ -8601,10 +8619,10 @@
           "Audio"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Video",
+          "Article",
+          "Document",
+          "Audio"
         ]
       },
       "CreateLessonCommand": {
@@ -8751,7 +8769,7 @@
         }
       },
       "LevelDifficulty": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Beginner",
@@ -8760,10 +8778,10 @@
           "Expert"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Beginner",
+          "Intermediate",
+          "Advanced",
+          "Expert"
         ]
       },
       "UpdateLevelCommand": {
@@ -9300,7 +9318,7 @@
         }
       },
       "Permission": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumFlags": true,
         "x-enumNames": [
@@ -9385,85 +9403,85 @@
           "AllPermissions"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          3,
-          4,
-          8,
-          16,
-          32,
-          64,
-          64,
-          128,
-          256,
-          512,
-          1024,
-          2048,
-          4096,
-          8192,
-          16384,
-          32768,
-          65536,
-          130688,
-          131072,
-          262144,
-          524288,
-          1048576,
-          2097152,
-          4194304,
-          8388608,
-          16777216,
-          33554432,
-          67108864,
-          134217728,
-          268435456,
-          536870912,
-          1073741824,
-          2147483648,
-          4294967296,
-          8589934592,
-          17179869184,
-          34359738368,
-          68719476736,
-          137417850880,
-          137438953472,
-          274877906944,
-          549755813888,
-          1099511627776,
-          2199023255552,
-          4260607557632,
-          4398046511104,
-          8796093022208,
-          17592186044416,
-          35184372088832,
-          70368744177664,
-          136339441844224,
-          140737488355328,
-          281474976710656,
-          562949953421312,
-          1125899906842624,
-          2251799813685248,
-          4503599627370496,
-          9007199254740992,
-          18014398509481984,
-          36028797018963968,
-          72057594037927936,
-          144115188075855872,
-          288230376151711744,
-          558446353793941504,
-          576460752303423488,
-          1152921504606846976,
-          2305843009213693952,
-          4611686018427387904,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775807,
-          -9223372036854775743,
-          -1
+          "None",
+          "ViewDashboard",
+          "ViewAnalytics",
+          "ViewFinancialData",
+          "ViewFinancialData",
+          "ViewAdmins",
+          "CreateAdmin",
+          "EditAdmin",
+          "DeleteAdmin",
+          "ManageRolesAndPermissions",
+          "ManageRolesAndPermissions",
+          "ViewAllStudents",
+          "ViewEnrolledStudents",
+          "EditStudent",
+          "DeleteStudent",
+          "ViewStudentProgress",
+          "ViewStudentQuestions",
+          "AnswerStudentQuestions",
+          "ManageAdminNotes",
+          "SendNotifications",
+          "SendDirectEmail",
+          "FullStudentAccess",
+          "ViewLevels",
+          "CreateLevel",
+          "EditLevel",
+          "DeleteLevel",
+          "ViewAllCourses",
+          "ViewOwnCourses",
+          "CreateCourse",
+          "EditOwnCourses",
+          "EditAllCourses",
+          "DeleteCourse",
+          "PublishCourse",
+          "ViewLessons",
+          "CreateLesson",
+          "EditLesson",
+          "DeleteLesson",
+          "ViewQuizzes",
+          "CreateQuiz",
+          "EditQuiz",
+          "DeleteQuiz",
+          "ViewQuizResults",
+          "FullAcademyAccess",
+          "ViewQA",
+          "CreateQA",
+          "EditQA",
+          "DeleteQA",
+          "ApproveQA",
+          "FullQAAccess",
+          "ViewMuslimTube",
+          "CreateVideo",
+          "EditVideo",
+          "DeleteVideo",
+          "ApproveVideo",
+          "FullMuslimTubeAccess",
+          "ViewNotifications",
+          "SendBulkNotifications",
+          "CreateNotificationTemplate",
+          "ViewMeetingRequests",
+          "ManageMeetingRequests",
+          "ViewInquiryRequests",
+          "ManageInquiryRequests",
+          "ViewEvents",
+          "CreateEvent",
+          "EditEvent",
+          "DeleteEvent",
+          "ManageEventRegistrations",
+          "FullEventAccess",
+          "ViewTags",
+          "CreateTag",
+          "EditTag",
+          "DeleteTag",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewForms",
+          "ManageForms",
+          "AllPermissions"
         ]
       },
       "UpdateRolePermissionsCommand": {
@@ -9740,7 +9758,7 @@
         }
       },
       "QuizTargetType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Level",
@@ -9748,9 +9766,9 @@
           "Lesson"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "Level",
+          "Course",
+          "Lesson"
         ]
       },
       "CreateQuizCommand": {
@@ -9816,7 +9834,7 @@
         }
       },
       "ReportStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -9825,14 +9843,14 @@
           "Dismissed"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Pending",
+          "UnderReview",
+          "Resolved",
+          "Dismissed"
         ]
       },
       "ReportType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "QA",
@@ -9845,18 +9863,18 @@
           "Other"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          99
+          "QA",
+          "Video",
+          "Question",
+          "Comment",
+          "User",
+          "Course",
+          "Event",
+          "Other"
         ]
       },
       "ReportReason": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "InappropriateContent",
@@ -9869,14 +9887,14 @@
           "Other"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          99
+          "InappropriateContent",
+          "Spam",
+          "Harassment",
+          "Misinformation",
+          "OffensiveLanguage",
+          "Copyright",
+          "Privacy",
+          "Other"
         ]
       },
       "CreateReportCommand": {
@@ -10170,7 +10188,7 @@
         }
       },
       "VolunteerType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Dawah",
@@ -10181,12 +10199,12 @@
           "VideoEditors"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
+          "Dawah",
+          "TeachingNewMuslims",
+          "Developers",
+          "Designers",
+          "Translators",
+          "VideoEditors"
         ]
       }
     },

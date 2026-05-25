@@ -1,4 +1,5 @@
 {
+  "Errors.BadRequest": "Requisição inválida",
   "Errors.ResourceNotFound": "O recurso especificado não foi encontrado.",
   "Errors.Unauthorized": "Não autorizado",
   "Errors.Forbidden": "Proibido",

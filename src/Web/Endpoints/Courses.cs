@@ -45,9 +45,9 @@ public class Courses : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetCourseById(ISender sender, Guid id)
+    public async Task<IResult> GetCourseById(ISender sender, Guid id, bool? isPublished = null)
     {
-        var result = await sender.Send(new GetCourseByIdQuery(id));
+        var result = await sender.Send(new GetCourseByIdQuery(id, isPublished));
         return result.ToHttpResult();
     }
 
@@ -69,9 +69,9 @@ public class Courses : EndpointGroupBase
         return result.ToHttpResult();
     }
 
-    public async Task<IResult> GetCourseRoadmap(ISender sender, Guid levelId, Guid? studentId = null)
+    public async Task<IResult> GetCourseRoadmap(ISender sender, Guid levelId, Guid? studentId = null, bool? isPublished = null)
     {
-        var result = await sender.Send(new GetCourseRoadmapQuery(levelId, studentId));
+        var result = await sender.Send(new GetCourseRoadmapQuery(levelId, studentId, isPublished));
         return result.ToHttpResult();
     }
 
