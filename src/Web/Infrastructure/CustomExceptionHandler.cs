@@ -18,6 +18,7 @@ public class CustomExceptionHandler : IExceptionHandler
             {
                 { typeof(ValidationException), HandleValidationException },
                 { typeof(NotFoundException), HandleNotFoundException },
+                { typeof(InvalidOperationException), HandleInvalidOperationException },
                 { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
                 { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
             };
@@ -61,6 +62,19 @@ public class CustomExceptionHandler : IExceptionHandler
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             Title = _localizer["Errors.ResourceNotFound"],
             Detail = exception.Message
+        });
+    }
+
+    private async Task HandleInvalidOperationException(HttpContext httpContext, Exception ex)
+    {
+        httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails()
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+            Title = _localizer["Errors.BadRequest"],
+            Detail = ex.Message
         });
     }
 

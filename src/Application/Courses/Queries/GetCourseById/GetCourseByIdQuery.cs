@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCourseById;
 
-public record GetCourseByIdQuery(Guid Id) : IRequest<Result<CourseWithDetailsDto?>>;
+public record GetCourseByIdQuery(Guid Id, bool? IsPublished = null) : IRequest<Result<CourseWithDetailsDto?>>;
 
 public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Result<CourseWithDetailsDto?>>
 {
@@ -20,9 +20,16 @@ public class GetCourseByIdQueryHandler : IRequestHandler<GetCourseByIdQuery, Res
 
     public async Task<Result<CourseWithDetailsDto?>> Handle(GetCourseByIdQuery request, CancellationToken cancellationToken)
     {
-        var course = await _context.Courses
+        var courseQuery = _context.Courses
             .AsNoTracking()
-            .Where(c => c.Id == request.Id)
+            .Where(c => c.Id == request.Id);
+
+        if (request.IsPublished.HasValue)
+        {
+            courseQuery = courseQuery.Where(c => c.IsPublished == request.IsPublished.Value);
+        }
+
+        var course = await courseQuery
             .Select(c => new CourseWithDetailsDto
             {
                 Id = c.Id,

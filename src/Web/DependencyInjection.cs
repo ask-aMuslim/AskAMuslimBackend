@@ -4,6 +4,7 @@ using AskAMuslimBackend.Infrastructure.Data;
 using AskAMuslimBackend.Web.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 
 using NSwag;
 using NSwag.Generation.Processors.Security;
@@ -81,6 +82,12 @@ public static class DependencyInjection
         // Customise default API behaviour
         builder.Services.Configure<ApiBehaviorOptions>(options =>
             options.SuppressModelStateInvalidFilter = true);
+
+        // Configure JSON serialization to support enum string values
+        builder.Services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
 
         builder.Services.AddEndpointsApiExplorer();
 

@@ -4,7 +4,7 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 
-public record GetCourseRoadmapQuery(Guid LevelId, Guid? StudentId = null) : IRequest<Result<CourseRoadmapDto>>;
+public record GetCourseRoadmapQuery(Guid LevelId, Guid? StudentId = null, bool? IsPublished = null) : IRequest<Result<CourseRoadmapDto>>;
 
 public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuery, Result<CourseRoadmapDto>>
 {
@@ -31,8 +31,15 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
         }
 
         // Get all courses in the level
-        var courses = await _context.Courses
-            .Where(c => c.LevelId == request.LevelId)
+        var coursesQuery = _context.Courses
+            .Where(c => c.LevelId == request.LevelId);
+
+        if (request.IsPublished.HasValue)
+        {
+            coursesQuery = coursesQuery.Where(c => c.IsPublished == request.IsPublished.Value);
+        }
+
+        var courses = await coursesQuery
             .Select(c => new RoadmapCourseDto
             {
                 Id = c.Id,
@@ -41,7 +48,14 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 ThumbnailUrl = c.ThumbnailUrl,
                 IsPublished = c.IsPublished,
                 HasQuiz = c.HasQuiz,
-                Order = c.Order
+                Order = c.Order,
+                CountOfLessons = c.Lessons.Count(l => l.IsPublished),
+                CourseDuration = c.Lessons
+                    .Where(l => l.IsPublished)
+                    .Select(l => l.Duration)
+                    .Where(d => d.HasValue)
+                    .Select(d => d!.Value)
+                    .Aggregate(TimeSpan.Zero, (sum, d) => sum.Add(d))
             })
             .ToListAsync(cancellationToken);
 
@@ -174,6 +188,8 @@ public class RoadmapCourseDto
     public bool IsPublished { get; init; }
     public bool HasQuiz { get; init; }
     public int Order { get; init; }
+    public int CountOfLessons { get; init; }
+    public TimeSpan CourseDuration { get; init; }
     
     public List<Guid> PrerequisiteIds { get; set; } = new();
     public bool IsAvailable { get; set; }
