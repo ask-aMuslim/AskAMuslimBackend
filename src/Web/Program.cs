@@ -38,10 +38,16 @@ else
 }
 
 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+// ForwardedHeaders must be configured BEFORE HSTS so the app knows the original request was HTTPS (behind reverse proxy).
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
 app.UseHsts();
+app.UseHttpsRedirection();
 
 app.UseHealthChecks("/health");
-app.UseHttpsRedirection();
 // Enable CORS early so static files, swagger and other middleware honor it
 app.UseCors();
 
