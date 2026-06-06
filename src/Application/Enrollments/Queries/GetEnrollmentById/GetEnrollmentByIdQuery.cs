@@ -46,9 +46,7 @@ public class GetEnrollmentByIdQueryHandler : IRequestHandler<GetEnrollmentByIdQu
                 EnrolledAt = s.EnrolledAt,
                 Status = s.Status,
                 LevelProgress = s.LevelProgress,
-                CourseProgress = s.TotalLessonsCount == 0
-                    ? 0
-                    : Math.Round(((double)s.CompletedLessonsCount / s.TotalLessonsCount) * 100, 2),
+                CourseProgress = Math.Round(((double)s.CompletedLessonsCount / (s.TotalLessonsCount == 0 ? 1 : s.TotalLessonsCount)) * 100, 2),
                 CompletedLessonsCount = s.CompletedLessonsCount,
                 RemainingLessonsCount = (s.TotalLessonsCount - s.CompletedLessonsCount) > 0
                     ? (s.TotalLessonsCount - s.CompletedLessonsCount)
