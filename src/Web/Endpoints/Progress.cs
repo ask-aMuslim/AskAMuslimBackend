@@ -21,7 +21,7 @@ public class Progress : EndpointGroupBase
             .WithSummary("Returns progress for a given course");
     }
 
-    private async Task<bool> CompleteLesson(ISender sender, [FromBody] CompleteLessonCommand command)
+    private async Task<CompleteLessonResult> CompleteLesson(ISender sender, [FromBody] CompleteLessonCommand command)
     {
         return await sender.Send(command);
     }
