@@ -6,9 +6,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AskAMuslimBackend.Application.Progress.Commands.CompleteLesson;
 
-public record CompleteLessonCommand(Guid CourseId, Guid LessonId, double? ProgressPercentage, bool MarkAsRead = false) : IRequest<bool>;
+public record CompleteLessonCommand(Guid CourseId, Guid LessonId, double? ProgressPercentage, bool MarkAsRead = false) : IRequest<CompleteLessonResult>;
 
-public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonCommand, bool>
+public enum CompletionStatus
+{
+    AlreadyCompleted,
+    Completed,
+    ProgressUpdated,
+    QuizRequired
+}
+
+public record CompleteLessonResult(CompletionStatus Status, double? CurrentProgressPercentage, string? Message = null);
+
+public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonCommand, CompleteLessonResult>
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
@@ -19,7 +29,7 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
         _user = user;
     }
 
-    public async Task<bool> Handle(CompleteLessonCommand request, CancellationToken cancellationToken)
+    public async Task<CompleteLessonResult> Handle(CompleteLessonCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(_user.Id) || !Guid.TryParse(_user.Id, out var userId))
             throw new UnauthorizedAccessException();
@@ -44,10 +54,10 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
         if (previousLesson != null && previousLesson.HasQuiz)
         {
             bool passedPreviousQuiz = await _context.QuizAttempts
-                .AnyAsync(a => a.StudentId == studentId && 
-                               a.Quiz != null && 
-                               a.Quiz.LessonId == previousLesson.Id && 
-                               a.Quiz.TargetType == Domain.Enums.QuizTargetType.Lesson && 
+                .AnyAsync(a => a.StudentId == studentId &&
+                               a.Quiz != null &&
+                               a.Quiz.LessonId == previousLesson.Id &&
+                               a.Quiz.TargetType == Domain.Enums.QuizTargetType.Lesson &&
                                a.IsPassed, cancellationToken);
             if (!passedPreviousQuiz)
             {
@@ -92,33 +102,33 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
 
         if (studentProgress == null)
         {
-                studentProgress = new StudentProgress
-                {
-                    StudentId = studentId,
-                    CourseId = request.CourseId,
-                    LessonId = request.LessonId,
-                    IsCompleted = shouldComplete,
-                    ProgressPercentage = request.ProgressPercentage,
-                    LastAccessedAt = DateTime.UtcNow,
-                    CompletedAt = shouldComplete ? DateTime.UtcNow : null
-                };
+            studentProgress = new StudentProgress
+            {
+                StudentId = studentId,
+                CourseId = request.CourseId,
+                LessonId = request.LessonId,
+                IsCompleted = shouldComplete,
+                ProgressPercentage = request.ProgressPercentage,
+                LastAccessedAt = DateTime.UtcNow,
+                CompletedAt = shouldComplete ? DateTime.UtcNow : null
+            };
             _context.StudentProgresses.Add(studentProgress);
         }
         else
         {
             studentProgress.LastAccessedAt = DateTime.UtcNow;
-            
+
             if (studentProgress.IsCompleted)
             {
                 if (request.ProgressPercentage.HasValue && request.ProgressPercentage > studentProgress.ProgressPercentage)
                     studentProgress.ProgressPercentage = request.ProgressPercentage;
 
                 await _context.SaveChangesAsync(cancellationToken);
-                return false;
+                return new CompleteLessonResult(CompletionStatus.AlreadyCompleted, studentProgress.ProgressPercentage);
             }
 
             studentProgress.ProgressPercentage = request.ProgressPercentage ?? studentProgress.ProgressPercentage;
-            
+
             if (shouldComplete)
             {
                 studentProgress.IsCompleted = true;
@@ -126,9 +136,11 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
             }
         }
 
+        Enrollment? enrollment = null;
+
         if (shouldComplete)
         {
-            var enrollment = await _context.Enrollments
+            enrollment = await _context.Enrollments
                 .Include(e => e.Course)
                     .ThenInclude(c => c!.Lessons)
                 .FirstOrDefaultAsync(e => e.StudentId == studentId && e.CourseId == request.CourseId, cancellationToken);
@@ -165,11 +177,11 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
                 {
                     // Course has a quiz, verify if the user has passed the course quiz
                     bool hasPassedCourseQuiz = await _context.QuizAttempts
-                        .AnyAsync(a => a.StudentId == studentId && a.Quiz != null && 
-                                       a.Quiz.CourseId == request.CourseId && 
-                                       a.Quiz.TargetType == Domain.Enums.QuizTargetType.Course && 
+                        .AnyAsync(a => a.StudentId == studentId && a.Quiz != null &&
+                                       a.Quiz.CourseId == request.CourseId &&
+                                       a.Quiz.TargetType == Domain.Enums.QuizTargetType.Course &&
                                        a.IsPassed, cancellationToken);
-                                       
+
                     if (hasPassedCourseQuiz)
                     {
                         enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
@@ -177,8 +189,18 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
                 }
             }
         }
-        
+
         await _context.SaveChangesAsync(cancellationToken);
-        return true;
+
+        var status = shouldComplete
+            ? CompletionStatus.Completed
+            : CompletionStatus.ProgressUpdated;
+
+        return new CompleteLessonResult(
+            status,
+            studentProgress?.ProgressPercentage,
+            status == CompletionStatus.Completed && enrollment?.Status == EnrollmentStatus.Completed
+                ? "Course completed!"
+                : null);
     }
 }
