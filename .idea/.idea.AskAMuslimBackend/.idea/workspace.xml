@@ -10,7 +10,9 @@
     <configurations />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="36ea5c04-81c8-4344-abfc-3b2a8c7a2d91" name="Changes" comment="" />
+    <list default="true" id="36ea5c04-81c8-4344-abfc-3b2a8c7a2d91" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.AskAMuslimBackend/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.AskAMuslimBackend/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -71,8 +73,17 @@
       <option name="presentableId" value="Default" />
       <updated>1779607334485</updated>
       <workItem from="1779607336323" duration="1466000" />
-      <workItem from="1781811097192" duration="308000" />
+      <workItem from="1781811097192" duration="1124000" />
     </task>
+    <task id="LOCAL-00001" summary="fix(getEnrollment): fixed the nested query issue">
+      <option name="closed" value="true" />
+      <created>1781811478539</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1781811478539</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -82,6 +93,8 @@
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="fix(getEnrollment): fixed the nested query issue" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix(getEnrollment): fixed the nested query issue" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
