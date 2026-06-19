@@ -13,7 +13,10 @@ public class Lessons : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetLessonsWithPagination).WithName("GetLessons").WithSummary("Get lessons (optionally filtered by course)");
-        groupBuilder.MapGet(GetLessonById, "{id}").WithName("GetLesson").WithSummary("Get a lesson by id");
+        groupBuilder.MapGet(GetLessonById, "{id}")
+            .RequireAuthorization()
+            .WithName("GetLesson")
+            .WithSummary("Get a lesson by id");
         groupBuilder.MapPost(CreateLesson)
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("CreateLesson")
