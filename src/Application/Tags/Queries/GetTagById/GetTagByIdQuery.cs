@@ -19,15 +19,17 @@ public class GetTagByIdQueryHandler : IRequestHandler<GetTagByIdQuery, Result<Ta
     {
         var tag = await _context.Tags
             .Where(c => c.Id == request.Id)
-            .Select(s => new TagBriefDto {
-            Id = s.Id,
-            Title = s.Title,
-            Description = s.Description,
-            TotalCourses = s.CourseTags.Count,
-            TotalQAs = s.QATags.Count
-    })
+            .Select(s => new TagBriefDto
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                Order = s.Order,
+                TotalCourses = s.CourseTags.Count,
+                TotalQAs = s.QATags.Count
+            })
             .FirstOrDefaultAsync(cancellationToken);
-            
+
         return Result<TagBriefDto?>.Success(tag);
     }
 }

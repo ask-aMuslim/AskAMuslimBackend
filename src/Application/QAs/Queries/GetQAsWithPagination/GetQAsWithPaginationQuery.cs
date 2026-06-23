@@ -35,9 +35,16 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(q => q.Translations.Any(t => 
-                t.QuestionText.Contains(request.SearchTerm) ||
-                t.AnswerText.Contains(request.SearchTerm)));
+            var searchTerm = request.SearchTerm;
+
+            // First: try title-only matches
+            var titleMatches = query.Where(q => q.Translations.Any(t => t.QuestionText.Contains(searchTerm)));
+            var hasTitleMatches = await titleMatches.AnyAsync(cancellationToken);
+
+            // Fallback to content search only if no title matches found
+            query = hasTitleMatches
+                ? titleMatches
+                : query.Where(q => q.Translations.Any(t => t.AnswerText.Contains(searchTerm)));
         }
 
         if (request.TagIds != null && request.TagIds.Any())
@@ -46,11 +53,13 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
         }
 
         var projected = query
-            .OrderBy(q => q.Id)
+            .OrderBy(q => q.Order)
+            .ThenBy(q => q.Id)
             .Select(q => new QABriefDto
             {
                 Id = q.Id,
                 IsPublished = q.IsPublished,
+                Order = q.Order,
                 Translations = !request.Language.HasValue
                     ? q.Translations
                         .Select(t => new QABriefTranslationDto

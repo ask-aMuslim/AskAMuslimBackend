@@ -9,6 +9,7 @@ public record CreateTagCommand : IRequest<Result<Guid>>
 {
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public int Order { get; init; }
 }
 
 public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Result<Guid>>
@@ -25,7 +26,8 @@ public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, Result<
         var tag = new Tag
         {
             Title = request.Title,
-            Description = request.Description
+            Description = request.Description,
+            Order = request.Order,
         };
 
         _context.Tags.Add(tag);

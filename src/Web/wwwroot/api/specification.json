@@ -9641,6 +9641,10 @@
           "isPublished": {
             "type": "boolean"
           },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
           "translations": {
             "type": "array",
             "items": {
@@ -9681,6 +9685,10 @@
         "properties": {
           "isPublished": {
             "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           },
           "translations": {
             "type": "array",
@@ -10189,6 +10197,10 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -10202,6 +10214,10 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

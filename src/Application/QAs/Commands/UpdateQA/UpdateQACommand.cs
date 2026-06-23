@@ -12,6 +12,7 @@ public record UpdateQACommand : IRequest<Result>
     [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public bool IsPublished { get; init; }
+    public int Order { get; init; }
     public List<UpdateQATranslationInput> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
 }
@@ -48,6 +49,7 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
             return Result.Failure(new[] { _localizer["QAs.NotFound"] });
 
         entity.IsPublished = request.IsPublished;
+        entity.Order = request.Order;
 
         // Update tags
         var currentTagIds = entity.QATags.Select(t => t.TagId).ToHashSet();
