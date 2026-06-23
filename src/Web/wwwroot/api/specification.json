@@ -7687,7 +7687,7 @@
         }
       },
       "UserRole": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Admin",
@@ -7697,15 +7697,15 @@
           "NonMuslim"
         ],
         "enum": [
-          "Admin",
-          "Student",
-          "Instructor",
-          "Preacher",
-          "NonMuslim"
+          1,
+          2,
+          3,
+          4,
+          5
         ]
       },
       "ReligiousStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "NonMuslim",
@@ -7713,9 +7713,9 @@
           "RevertedMuslim"
         ],
         "enum": [
-          "NonMuslim",
-          "BornMuslim",
-          "RevertedMuslim"
+          1,
+          2,
+          3
         ]
       },
       "RegisterCommand": {
@@ -7908,7 +7908,7 @@
         }
       },
       "Language": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "English",
@@ -7919,12 +7919,12 @@
           "Portuguese"
         ],
         "enum": [
-          "English",
-          "Arabic",
-          "French",
-          "Spanish",
-          "German",
-          "Portuguese"
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
         ]
       },
       "CreateCourseCommand": {
@@ -8041,7 +8041,7 @@
         }
       },
       "EnrollmentStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Active",
@@ -8050,10 +8050,10 @@
           "Paused"
         ],
         "enum": [
-          "Active",
-          "Completed",
-          "Cancelled",
-          "Paused"
+          1,
+          2,
+          3,
+          4
         ]
       },
       "CreateEventRegistrationCommand": {
@@ -8089,7 +8089,7 @@
         }
       },
       "EventRegistrationStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8098,14 +8098,14 @@
           "Cancelled"
         ],
         "enum": [
-          "Pending",
-          "Approved",
-          "Rejected",
-          "Cancelled"
+          1,
+          2,
+          3,
+          4
         ]
       },
       "EventStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Upcoming",
@@ -8113,9 +8113,9 @@
           "Finished"
         ],
         "enum": [
-          "Upcoming",
-          "Live",
-          "Finished"
+          1,
+          2,
+          3
         ]
       },
       "CreateEventCommand": {
@@ -8249,7 +8249,7 @@
         }
       },
       "FormFieldType": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Text",
@@ -8264,16 +8264,16 @@
           "PhoneNumber"
         ],
         "enum": [
-          "Text",
-          "TextArea",
-          "Email",
-          "Number",
-          "Date",
-          "Checkbox",
-          "Radio",
-          "Select",
-          "File",
-          "PhoneNumber"
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
         ]
       },
       "CreateFormFieldOptionCommand": {
@@ -8373,7 +8373,7 @@
         }
       },
       "MeetingInquiryRequestStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8383,15 +8383,15 @@
           "Completed"
         ],
         "enum": [
-          "Pending",
-          "Accepted",
-          "Rejected",
-          "Cancelled",
-          "Completed"
+          1,
+          2,
+          3,
+          4,
+          5
         ]
       },
       "MeetingInquiryTopic": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "GeneralInquiry",
@@ -8404,14 +8404,14 @@
           "Theology"
         ],
         "enum": [
-          "GeneralInquiry",
-          "Quran",
-          "Hadith",
-          "ComparativeReligion",
-          "ConversionGuidance",
-          "IslamicHistory",
-          "Fiqh",
-          "Theology"
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
         ]
       },
       "CreateInquiryRequestCommand": {
@@ -8538,7 +8538,7 @@
         }
       },
       "LearnIslamKnowledgeLevel": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "None",
@@ -8547,10 +8547,10 @@
           "Advanced"
         ],
         "enum": [
-          "None",
-          "Basic",
-          "Intermediate",
-          "Advanced"
+          0,
+          1,
+          2,
+          3
         ]
       },
       "UpdateLearnIslamRequestStatusCommand": {
@@ -8567,7 +8567,7 @@
         }
       },
       "LearnIslamRequestStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8576,10 +8576,10 @@
           "Dismissed"
         ],
         "enum": [
-          "Pending",
-          "Contacted",
-          "Completed",
-          "Dismissed"
+          0,
+          1,
+          2,
+          3
         ]
       },
       "UpdateLearnIslamRequestLabelCommand": {
@@ -8615,7 +8615,7 @@
         }
       },
       "LessonType": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Video",
@@ -8624,10 +8624,10 @@
           "Audio"
         ],
         "enum": [
-          "Video",
-          "Article",
-          "Document",
-          "Audio"
+          1,
+          2,
+          3,
+          4
         ]
       },
       "CreateLessonCommand": {
@@ -8774,7 +8774,7 @@
         }
       },
       "LevelDifficulty": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Beginner",
@@ -8783,10 +8783,10 @@
           "Expert"
         ],
         "enum": [
-          "Beginner",
-          "Intermediate",
-          "Advanced",
-          "Expert"
+          1,
+          2,
+          3,
+          4
         ]
       },
       "UpdateLevelCommand": {
@@ -9323,7 +9323,7 @@
         }
       },
       "Permission": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumFlags": true,
         "x-enumNames": [
@@ -9408,85 +9408,85 @@
           "AllPermissions"
         ],
         "enum": [
-          "None",
-          "ViewDashboard",
-          "ViewAnalytics",
-          "ViewFinancialData",
-          "ViewFinancialData",
-          "ViewAdmins",
-          "CreateAdmin",
-          "EditAdmin",
-          "DeleteAdmin",
-          "ManageRolesAndPermissions",
-          "ManageRolesAndPermissions",
-          "ViewAllStudents",
-          "ViewEnrolledStudents",
-          "EditStudent",
-          "DeleteStudent",
-          "ViewStudentProgress",
-          "ViewStudentQuestions",
-          "AnswerStudentQuestions",
-          "ManageAdminNotes",
-          "SendNotifications",
-          "SendDirectEmail",
-          "FullStudentAccess",
-          "ViewLevels",
-          "CreateLevel",
-          "EditLevel",
-          "DeleteLevel",
-          "ViewAllCourses",
-          "ViewOwnCourses",
-          "CreateCourse",
-          "EditOwnCourses",
-          "EditAllCourses",
-          "DeleteCourse",
-          "PublishCourse",
-          "ViewLessons",
-          "CreateLesson",
-          "EditLesson",
-          "DeleteLesson",
-          "ViewQuizzes",
-          "CreateQuiz",
-          "EditQuiz",
-          "DeleteQuiz",
-          "ViewQuizResults",
-          "FullAcademyAccess",
-          "ViewQA",
-          "CreateQA",
-          "EditQA",
-          "DeleteQA",
-          "ApproveQA",
-          "FullQAAccess",
-          "ViewMuslimTube",
-          "CreateVideo",
-          "EditVideo",
-          "DeleteVideo",
-          "ApproveVideo",
-          "FullMuslimTubeAccess",
-          "ViewNotifications",
-          "SendBulkNotifications",
-          "CreateNotificationTemplate",
-          "ViewMeetingRequests",
-          "ManageMeetingRequests",
-          "ViewInquiryRequests",
-          "ManageInquiryRequests",
-          "ViewEvents",
-          "CreateEvent",
-          "EditEvent",
-          "DeleteEvent",
-          "ManageEventRegistrations",
-          "FullEventAccess",
-          "ViewTags",
-          "CreateTag",
-          "EditTag",
-          "DeleteTag",
-          "ViewSettings",
-          "ViewSettings",
-          "ViewSettings",
-          "ViewSettings",
-          "ViewForms",
-          "ManageForms",
-          "AllPermissions"
+          0,
+          1,
+          2,
+          3,
+          3,
+          4,
+          8,
+          16,
+          32,
+          64,
+          64,
+          128,
+          256,
+          512,
+          1024,
+          2048,
+          4096,
+          8192,
+          16384,
+          32768,
+          65536,
+          130688,
+          131072,
+          262144,
+          524288,
+          1048576,
+          2097152,
+          4194304,
+          8388608,
+          16777216,
+          33554432,
+          67108864,
+          134217728,
+          268435456,
+          536870912,
+          1073741824,
+          2147483648,
+          4294967296,
+          8589934592,
+          17179869184,
+          34359738368,
+          68719476736,
+          137417850880,
+          137438953472,
+          274877906944,
+          549755813888,
+          1099511627776,
+          2199023255552,
+          4260607557632,
+          4398046511104,
+          8796093022208,
+          17592186044416,
+          35184372088832,
+          70368744177664,
+          136339441844224,
+          140737488355328,
+          281474976710656,
+          562949953421312,
+          1125899906842624,
+          2251799813685248,
+          4503599627370496,
+          9007199254740992,
+          18014398509481984,
+          36028797018963968,
+          72057594037927936,
+          144115188075855872,
+          288230376151711744,
+          558446353793941504,
+          576460752303423488,
+          1152921504606846976,
+          2305843009213693952,
+          4611686018427387904,
+          -9223372036854775808,
+          -9223372036854775808,
+          -9223372036854775808,
+          -9223372036854775808,
+          -9223372036854775807,
+          -9223372036854775743,
+          -1
         ]
       },
       "UpdateRolePermissionsCommand": {
@@ -9576,7 +9576,7 @@
         }
       },
       "CompletionStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "AlreadyCompleted",
@@ -9585,10 +9585,10 @@
           "QuizRequired"
         ],
         "enum": [
-          "AlreadyCompleted",
-          "Completed",
-          "ProgressUpdated",
-          "QuizRequired"
+          0,
+          1,
+          2,
+          3
         ]
       },
       "CompleteLessonCommand": {
@@ -9810,7 +9810,7 @@
         }
       },
       "QuizTargetType": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Level",
@@ -9818,9 +9818,9 @@
           "Lesson"
         ],
         "enum": [
-          "Level",
-          "Course",
-          "Lesson"
+          1,
+          2,
+          3
         ]
       },
       "CreateQuizCommand": {
@@ -9886,7 +9886,7 @@
         }
       },
       "ReportStatus": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -9895,14 +9895,14 @@
           "Dismissed"
         ],
         "enum": [
-          "Pending",
-          "UnderReview",
-          "Resolved",
-          "Dismissed"
+          1,
+          2,
+          3,
+          4
         ]
       },
       "ReportType": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "QA",
@@ -9915,18 +9915,18 @@
           "Other"
         ],
         "enum": [
-          "QA",
-          "Video",
-          "Question",
-          "Comment",
-          "User",
-          "Course",
-          "Event",
-          "Other"
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          99
         ]
       },
       "ReportReason": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "InappropriateContent",
@@ -9939,14 +9939,14 @@
           "Other"
         ],
         "enum": [
-          "InappropriateContent",
-          "Spam",
-          "Harassment",
-          "Misinformation",
-          "OffensiveLanguage",
-          "Copyright",
-          "Privacy",
-          "Other"
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          99
         ]
       },
       "CreateReportCommand": {
@@ -10248,7 +10248,7 @@
         }
       },
       "VolunteerType": {
-        "type": "string",
+        "type": "integer",
         "description": "",
         "x-enumNames": [
           "Dawah",
@@ -10259,12 +10259,12 @@
           "VideoEditors"
         ],
         "enum": [
-          "Dawah",
-          "TeachingNewMuslims",
-          "Developers",
-          "Designers",
-          "Translators",
-          "VideoEditors"
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
         ]
       }
     },
