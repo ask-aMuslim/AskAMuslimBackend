@@ -11,6 +11,9 @@ public class QAConfiguration : IEntityTypeConfiguration<QA>
         builder.ToTable("QAs");
         builder.HasKey(q => q.Id);
 
+        builder.Property(q => q.Order)
+            .HasDefaultValue(0);
+
         builder.HasMany(q => q.Translations)
             .WithOne(t => t.QA)
             .HasForeignKey(t => t.QAId)

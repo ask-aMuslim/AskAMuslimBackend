@@ -11,6 +11,7 @@ public record UpdateTagCommand : IRequest<Result>
     public Guid Id { get; init; }
     public string Title { get; init; } = string.Empty;
     public string? Description { get; init; }
+    public int Order { get; init; }
 }
 
 public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
@@ -27,7 +28,7 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
     public async Task<Result> Handle(UpdateTagCommand request, CancellationToken cancellationToken)
     {
         var entity = await _context.Tags.FindAsync(new object[] { request.Id }, cancellationToken);
-        
+
         if (entity == null)
         {
             return Result.Failure(new[] { _localizer["Tags.NotFound"] });
@@ -35,9 +36,10 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, Result>
 
         entity.Title = request.Title;
         entity.Description = request.Description;
+        entity.Order = request.Order;
 
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return Result.Success();
     }
 }

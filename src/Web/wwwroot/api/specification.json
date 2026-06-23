@@ -1005,6 +1005,15 @@
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "isPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 2
           }
         ],
         "responses": {
@@ -1082,41 +1091,6 @@
         ]
       }
     },
-    "/api/Courses/{id}/detail": {
-      "get": {
-        "tags": [
-          "Courses"
-        ],
-        "operationId": "GetCourseDetailById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          },
-          {
-            "name": "studentId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "guid",
-              "nullable": true
-            },
-            "x-position": 2
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
-    },
     "/api/Courses/roadmap/{levelId}": {
       "get": {
         "tags": [
@@ -1143,6 +1117,15 @@
               "nullable": true
             },
             "x-position": 2
+          },
+          {
+            "name": "isPublished",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 3
           }
         ],
         "responses": {
@@ -2991,7 +2974,12 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
       },
       "put": {
         "tags": [
@@ -3050,6 +3038,48 @@
             "x-position": 1
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Lessons/{id}/duration": {
+      "put": {
+        "tags": [
+          "Lessons"
+        ],
+        "operationId": "SetDuration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetLessonDurationCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": ""
@@ -3819,6 +3849,612 @@
           "required": true,
           "x-position": 2
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Mosques": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "GetMosques",
+        "parameters": [
+          {
+            "name": "Name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "Country",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "Governorate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "District",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 6
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 7
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 8
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 9
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "CreateMosque",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMosqueCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Mosques/{id}": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "GetMosqueById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "UpdateMosque",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMosqueCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "DeleteMosque",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Mosques/search": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "SearchMosques",
+        "parameters": [
+          {
+            "name": "Name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "City",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "Country",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "Governorate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "District",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 6
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 7
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 8
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 9
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Mosques/nearby": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "GetNearbyMosques",
+        "parameters": [
+          {
+            "name": "Lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "Lng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "Radius",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 6
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 7
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Mosques/in-radius": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "GetMosquesInRadius",
+        "parameters": [
+          {
+            "name": "Lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "Lng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "Radius",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "x-position": 3
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Mosques/nearest": {
+      "get": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "GetNearestMosque",
+        "parameters": [
+          {
+            "name": "Lat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "Lng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "IsVerified",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 4
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/Mosques/{id}/activate": {
+      "put": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "ActivateMosque",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Mosques/{id}/deactivate": {
+      "put": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "DeactivateMosque",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Mosques/{id}/verify": {
+      "put": {
+        "tags": [
+          "Mosques"
+        ],
+        "operationId": "VerifyMosque",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -4983,7 +5619,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "boolean"
+                  "$ref": "#/components/schemas/CompleteLessonResult"
                 }
               }
             }
@@ -5450,6 +6086,36 @@
         "parameters": [
           {
             "name": "studentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/QuizAttempts/{id}": {
+      "get": {
+        "tags": [
+          "QuizAttempts"
+        ],
+        "operationId": "GetById4",
+        "parameters": [
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -6021,7 +6687,7 @@
         "tags": [
           "StudentNotes"
         ],
-        "operationId": "GetById4",
+        "operationId": "GetById5",
         "parameters": [
           {
             "name": "id",
@@ -6303,7 +6969,7 @@
         "tags": [
           "StudentQuestions"
         ],
-        "operationId": "GetById5",
+        "operationId": "GetById6",
         "parameters": [
           {
             "name": "id",
@@ -7021,7 +7687,7 @@
         }
       },
       "UserRole": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Admin",
@@ -7031,15 +7697,15 @@
           "NonMuslim"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
+          "Admin",
+          "Student",
+          "Instructor",
+          "Preacher",
+          "NonMuslim"
         ]
       },
       "ReligiousStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "NonMuslim",
@@ -7047,9 +7713,9 @@
           "RevertedMuslim"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "NonMuslim",
+          "BornMuslim",
+          "RevertedMuslim"
         ]
       },
       "RegisterCommand": {
@@ -7242,7 +7908,7 @@
         }
       },
       "Language": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "English",
@@ -7253,12 +7919,12 @@
           "Portuguese"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6
+          "English",
+          "Arabic",
+          "French",
+          "Spanish",
+          "German",
+          "Portuguese"
         ]
       },
       "CreateCourseCommand": {
@@ -7375,7 +8041,7 @@
         }
       },
       "EnrollmentStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Active",
@@ -7384,10 +8050,10 @@
           "Paused"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Active",
+          "Completed",
+          "Cancelled",
+          "Paused"
         ]
       },
       "CreateEventRegistrationCommand": {
@@ -7423,7 +8089,7 @@
         }
       },
       "EventRegistrationStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -7432,14 +8098,14 @@
           "Cancelled"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Pending",
+          "Approved",
+          "Rejected",
+          "Cancelled"
         ]
       },
       "EventStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Upcoming",
@@ -7447,9 +8113,9 @@
           "Finished"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "Upcoming",
+          "Live",
+          "Finished"
         ]
       },
       "CreateEventCommand": {
@@ -7564,6 +8230,9 @@
           "type": {
             "$ref": "#/components/schemas/FormFieldType"
           },
+          "isMultiSelect": {
+            "type": "boolean"
+          },
           "isRequired": {
             "type": "boolean"
           },
@@ -7580,7 +8249,7 @@
         }
       },
       "FormFieldType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Text",
@@ -7595,16 +8264,16 @@
           "PhoneNumber"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9
+          "Text",
+          "TextArea",
+          "Email",
+          "Number",
+          "Date",
+          "Checkbox",
+          "Radio",
+          "Select",
+          "File",
+          "PhoneNumber"
         ]
       },
       "CreateFormFieldOptionCommand": {
@@ -7664,6 +8333,9 @@
           "type": {
             "$ref": "#/components/schemas/FormFieldType"
           },
+          "isMultiSelect": {
+            "type": "boolean"
+          },
           "isRequired": {
             "type": "boolean"
           },
@@ -7701,7 +8373,7 @@
         }
       },
       "MeetingInquiryRequestStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -7711,15 +8383,15 @@
           "Completed"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5
+          "Pending",
+          "Accepted",
+          "Rejected",
+          "Cancelled",
+          "Completed"
         ]
       },
       "MeetingInquiryTopic": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "GeneralInquiry",
@@ -7732,14 +8404,14 @@
           "Theology"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          "GeneralInquiry",
+          "Quran",
+          "Hadith",
+          "ComparativeReligion",
+          "ConversionGuidance",
+          "IslamicHistory",
+          "Fiqh",
+          "Theology"
         ]
       },
       "CreateInquiryRequestCommand": {
@@ -7866,7 +8538,7 @@
         }
       },
       "LearnIslamKnowledgeLevel": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "None",
@@ -7875,10 +8547,10 @@
           "Advanced"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "None",
+          "Basic",
+          "Intermediate",
+          "Advanced"
         ]
       },
       "UpdateLearnIslamRequestStatusCommand": {
@@ -7895,7 +8567,7 @@
         }
       },
       "LearnIslamRequestStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -7904,10 +8576,10 @@
           "Dismissed"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "Pending",
+          "Contacted",
+          "Completed",
+          "Dismissed"
         ]
       },
       "UpdateLearnIslamRequestLabelCommand": {
@@ -7943,7 +8615,7 @@
         }
       },
       "LessonType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Video",
@@ -7952,10 +8624,10 @@
           "Audio"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Video",
+          "Article",
+          "Document",
+          "Audio"
         ]
       },
       "CreateLessonCommand": {
@@ -7995,6 +8667,11 @@
           "order": {
             "type": "integer",
             "format": "int32"
+          },
+          "duration": {
+            "type": "string",
+            "format": "duration",
+            "nullable": true
           },
           "isPublished": {
             "type": "boolean"
@@ -8038,6 +8715,11 @@
             "type": "string",
             "nullable": true
           },
+          "duration": {
+            "type": "string",
+            "format": "duration",
+            "nullable": true
+          },
           "order": {
             "type": "integer",
             "format": "int32"
@@ -8047,6 +8729,21 @@
           },
           "language": {
             "$ref": "#/components/schemas/Language"
+          }
+        }
+      },
+      "SetLessonDurationCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "manualDuration": {
+            "type": "string",
+            "format": "duration",
+            "nullable": true
           }
         }
       },
@@ -8077,7 +8774,7 @@
         }
       },
       "LevelDifficulty": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Beginner",
@@ -8086,10 +8783,10 @@
           "Expert"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Beginner",
+          "Intermediate",
+          "Advanced",
+          "Expert"
         ]
       },
       "UpdateLevelCommand": {
@@ -8218,6 +8915,158 @@
         "properties": {
           "newRole": {
             "$ref": "#/components/schemas/UserRole"
+          }
+        }
+      },
+      "CreateMosqueCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "governorate": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "googleMapsUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "websiteUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "imamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasWomenPrayerArea": {
+            "type": "boolean"
+          },
+          "hasFridayKhutbah": {
+            "type": "boolean"
+          },
+          "mainImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateMosqueCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "address": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "governorate": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "district": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "googleMapsUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "websiteUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "imamName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasWomenPrayerArea": {
+            "type": "boolean"
+          },
+          "hasFridayKhutbah": {
+            "type": "boolean"
+          },
+          "mainImageUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
           }
         }
       },
@@ -8425,6 +9274,10 @@
           },
           "isCorrect": {
             "type": "boolean"
+          },
+          "explanation": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -8437,6 +9290,10 @@
           },
           "isCorrect": {
             "type": "boolean"
+          },
+          "explanation": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -8466,7 +9323,7 @@
         }
       },
       "Permission": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumFlags": true,
         "x-enumNames": [
@@ -8551,85 +9408,85 @@
           "AllPermissions"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          3,
-          4,
-          8,
-          16,
-          32,
-          64,
-          64,
-          128,
-          256,
-          512,
-          1024,
-          2048,
-          4096,
-          8192,
-          16384,
-          32768,
-          65536,
-          130688,
-          131072,
-          262144,
-          524288,
-          1048576,
-          2097152,
-          4194304,
-          8388608,
-          16777216,
-          33554432,
-          67108864,
-          134217728,
-          268435456,
-          536870912,
-          1073741824,
-          2147483648,
-          4294967296,
-          8589934592,
-          17179869184,
-          34359738368,
-          68719476736,
-          137417850880,
-          137438953472,
-          274877906944,
-          549755813888,
-          1099511627776,
-          2199023255552,
-          4260607557632,
-          4398046511104,
-          8796093022208,
-          17592186044416,
-          35184372088832,
-          70368744177664,
-          136339441844224,
-          140737488355328,
-          281474976710656,
-          562949953421312,
-          1125899906842624,
-          2251799813685248,
-          4503599627370496,
-          9007199254740992,
-          18014398509481984,
-          36028797018963968,
-          72057594037927936,
-          144115188075855872,
-          288230376151711744,
-          558446353793941504,
-          576460752303423488,
-          1152921504606846976,
-          2305843009213693952,
-          4611686018427387904,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775808,
-          -9223372036854775807,
-          -9223372036854775743,
-          -1
+          "None",
+          "ViewDashboard",
+          "ViewAnalytics",
+          "ViewFinancialData",
+          "ViewFinancialData",
+          "ViewAdmins",
+          "CreateAdmin",
+          "EditAdmin",
+          "DeleteAdmin",
+          "ManageRolesAndPermissions",
+          "ManageRolesAndPermissions",
+          "ViewAllStudents",
+          "ViewEnrolledStudents",
+          "EditStudent",
+          "DeleteStudent",
+          "ViewStudentProgress",
+          "ViewStudentQuestions",
+          "AnswerStudentQuestions",
+          "ManageAdminNotes",
+          "SendNotifications",
+          "SendDirectEmail",
+          "FullStudentAccess",
+          "ViewLevels",
+          "CreateLevel",
+          "EditLevel",
+          "DeleteLevel",
+          "ViewAllCourses",
+          "ViewOwnCourses",
+          "CreateCourse",
+          "EditOwnCourses",
+          "EditAllCourses",
+          "DeleteCourse",
+          "PublishCourse",
+          "ViewLessons",
+          "CreateLesson",
+          "EditLesson",
+          "DeleteLesson",
+          "ViewQuizzes",
+          "CreateQuiz",
+          "EditQuiz",
+          "DeleteQuiz",
+          "ViewQuizResults",
+          "FullAcademyAccess",
+          "ViewQA",
+          "CreateQA",
+          "EditQA",
+          "DeleteQA",
+          "ApproveQA",
+          "FullQAAccess",
+          "ViewMuslimTube",
+          "CreateVideo",
+          "EditVideo",
+          "DeleteVideo",
+          "ApproveVideo",
+          "FullMuslimTubeAccess",
+          "ViewNotifications",
+          "SendBulkNotifications",
+          "CreateNotificationTemplate",
+          "ViewMeetingRequests",
+          "ManageMeetingRequests",
+          "ViewInquiryRequests",
+          "ManageInquiryRequests",
+          "ViewEvents",
+          "CreateEvent",
+          "EditEvent",
+          "DeleteEvent",
+          "ManageEventRegistrations",
+          "FullEventAccess",
+          "ViewTags",
+          "CreateTag",
+          "EditTag",
+          "DeleteTag",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewSettings",
+          "ViewForms",
+          "ManageForms",
+          "AllPermissions"
         ]
       },
       "UpdateRolePermissionsCommand": {
@@ -8700,6 +9557,40 @@
           }
         }
       },
+      "CompleteLessonResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/CompletionStatus"
+          },
+          "currentProgressPercentage": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CompletionStatus": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "AlreadyCompleted",
+          "Completed",
+          "ProgressUpdated",
+          "QuizRequired"
+        ],
+        "enum": [
+          "AlreadyCompleted",
+          "Completed",
+          "ProgressUpdated",
+          "QuizRequired"
+        ]
+      },
       "CompleteLessonCommand": {
         "type": "object",
         "additionalProperties": false,
@@ -8712,10 +9603,13 @@
             "type": "string",
             "format": "guid"
           },
-          "videoProgressPercentage": {
+          "progressPercentage": {
             "type": "number",
             "format": "double",
             "nullable": true
+          },
+          "markAsRead": {
+            "type": "boolean"
           }
         }
       },
@@ -8746,6 +9640,10 @@
         "properties": {
           "isPublished": {
             "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           },
           "translations": {
             "type": "array",
@@ -8788,6 +9686,10 @@
           "isPublished": {
             "type": "boolean"
           },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
           "translations": {
             "type": "array",
             "items": {
@@ -8813,7 +9715,12 @@
             "nullable": true
           },
           "language": {
-            "$ref": "#/components/schemas/Language"
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
           },
           "questionText": {
             "type": "string"
@@ -8840,6 +9747,11 @@
           },
           "text": {
             "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -8849,6 +9761,11 @@
         "properties": {
           "text": {
             "type": "string"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -8893,7 +9810,7 @@
         }
       },
       "QuizTargetType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Level",
@@ -8901,9 +9818,9 @@
           "Lesson"
         ],
         "enum": [
-          1,
-          2,
-          3
+          "Level",
+          "Course",
+          "Lesson"
         ]
       },
       "CreateQuizCommand": {
@@ -8969,7 +9886,7 @@
         }
       },
       "ReportStatus": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Pending",
@@ -8978,14 +9895,14 @@
           "Dismissed"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4
+          "Pending",
+          "UnderReview",
+          "Resolved",
+          "Dismissed"
         ]
       },
       "ReportType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "QA",
@@ -8998,18 +9915,18 @@
           "Other"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          99
+          "QA",
+          "Video",
+          "Question",
+          "Comment",
+          "User",
+          "Course",
+          "Event",
+          "Other"
         ]
       },
       "ReportReason": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "InappropriateContent",
@@ -9022,14 +9939,14 @@
           "Other"
         ],
         "enum": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          99
+          "InappropriateContent",
+          "Spam",
+          "Harassment",
+          "Misinformation",
+          "OffensiveLanguage",
+          "Copyright",
+          "Privacy",
+          "Other"
         ]
       },
       "CreateReportCommand": {
@@ -9280,6 +10197,10 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -9293,6 +10214,10 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -9323,7 +10248,7 @@
         }
       },
       "VolunteerType": {
-        "type": "integer",
+        "type": "string",
         "description": "",
         "x-enumNames": [
           "Dawah",
@@ -9334,12 +10259,12 @@
           "VideoEditors"
         ],
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
+          "Dawah",
+          "TeachingNewMuslims",
+          "Developers",
+          "Designers",
+          "Translators",
+          "VideoEditors"
         ]
       }
     },

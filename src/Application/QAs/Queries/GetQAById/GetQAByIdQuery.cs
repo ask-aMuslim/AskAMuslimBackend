@@ -20,14 +20,16 @@ public class GetQAByIdQueryHandler : IRequestHandler<GetQAByIdQuery, Result<QADe
         var qa = await _context.QAs
             .AsNoTracking()
             .Where(q => q.Id == request.Id)
-            .Select(s => new QADetailDto {
-            Id = s.Id,
-            IsPublished = s.IsPublished,
-            Translations = s.Translations.Select(t => new QATranslationDto { Id = t.Id, Language = t.Language, QuestionText = t.QuestionText, AnswerText = t.AnswerText, AnswerTextJson = t.AnswerTextJson }).ToList(),
-            TagIds = s.QATags.Select(t => t.TagId).ToList()
-    })
+            .Select(s => new QADetailDto
+            {
+                Id = s.Id,
+                IsPublished = s.IsPublished,
+                Order = s.Order,
+                Translations = s.Translations.Select(t => new QATranslationDto { Id = t.Id, Language = t.Language, QuestionText = t.QuestionText, AnswerText = t.AnswerText, AnswerTextJson = t.AnswerTextJson }).ToList(),
+                TagIds = s.QATags.Select(t => t.TagId).ToList()
+            })
             .FirstOrDefaultAsync(cancellationToken);
-        
+
         return Result<QADetailDto?>.Success(qa);
     }
 }

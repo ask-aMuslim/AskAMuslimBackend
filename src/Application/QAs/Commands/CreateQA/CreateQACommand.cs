@@ -19,6 +19,7 @@ public record QATranslationInput
 public record CreateQACommand : IRequest<Result<Guid>>
 {
     public bool IsPublished { get; init; }
+    public int Order { get; init; }
     public List<QATranslationInput> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
 }
@@ -57,6 +58,7 @@ public class CreateQACommandHandler : IRequestHandler<CreateQACommand, Result<Gu
         var entity = new QA
         {
             IsPublished = request.IsPublished,
+            Order = request.Order,
         };
 
         foreach (var t in request.Translations)

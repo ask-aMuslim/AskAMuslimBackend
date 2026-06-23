@@ -31,16 +31,19 @@ public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPagi
         }
 
         var paginatedList = await query
-            .OrderBy(c => c.Title)
-            .Select(s => new TagBriefDto {
-            Id = s.Id,
-            Title = s.Title,
-            Description = s.Description,
-            TotalCourses = s.CourseTags.Count,
-            TotalQAs = s.QATags.Count
-    })
+            .OrderBy(c => c.Order)
+            .ThenBy(c => c.Title)
+            .Select(s => new TagBriefDto
+            {
+                Id = s.Id,
+                Title = s.Title,
+                Description = s.Description,
+                Order = s.Order,
+                TotalCourses = s.CourseTags.Count,
+                TotalQAs = s.QATags.Count
+            })
             .PaginatedListAsync(request.PageNumber ?? 1, request.PageSize ?? 10, cancellationToken);
-            
+
         return Result<PaginatedList<TagBriefDto>>.Success(paginatedList);
     }
 }

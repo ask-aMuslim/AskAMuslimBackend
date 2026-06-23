@@ -1,4 +1,5 @@
 {
+  "Errors.BadRequest": "طلب غير صالح",
   "Errors.ResourceNotFound": "المورد المحدد غير موجود.",
   "Errors.Unauthorized": "غير مصرح به",
   "Errors.Forbidden": "محظور",

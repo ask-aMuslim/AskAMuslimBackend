@@ -17,6 +17,7 @@ public class FormAnswerDto
     public FormFieldType Type { get; set; } = FormFieldType.Text;
     public string FieldName { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+    public List<string> Values { get; set; } = [];
 }
 
 public class FormSubmissionDto
@@ -97,14 +98,15 @@ public class GetFormSubmissionsQueryHandler : IRequestHandler<GetFormSubmissions
             foreach (var property in doc.RootElement.EnumerateObject())
             {
                 var fieldId = property.Name;
-                var value = property.Value.GetString() ?? string.Empty;
                 var fieldMetadata = fieldMapping.TryGetValue(fieldId, out var metadata) ? metadata : null;
+                var (value, values) = ExtractAnswerValue(property.Value);
 
                 answers.Add(new FormAnswerDto
                 {
                     Type = fieldMetadata?.Type ?? FormFieldType.Text,
                     FieldName = fieldMetadata?.Label ?? fieldId,
-                    Value = value
+                    Value = value,
+                    Values = values
                 });
             }
 
@@ -114,5 +116,45 @@ public class GetFormSubmissionsQueryHandler : IRequestHandler<GetFormSubmissions
         {
             return [];
         }
+    }
+
+    private static (string Value, List<string> Values) ExtractAnswerValue(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            var values = new List<string>();
+
+            foreach (var item in element.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.String)
+                {
+                    values.Add(item.GetString() ?? string.Empty);
+                    continue;
+                }
+
+                if (item.ValueKind == JsonValueKind.Null || item.ValueKind == JsonValueKind.Undefined)
+                {
+                    values.Add(string.Empty);
+                    continue;
+                }
+
+                values.Add(item.ToString());
+            }
+
+            var joinedValue = values.Count > 0 ? string.Join(", ", values) : string.Empty;
+            return (joinedValue, values);
+        }
+
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            return (element.GetString() ?? string.Empty, []);
+        }
+
+        if (element.ValueKind == JsonValueKind.Null || element.ValueKind == JsonValueKind.Undefined)
+        {
+            return (string.Empty, []);
+        }
+
+        return (element.ToString(), []);
     }
 }

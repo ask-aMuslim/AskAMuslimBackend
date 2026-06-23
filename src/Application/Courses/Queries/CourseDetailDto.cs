@@ -10,6 +10,7 @@ public class CourseDetailDto
     public string? Description { get; init; }
     public string? ThumbnailUrl { get; init; }
     public bool IsPublished { get; init; }
+    public bool HasQuiz { get; init; }
     public double Rating { get; init; }
     public int Order { get; init; }
     public Guid LevelId { get; init; }

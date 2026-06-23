@@ -4,7 +4,7 @@ using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.Courses.Queries.GetCourseRoadmap;
 
-public record GetCourseRoadmapQuery(Guid LevelId, Guid? StudentId = null) : IRequest<Result<CourseRoadmapDto>>;
+public record GetCourseRoadmapQuery(Guid LevelId, Guid? StudentId = null, bool? IsPublished = null) : IRequest<Result<CourseRoadmapDto>>;
 
 public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuery, Result<CourseRoadmapDto>>
 {
@@ -31,8 +31,15 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
         }
 
         // Get all courses in the level
-        var courses = await _context.Courses
-            .Where(c => c.LevelId == request.LevelId)
+        var coursesQuery = _context.Courses
+            .Where(c => c.LevelId == request.LevelId);
+
+        if (request.IsPublished.HasValue)
+        {
+            coursesQuery = coursesQuery.Where(c => c.IsPublished == request.IsPublished.Value);
+        }
+
+        var courses = await coursesQuery
             .Select(c => new RoadmapCourseDto
             {
                 Id = c.Id,
@@ -40,12 +47,38 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 Description = c.Description,
                 ThumbnailUrl = c.ThumbnailUrl,
                 IsPublished = c.IsPublished,
+                HasQuiz = c.HasQuiz,
                 Order = c.Order
             })
             .ToListAsync(cancellationToken);
 
-        // Get all prerequisites for courses in this level
         var courseIds = courses.Select(c => c.Id).ToList();
+
+        // Load lesson counts per course
+        var lessonCounts = await _context.Lessons
+            .AsNoTracking()
+            .Where(l => courseIds.Contains(l.CourseId) && l.IsPublished)
+            .GroupBy(l => l.CourseId)
+            .Select(g => new { CourseId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
+        var lessonDurations = await _context.Lessons
+            .AsNoTracking()
+            .Where(l => courseIds.Contains(l.CourseId) && l.IsPublished && l.Duration.HasValue)
+            .Select(l => new { l.CourseId, l.Duration })
+            .ToListAsync(cancellationToken);
+
+        var lessonDurationTicks = lessonDurations
+            .GroupBy(l => l.CourseId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.Duration!.Value.Ticks));
+
+        foreach (var course in courses)
+        {
+            course.CountOfLessons = lessonCounts.TryGetValue(course.Id, out var count) ? count : 0;
+            course.CourseDuration = TimeSpan.FromTicks(lessonDurationTicks.TryGetValue(course.Id, out var ticks) ? ticks : 0);
+        }
+
+        // Get all prerequisites for courses in this level
         var prerequisites = await _context.CoursePrerequisites
             .Where(cp => courseIds.Contains(cp.CourseId))
             .Select(cp => new
@@ -86,14 +119,34 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
             var allPrerequisiteIds = prerequisites.Select(p => p.PrerequisiteCourseId).Distinct().ToList();
             var allRelevantCourseIds = courseIds.Union(allPrerequisiteIds).ToList();
 
+            // Pre-load total lesson counts for all relevant courses in a single query
+            var totalLessonsCounts = await _context.Lessons
+                .AsNoTracking()
+                .Where(l => allRelevantCourseIds.Contains(l.CourseId) && l.IsPublished)
+                .GroupBy(l => l.CourseId)
+                .Select(g => new { CourseId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
+            // Pre-load completed lesson counts for the student in a single query
+            var completedLessonsCounts = await _context.StudentProgresses
+                .AsNoTracking()
+                .Where(sp => sp.StudentId == studentId.Value && sp.IsCompleted)
+                .Join(
+                    _context.Lessons.AsNoTracking().Where(l => allRelevantCourseIds.Contains(l.CourseId) && l.IsPublished),
+                    sp => sp.LessonId,
+                    l => l.Id,
+                    (sp, l) => new { l.CourseId })
+                .GroupBy(x => x.CourseId)
+                .Select(g => new { CourseId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CourseId, x => x.Count, cancellationToken);
+
             var enrollments = await _context.Enrollments
-                .Where(e => e.StudentId == studentId.Value && 
+                .Where(e => e.StudentId == studentId.Value &&
                            allRelevantCourseIds.Contains(e.CourseId))
                 .Select(e => new
                 {
                     e.CourseId,
-                    e.Status,
-                    e.CourseProgress
+                    e.Status
                 })
                 .ToListAsync(cancellationToken);
 
@@ -103,7 +156,11 @@ public class GetCourseRoadmapQueryHandler : IRequestHandler<GetCourseRoadmapQuer
                 if (enrollment != null)
                 {
                     course.EnrollmentStatus = enrollment.Status;
-                    course.Progress = enrollment.CourseProgress;
+                    var totalLessons = totalLessonsCounts.TryGetValue(course.Id, out var tlc) ? tlc : 0;
+                    var completedLessons = completedLessonsCounts.TryGetValue(course.Id, out var clc) ? clc : 0;
+                    course.Progress = totalLessons == 0
+                        ? 0
+                        : Math.Round(((double)completedLessons / totalLessons) * 100, 2);
                 }
 
                 // Check if course is available (all prerequisites completed)
@@ -158,7 +215,10 @@ public class RoadmapCourseDto
     public string? Description { get; init; }
     public string? ThumbnailUrl { get; init; }
     public bool IsPublished { get; init; }
+    public bool HasQuiz { get; init; }
     public int Order { get; init; }
+    public int CountOfLessons { get; set; }
+    public TimeSpan CourseDuration { get; set; }
     
     public List<Guid> PrerequisiteIds { get; set; } = new();
     public bool IsAvailable { get; set; }

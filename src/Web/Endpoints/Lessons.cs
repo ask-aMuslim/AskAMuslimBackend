@@ -1,10 +1,10 @@
 using AskAMuslimBackend.Application.Lessons.Commands.CreateLesson;
 using AskAMuslimBackend.Application.Lessons.Commands.DeleteLesson;
+using AskAMuslimBackend.Application.Lessons.Commands.SetLessonDuration;
 using AskAMuslimBackend.Application.Lessons.Commands.UpdateLesson;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonById;
 using AskAMuslimBackend.Application.Lessons.Queries.GetLessonsWithPagination;
 using AskAMuslimBackend.Domain.Constants;
-using AskAMuslimBackend.Web.Infrastructure;
 
 namespace AskAMuslimBackend.Web.Endpoints;
 
@@ -13,7 +13,10 @@ public class Lessons : EndpointGroupBase
     public override void Map(RouteGroupBuilder groupBuilder)
     {
         groupBuilder.MapGet(GetLessonsWithPagination).WithName("GetLessons").WithSummary("Get lessons (optionally filtered by course)");
-        groupBuilder.MapGet(GetLessonById, "{id}").WithName("GetLesson").WithSummary("Get a lesson by id");
+        groupBuilder.MapGet(GetLessonById, "{id}")
+            .RequireAuthorization()
+            .WithName("GetLesson")
+            .WithSummary("Get a lesson by id");
         groupBuilder.MapPost(CreateLesson)
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("CreateLesson")
@@ -22,16 +25,19 @@ public class Lessons : EndpointGroupBase
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("UpdateLesson")
             .WithSummary("Update a lesson");
+        groupBuilder.MapPut(SetDuration, "{id}/duration")
+            .RequireAuthorization(Policies.ManageLessons)
+            .WithName("SetLessonDuration")
+            .WithSummary("Auto-resolve or manually set lesson duration. Auto for Video/Audio; manual override optional.");
         groupBuilder.MapDelete(DeleteLesson, "{id}")
             .RequireAuthorization(Policies.ManageLessons)
             .WithName("DeleteLesson")
             .WithSummary("Delete a lesson");
     }
 
-    public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query, HttpRequest request)
+    public async Task<IResult> GetLessonsWithPagination(ISender sender, [AsParameters] GetLessonsWithPaginationQuery query)
     {
-        var language = LanguageResolver.Resolve(request.Headers);
-        var result = await sender.Send(query with { Language = language });
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 
@@ -50,6 +56,12 @@ public class Lessons : EndpointGroupBase
     public async Task<IResult> UpdateLesson(ISender sender, Guid id, UpdateLessonCommand command)
     {
         var result = await sender.Send(command with { Id = id });
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> SetDuration(ISender sender, Guid id, SetLessonDurationCommand command)
+    {
+        var result = await sender.Send(command with { LessonId = id });
         return result.ToHttpResult();
     }
 

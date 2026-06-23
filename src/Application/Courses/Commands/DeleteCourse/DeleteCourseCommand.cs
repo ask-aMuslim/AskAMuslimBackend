@@ -1,6 +1,5 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
-using AskAMuslimBackend.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -43,44 +42,44 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
             {
                 var courseList = string.Join(", ", dependentCourses.Take(3));
                 var moreCount = dependentCourses.Count > 3 ? $" and {dependentCourses.Count - 3} more" : "";
-                return Result.Failure(new[] 
-                { 
+                return Result.Failure(new[]
+                {
                     _localizer.GetString("Courses.IsPrerequisiteFor", $"{courseList}{moreCount}")
                 });
             }
 
-            // 3. Check if course has lessons
-            var lessonCount = await _context.Lessons
-                .CountAsync(l => l.CourseId == request.Id, cancellationToken);
+            // 3. Delete all StudentProgress records for this course
+            await _context.StudentProgresses
+                .Where(sp => sp.CourseId == request.Id)
+                .ExecuteDeleteAsync(cancellationToken);
 
-            if (lessonCount > 0)
+            // 4. Delete all enrollments for this course
+            await _context.Enrollments
+                .Where(e => e.CourseId == request.Id)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            // 5. Delete all lesson-level related records (StudentNotes, StudentQuestions, LessonFeedbacks)
+            var lessonIds = await _context.Lessons
+                .Where(l => l.CourseId == request.Id)
+                .Select(l => l.Id)
+                .ToListAsync(cancellationToken);
+
+            if (lessonIds.Any())
             {
-                return Result.Failure(new[] 
-                { 
-                    _localizer.GetString("Courses.HasLessons", lessonCount)
-                });
+                await _context.StudentNotes
+                    .Where(n => lessonIds.Contains(n.LessonId))
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                await _context.StudentQuestions
+                    .Where(sq => lessonIds.Contains(sq.LessonId))
+                    .ExecuteDeleteAsync(cancellationToken);
+
+                await _context.LessonFeedbacks
+                    .Where(lf => lessonIds.Contains(lf.LessonId))
+                    .ExecuteDeleteAsync(cancellationToken);
             }
 
-            // 4. Check for active enrollments (single query)
-            var activeEnrollmentInfo = await _context.Enrollments
-                .Where(e => e.CourseId == request.Id && e.Status == Domain.Enums.EnrollmentStatus.Active)
-                .Select(e => new { e.StudentId })
-                .Take(1)
-                .AnyAsync(cancellationToken);
-
-            if (activeEnrollmentInfo)
-            {
-                var activeCount = await _context.Enrollments
-                    .CountAsync(e => e.CourseId == request.Id && e.Status == Domain.Enums.EnrollmentStatus.Active, 
-                        cancellationToken);
-
-                return Result.Failure(new[] 
-                { 
-                    _localizer.GetString("Courses.HasActiveEnrollments", activeCount)
-                });
-            }
-
-            // 5. Get all quiz IDs (course quizzes only, since lessons are blocked from deletion)
+            // 6. Delete all quizzes for this course and their child data
             var allQuizIds = await _context.Quizzes
                 .Where(q => q.CourseId == request.Id)
                 .Select(q => q.Id)
@@ -88,66 +87,59 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
 
             if (allQuizIds.Any())
             {
-                // 6. Get quiz attempt IDs (single query)
                 var attemptIds = await _context.QuizAttempts
                     .Where(qa => allQuizIds.Contains(qa.QuizId))
                     .Select(qa => qa.Id)
                     .ToListAsync(cancellationToken);
 
-                // 7. Bulk delete quiz attempt answers
                 if (attemptIds.Any())
                 {
                     await _context.QuizAttemptAnswers
                         .Where(a => attemptIds.Contains(a.QuizAttemptId))
                         .ExecuteDeleteAsync(cancellationToken);
+
+                    await _context.QuizAttempts
+                        .Where(qa => attemptIds.Contains(qa.Id))
+                        .ExecuteDeleteAsync(cancellationToken);
                 }
 
-                // 8. Bulk delete quiz attempts
-                await _context.QuizAttempts
-                    .Where(qa => allQuizIds.Contains(qa.QuizId))
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                // 9. Get question IDs (single query)
                 var questionIds = await _context.Questions
                     .Where(q => allQuizIds.Contains(q.QuizId))
                     .Select(q => q.Id)
                     .ToListAsync(cancellationToken);
 
-                // 10. Bulk delete options
                 if (questionIds.Any())
                 {
                     await _context.Options
                         .Where(o => questionIds.Contains(o.QuestionId))
                         .ExecuteDeleteAsync(cancellationToken);
+
+                    await _context.Questions
+                        .Where(q => allQuizIds.Contains(q.QuizId))
+                        .ExecuteDeleteAsync(cancellationToken);
                 }
 
-                // 11. Bulk delete questions
-                await _context.Questions
-                    .Where(q => allQuizIds.Contains(q.QuizId))
-                    .ExecuteDeleteAsync(cancellationToken);
-
-                // 12. Bulk delete quizzes
                 await _context.Quizzes
                     .Where(q => allQuizIds.Contains(q.Id))
                     .ExecuteDeleteAsync(cancellationToken);
             }
 
-            // 13. Bulk delete course tags
+            // 7. Delete all lessons
+            await _context.Lessons
+                .Where(l => l.CourseId == request.Id)
+                .ExecuteDeleteAsync(cancellationToken);
+
+            // 8. Delete course tags
             await _context.CourseTags
                 .Where(ct => ct.CourseId == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            // 14. Bulk delete course prerequisites
+            // 9. Delete course prerequisites
             await _context.CoursePrerequisites
                 .Where(cp => cp.CourseId == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            // 15. Bulk delete enrollments (completed/cancelled ones only, active ones already checked)
-            await _context.Enrollments
-                .Where(e => e.CourseId == request.Id)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            // 16. Finally, delete the course
+            // 10. Finally, delete the course
             await _context.Courses
                 .Where(c => c.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
@@ -156,17 +148,16 @@ public class DeleteCourseCommandHandler : IRequestHandler<DeleteCourseCommand, R
         }
         catch (DbUpdateException ex)
         {
-            // Handle database-specific errors
-            return Result.Failure(new[] 
-            { 
+            return Result.Failure(new[]
+            {
                 _localizer["Courses.DeleteDbError"],
                 $"Technical details: {ex.InnerException?.Message ?? ex.Message}"
             });
         }
         catch (Exception ex)
         {
-            return Result.Failure(new[] 
-            { 
+            return Result.Failure(new[]
+            {
                 _localizer["Courses.DeleteUnexpectedError"],
                 $"Error: {ex.Message}"
             });

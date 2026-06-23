@@ -17,6 +17,7 @@ public class QADetailDto
 {
     public Guid Id { get; init; }
     public bool IsPublished { get; init; }
+    public int Order { get; init; }
     public List<QATranslationDto> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
 }

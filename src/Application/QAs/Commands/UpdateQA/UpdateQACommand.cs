@@ -12,6 +12,7 @@ public record UpdateQACommand : IRequest<Result>
     [JsonIgnore] // Set from route parameter, not request body
     public Guid Id { get; init; }
     public bool IsPublished { get; init; }
+    public int Order { get; init; }
     public List<UpdateQATranslationInput> Translations { get; init; } = new();
     public List<Guid> TagIds { get; init; } = new();
 }
@@ -19,7 +20,7 @@ public record UpdateQACommand : IRequest<Result>
 public record UpdateQATranslationInput
 {
     public Guid? Id { get; init; } // null => new translation
-    public Domain.Enums.Language Language { get; init; }
+    public Domain.Enums.Language? Language { get; init; }
     public string QuestionText { get; init; } = string.Empty;
     public string AnswerText { get; init; } = string.Empty;
     public string? AnswerTextJson { get; init; }
@@ -48,6 +49,7 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
             return Result.Failure(new[] { _localizer["QAs.NotFound"] });
 
         entity.IsPublished = request.IsPublished;
+        entity.Order = request.Order;
 
         // Update tags
         var currentTagIds = entity.QATags.Select(t => t.TagId).ToHashSet();
@@ -73,17 +75,20 @@ public class UpdateQACommandHandler : IRequestHandler<UpdateQACommand, Result>
                 }
                 else
                 {
-                    existing.Language = tr.Language;
                     existing.QuestionText = tr.QuestionText;
                     existing.AnswerText = tr.AnswerText;
                     existing.AnswerTextJson = tr.AnswerTextJson;
+                    if (tr.Language.HasValue)
+                        existing.Language = tr.Language.Value;
                 }
             }
             else if (!tr.IsDeleted && !tr.Id.HasValue)
             {
+                var language = tr.Language ?? Domain.Enums.Language.English;
+
                 entity.Translations.Add(new Domain.Entities.QATranslation
                 {
-                    Language = tr.Language,
+                    Language = language,
                     QuestionText = tr.QuestionText,
                     AnswerText = tr.AnswerText,
                     AnswerTextJson = tr.AnswerTextJson
@@ -117,10 +122,16 @@ public class UpdateQACommandValidator : AbstractValidator<UpdateQACommand>
             tr.RuleFor(t => t.AnswerTextJson)
                 .Must(BeValidTiptapJson).WithMessage(t => GetTiptapJsonError(t.AnswerTextJson))
                 .When(t => !string.IsNullOrEmpty(t.AnswerTextJson));
-            tr.RuleFor(t => t.Language).IsInEnum();
+            tr.RuleFor(t => t.Language)
+                .IsInEnum()
+                .When(t => !t.Id.HasValue); // validate if sent for new translations
         });
 
-        RuleFor(x => x.Translations.Where(t => !t.IsDeleted).Select(t => t.Language))
+        RuleFor(x =>
+                x.Translations
+                 .Where(t => !t.IsDeleted)
+                 .Select(t => t.Language ?? Domain.Enums.Language.English)
+                 .ToList())
             .Must(langs => langs.Distinct().Count() == langs.Count())
             .WithMessage("Active translations must have unique languages.");
     }

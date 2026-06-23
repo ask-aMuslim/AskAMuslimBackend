@@ -18,24 +18,56 @@ public class GetEnrollmentByIdQueryHandler : IRequestHandler<GetEnrollmentByIdQu
     public async Task<Result<EnrollmentDto?>> Handle(GetEnrollmentByIdQuery request, CancellationToken cancellationToken)
     {
         var enrollment = await _context.Enrollments
+            .AsNoTracking()
             .Where(e => e.Id == request.Id)
-            .Select(s => new EnrollmentDto {
-            Id = s.Id,
-            StudentId = s.StudentId,
-            CourseId = s.CourseId,
-            EnrolledAt = s.EnrolledAt,
-            Status = s.Status,
-            LevelProgress = s.LevelProgress,
-            CourseProgress = s.CourseProgress,
-            CompletedLessonsCount = s.CompletedLessonsCount,
-                RemainingLessonsCount =
-                    ((s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount) - s.CompletedLessonsCount) > 0
-                        ? (s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount) - s.CompletedLessonsCount
-                        : 0,
-                LessonsInCourse = s.Course != null ? s.Course.Lessons.Count : s.TotalLessonsCount
-    })
+            .Select(e => new
+            {
+                e.Id,
+                e.StudentId,
+                e.CourseId,
+                e.EnrolledAt,
+                e.Status,
+                e.LevelProgress,
+                TotalLessonsCount = e.Course != null
+                    ? e.Course.Lessons.Count(l => l.IsPublished)
+                    : e.TotalLessonsCount
+            })
             .FirstOrDefaultAsync(cancellationToken);
-            
-        return Result<EnrollmentDto?>.Success(enrollment);
+
+        if (enrollment is null)
+            return Result<EnrollmentDto?>.Success(null);
+
+        var completedLessonsCount = await _context.StudentProgresses
+            .AsNoTracking()
+            .Where(sp =>
+                sp.StudentId == enrollment.StudentId &&
+                sp.CourseId == enrollment.CourseId &&
+                sp.IsCompleted)
+            .Join(
+                _context.Lessons
+                    .AsNoTracking()
+                    .Where(l => l.CourseId == enrollment.CourseId && l.IsPublished),
+                sp => sp.LessonId,
+                l => l.Id,
+                (sp, l) => sp.Id)
+            .CountAsync(cancellationToken);
+
+        var dto = new EnrollmentDto
+        {
+            Id = enrollment.Id,
+            StudentId = enrollment.StudentId,
+            CourseId = enrollment.CourseId,
+            EnrolledAt = enrollment.EnrolledAt,
+            Status = enrollment.Status,
+            LevelProgress = enrollment.LevelProgress,
+            CompletedLessonsCount = completedLessonsCount,
+            LessonsInCourse = enrollment.TotalLessonsCount,
+            RemainingLessonsCount = Math.Max(0, enrollment.TotalLessonsCount - completedLessonsCount),
+            CourseProgress = enrollment.TotalLessonsCount == 0
+                ? 0
+                : Math.Round((double)completedLessonsCount / enrollment.TotalLessonsCount * 100, 2)
+        };
+
+        return Result<EnrollmentDto?>.Success(dto);
     }
 }

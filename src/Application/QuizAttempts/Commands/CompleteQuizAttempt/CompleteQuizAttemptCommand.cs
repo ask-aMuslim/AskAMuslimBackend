@@ -142,7 +142,21 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
                 // so we can mark the course as Completed
                 if (isPassed && attempt.Quiz?.TargetType == Domain.Enums.QuizTargetType.Course)
                 {
-                    if (enrollment.CompletedLessonsCount >= enrollment.TotalLessonsCount && enrollment.TotalLessonsCount > 0)
+                    var totalPublishedLessonsCount = await _context.Lessons
+                        .AsNoTracking()
+                        .CountAsync(l => l.CourseId == courseId.Value && l.IsPublished, cancellationToken);
+
+                    var completedPublishedLessonsCount = await _context.StudentProgresses
+                        .AsNoTracking()
+                        .Where(sp => sp.StudentId == attempt.StudentId && sp.CourseId == courseId.Value && sp.IsCompleted)
+                        .Join(
+                            _context.Lessons.AsNoTracking().Where(l => l.CourseId == courseId.Value && l.IsPublished),
+                            sp => sp.LessonId,
+                            l => l.Id,
+                            (sp, _) => sp.Id)
+                        .CountAsync(cancellationToken);
+
+                    if (completedPublishedLessonsCount >= totalPublishedLessonsCount && totalPublishedLessonsCount > 0)
                     {
                         if (enrollment.Status != Domain.Enums.EnrollmentStatus.Completed)
                         {
@@ -162,7 +176,7 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
                 {
                     // Level progress: percentage of courses in level that are completed by student
                     var levelCourseIds = await _context.Courses
-                        .Where(c => c.LevelId == levelId.Value)
+                        .Where(c => c.LevelId == levelId.Value && c.IsPublished)
                         .Select(c => c.Id)
                         .ToListAsync(cancellationToken);
 
@@ -194,7 +208,7 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
         {
             // Level-only quiz: recompute LevelProgress for all enrollments of this student within the level
             var levelCourseIds = await _context.Courses
-                .Where(c => c.LevelId == levelId.Value)
+                .Where(c => c.LevelId == levelId.Value && c.IsPublished)
                 .Select(c => c.Id)
                 .ToListAsync(cancellationToken);
 

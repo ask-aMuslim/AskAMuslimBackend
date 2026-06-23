@@ -5,7 +5,6 @@ using AskAMuslimBackend.Application.Levels.Commands.UpdateLevel;
 using AskAMuslimBackend.Application.Levels.Queries.GetLevelsWithPagination;
 using AskAMuslimBackend.Application.Levels.Queries.GetLevelById;
 using AskAMuslimBackend.Application.Levels.Queries;
-using AskAMuslimBackend.Web.Infrastructure;
 using Microsoft.AspNetCore.Http.HttpResults;
 using AskAMuslimBackend.Domain.Constants;
 
@@ -31,10 +30,9 @@ public class Levels : EndpointGroupBase
             .WithSummary("Delete a level");
     }
 
-    public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query, HttpRequest request)
+    public async Task<IResult> GetLevelsWithPagination(ISender sender, [AsParameters] GetLevelsWithPaginationQuery query)
     {
-        var language = LanguageResolver.Resolve(request.Headers);
-        var result = await sender.Send(query with { Language = language });
+        var result = await sender.Send(query);
         return result.ToHttpResult();
     }
 

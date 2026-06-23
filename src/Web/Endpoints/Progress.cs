@@ -13,7 +13,7 @@ public class Progress : EndpointGroupBase
         groupBuilder.MapPost(CompleteLesson, "lesson/complete")
             .RequireAuthorization()
             .WithName("CompleteLesson")
-            .WithSummary("Marks a lesson as complete for the current student");
+            .WithSummary("Marks a lesson as complete for the current student, including video, audio, text, or document lessons");
 
         groupBuilder.MapGet(GetCourseProgress, "course/{courseId}")
             .RequireAuthorization()
@@ -21,7 +21,7 @@ public class Progress : EndpointGroupBase
             .WithSummary("Returns progress for a given course");
     }
 
-    private async Task<bool> CompleteLesson(ISender sender, [FromBody] CompleteLessonCommand command)
+    private async Task<CompleteLessonResult> CompleteLesson(ISender sender, [FromBody] CompleteLessonCommand command)
     {
         return await sender.Send(command);
     }

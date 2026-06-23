@@ -1,4 +1,5 @@
 {
+  "Errors.BadRequest": "Bad Request",
   "Errors.ResourceNotFound": "The specified resource was not found.",
   "Errors.Unauthorized": "Unauthorized",
   "Errors.Forbidden": "Forbidden",

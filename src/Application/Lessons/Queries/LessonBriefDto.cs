@@ -17,5 +17,9 @@ public class LessonBriefDto
     public string? ContentUrl { get; init; }
     public string? Transcript { get; init; }
     public bool IsPublished { get; init; }
+    public bool HasQuiz { get; init; }
+    public bool IsComplete { get; set; }
+    public TimeSpan? Duration { get; init; }
+    public string? LevelName { get; init; }
     public Language Language { get; init; }
 }
