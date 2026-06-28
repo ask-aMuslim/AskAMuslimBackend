@@ -50,7 +50,8 @@ public class GetAllMeetingRequestsQueryHandler : IRequestHandler<GetAllMeetingRe
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(mr => mr.Message.Contains(request.SearchTerm));
+            var searchLower = request.SearchTerm.ToLower();
+            query = query.Where(mr => mr.Message.ToLower().Contains(searchLower));
         }
 
         var paginatedList = await query

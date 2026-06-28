@@ -38,8 +38,8 @@ public class GetMuslimTubeVideosByChannelQueryHandler : IRequestHandler<GetMusli
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var term = request.SearchTerm.Trim();
-            query = query.Where(v => v.Title.Contains(term) || (v.Description != null && v.Description.Contains(term)));
+            var term = request.SearchTerm.Trim().ToLower();
+            query = query.Where(v => v.Title.ToLower().Contains(term) || (v.Description != null && v.Description.ToLower().Contains(term)));
         }
         if (request.PublishedAfter.HasValue)
         {

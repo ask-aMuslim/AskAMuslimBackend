@@ -48,7 +48,8 @@ public class GetQuizzesWithPaginationQueryHandler : IRequestHandler<GetQuizzesWi
         }
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(q => q.Title.Contains(request.SearchTerm));
+            var searchLower = request.SearchTerm.ToLower();
+            query = query.Where(q => q.Title.ToLower().Contains(searchLower));
         }
 
         var result = await query

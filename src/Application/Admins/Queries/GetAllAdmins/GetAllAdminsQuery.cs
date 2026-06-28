@@ -47,12 +47,13 @@ public class GetAllAdminsQueryHandler : IRequestHandler<GetAllAdminsQuery, Resul
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(a => 
-                a.Email.Contains(request.SearchTerm) ||
-                a.FirstName.Contains(request.SearchTerm) ||
-                a.LastName.Contains(request.SearchTerm) ||
-                (a.FirstName + " " + a.LastName).Contains(request.SearchTerm) ||
-                (a.Department != null && a.Department.Contains(request.SearchTerm)));
+                a.Email.ToLower().Contains(searchLower) ||
+                a.FirstName.ToLower().Contains(searchLower) ||
+                a.LastName.ToLower().Contains(searchLower) ||
+                (a.FirstName + " " + a.LastName).ToLower().Contains(searchLower) ||
+                (a.Department != null && a.Department.ToLower().Contains(searchLower)));
         }
 
         // Apply IsActive filter if specified

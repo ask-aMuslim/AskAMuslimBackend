@@ -52,10 +52,11 @@ public class GetUsersForPermissionAssignmentQueryHandler : IRequestHandler<GetUs
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             usersQuery = usersQuery.Where(u => 
-                u.Email!.Contains(request.SearchTerm) ||
-                u.FirstName.Contains(request.SearchTerm) ||
-                u.LastName.Contains(request.SearchTerm));
+                u.Email!.ToLower().Contains(searchLower) ||
+                u.FirstName.ToLower().Contains(searchLower) ||
+                u.LastName.ToLower().Contains(searchLower));
         }
 
         var users = await usersQuery

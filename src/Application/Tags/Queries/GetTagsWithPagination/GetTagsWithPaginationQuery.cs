@@ -27,7 +27,8 @@ public class GetTagsWithPaginationQueryHandler : IRequestHandler<GetTagsWithPagi
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(t => t.Title.Contains(request.SearchTerm));
+            var searchLower = request.SearchTerm.ToLower();
+            query = query.Where(t => t.Title.ToLower().Contains(searchLower));
         }
 
         var paginatedList = await query

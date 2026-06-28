@@ -35,16 +35,16 @@ public class GetQAsWithPaginationQueryHandler : IRequestHandler<GetQAsWithPagina
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            var searchTerm = request.SearchTerm;
+            var searchTerm = request.SearchTerm.ToLower();
 
             // First: try title-only matches
-            var titleMatches = query.Where(q => q.Translations.Any(t => t.QuestionText.Contains(searchTerm)));
+            var titleMatches = query.Where(q => q.Translations.Any(t => t.QuestionText.ToLower().Contains(searchTerm)));
             var hasTitleMatches = await titleMatches.AnyAsync(cancellationToken);
 
             // Fallback to content search only if no title matches found
             query = hasTitleMatches
                 ? titleMatches
-                : query.Where(q => q.Translations.Any(t => t.AnswerText.Contains(searchTerm)));
+                : query.Where(q => q.Translations.Any(t => t.AnswerText.ToLower().Contains(searchTerm)));
         }
 
         if (request.TagIds != null && request.TagIds.Any())

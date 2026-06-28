@@ -37,7 +37,8 @@ public class GetFormsQueryHandler : IRequestHandler<GetFormsQuery, Result<Pagina
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(f => f.Title.Contains(request.SearchTerm) || (f.Description != null && f.Description.Contains(request.SearchTerm)));
+            var searchLower = request.SearchTerm.ToLower();
+            query = query.Where(f => f.Title.ToLower().Contains(searchLower) || (f.Description != null && f.Description.ToLower().Contains(searchLower)));
         }
 
         var forms = await query
