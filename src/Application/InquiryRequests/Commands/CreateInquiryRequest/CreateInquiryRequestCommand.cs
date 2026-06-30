@@ -21,7 +21,7 @@ public class CreateInquiryRequestCommandHandler : IRequestHandler<CreateInquiryR
     private readonly IUser _user;
     private readonly IEmailService _emailService;
     private readonly IBackgroundJobClient _backgroundJobClient;
-    private const string CONTACT_EMAIL = "info@askamuslim.com";
+    private const string CONTACT_EMAIL = "info@ask-a-muslim.com";
 
     public CreateInquiryRequestCommandHandler(
         IApplicationDbContext context,

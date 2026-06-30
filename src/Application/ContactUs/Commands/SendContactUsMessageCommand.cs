@@ -16,7 +16,7 @@ public class SendContactUsMessageCommandHandler : IRequestHandler<SendContactUsM
 {
     private readonly IEmailService _emailService;
     private readonly ILogger<SendContactUsMessageCommandHandler> _logger;
-    private const string CONTACT_EMAIL = "info@askamuslim.com";
+    private const string CONTACT_EMAIL = "info@ask-a-muslim.com";
 
     public SendContactUsMessageCommandHandler(
         IEmailService emailService,

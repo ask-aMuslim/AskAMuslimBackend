@@ -20,7 +20,7 @@ public class CreateStudentQuestionCommandHandler : IRequestHandler<CreateStudent
     private readonly IApplicationDbContext _context;
     private readonly IEmailService _emailService;
     private readonly IBackgroundJobClient _backgroundJobClient;
-    private const string CONTACT_EMAIL = "info@askamuslim.com";
+    private const string CONTACT_EMAIL = "info@ask-a-muslim.com";
 
     public CreateStudentQuestionCommandHandler(
         IApplicationDbContext context,
