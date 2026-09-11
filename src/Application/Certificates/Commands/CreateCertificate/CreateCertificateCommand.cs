@@ -10,6 +10,7 @@ public record CreateCertificateCommand : IRequest<Result<Guid>>
 {
     public Guid StudentId { get; init; }
     public Guid LevelId { get; init; }
+    public Guid? CourseId { get; init; }
     public string Url { get; init; } = string.Empty;
 }
 
@@ -35,6 +36,15 @@ public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificate
             return Result<Guid>.Failure(errors);
         }
 
+        if (request.CourseId.HasValue)
+        {
+            var courseExists = await _context.Courses.AnyAsync(co => co.Id == request.CourseId.Value, cancellationToken);
+            if (!courseExists)
+            {
+                return Result<Guid>.Failure(new[] { "Course does not exist." });
+            }
+        }
+
         var alreadyIssued = await _context.Certificates.AnyAsync(c => c.StudentId == request.StudentId && c.LevelId == request.LevelId, cancellationToken);
         if (alreadyIssued)
         {
@@ -45,6 +55,7 @@ public class CreateCertificateCommandHandler : IRequestHandler<CreateCertificate
         {
             StudentId = request.StudentId,
             LevelId = request.LevelId,
+            CourseId = request.CourseId,
             Url = request.Url,
             IssuedAt = DateTime.UtcNow
         };

@@ -24,6 +24,7 @@ public class GetCertificatesByStudentQueryHandler : IRequestHandler<GetCertifica
             Id = s.Id,
             StudentId = s.StudentId,
             LevelId = s.LevelId,
+            CourseId = s.CourseId,
             Url = s.Url,
             IssuedAt = s.IssuedAt
     })

@@ -188,6 +188,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CourseId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -215,6 +218,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("LevelId")
                         .IsUnique();
@@ -2517,6 +2522,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Certificate", b =>
                 {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "Course")
+                        .WithMany("Certificates")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AskAMuslimBackend.Domain.Entities.Level", "Level")
                         .WithOne("Certificate")
                         .HasForeignKey("AskAMuslimBackend.Domain.Entities.Certificate", "LevelId")
@@ -2528,6 +2538,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Course");
 
                     b.Navigation("Level");
                 });
@@ -3096,6 +3108,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Course", b =>
                 {
+                    b.Navigation("Certificates");
+
                     b.Navigation("CoursePrerequisites");
 
                     b.Navigation("CourseTags");
