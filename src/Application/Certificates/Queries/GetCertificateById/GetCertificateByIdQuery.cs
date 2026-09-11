@@ -23,6 +23,7 @@ public class GetCertificateByIdQueryHandler : IRequestHandler<GetCertificateById
             Id = s.Id,
             StudentId = s.StudentId,
             LevelId = s.LevelId,
+            CourseId = s.CourseId,
             Url = s.Url,
             IssuedAt = s.IssuedAt
     })

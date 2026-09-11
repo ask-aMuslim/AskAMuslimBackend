@@ -7887,6 +7887,11 @@
             "type": "string",
             "format": "guid"
           },
+          "courseId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
           "url": {
             "type": "string"
           }
