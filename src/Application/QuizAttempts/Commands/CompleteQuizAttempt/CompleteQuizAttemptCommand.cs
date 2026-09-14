@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Domain.Events;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -161,6 +162,20 @@ public class CompleteQuizAttemptCommandHandler : IRequestHandler<CompleteQuizAtt
                         if (enrollment.Status != Domain.Enums.EnrollmentStatus.Completed)
                         {
                             enrollment.Status = Domain.Enums.EnrollmentStatus.Completed;
+
+                            // Resolve LevelId now so the domain event carries the correct value.
+                            // (levelId ??= ... further below is what would normally set it.)
+                            var resolvedLevelId = levelId ?? await _context.Courses
+                                .Where(c => c.Id == courseId.Value)
+                                .Select(c => (Guid?)c.LevelId)
+                                .FirstOrDefaultAsync(cancellationToken);
+
+                            enrollment.AddDomainEvent(new CourseCompletedDomainEvent(
+                                enrollment.Id,
+                                enrollment.StudentId,
+                                enrollment.CourseId,
+                                resolvedLevelId ?? Guid.Empty,
+                                DateTime.UtcNow));
                             await _context.SaveChangesAsync(cancellationToken);
                         }
                     }
