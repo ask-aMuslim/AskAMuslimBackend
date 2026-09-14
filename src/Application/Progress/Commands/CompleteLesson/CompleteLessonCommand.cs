@@ -1,6 +1,7 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
+using AskAMuslimBackend.Domain.Events;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -152,6 +153,8 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
 
             enrollment.TotalLessonsCount = enrollment.Course!.Lessons.Count(l => l.IsPublished);
 
+            var previousStatus = enrollment.Status;
+
             // Count completed published lessons excluding the current lesson (which we just completed in-memory)
             var currentCompletedCount = await _context.StudentProgresses
                 .AsNoTracking()
@@ -187,6 +190,18 @@ public class CompleteLessonCommandHandler : IRequestHandler<CompleteLessonComman
                         enrollment.Status = AskAMuslimBackend.Domain.Enums.EnrollmentStatus.Completed;
                     }
                 }
+            }
+
+            // Raise CourseCompleted domain event only on the Active -> Completed transition.
+            // DispatchDomainEventsInterceptor will publish it during the SaveChangesAsync below.
+            if (previousStatus != EnrollmentStatus.Completed && enrollment.Status == EnrollmentStatus.Completed)
+            {
+                enrollment.AddDomainEvent(new CourseCompletedDomainEvent(
+                    enrollment.Id,
+                    enrollment.StudentId,
+                    enrollment.CourseId,
+                    enrollment.Course?.LevelId ?? Guid.Empty,
+                    DateTime.UtcNow));
             }
         }
 
