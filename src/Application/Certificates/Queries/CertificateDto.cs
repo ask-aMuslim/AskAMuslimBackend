@@ -11,4 +11,8 @@ public class CertificateDto
     public Guid? CourseId { get; init; }
     public string Url { get; init; } = string.Empty;
     public DateTime IssuedAt { get; init; }
+
+    public string? StudentFullName { get; init; }
+    public string? LevelName { get; init; }
+    public string? CourseName { get; init; }
 }
