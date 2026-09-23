@@ -208,6 +208,41 @@ public class ApplicationDbContextInitialiser
                 }
             }
 
+            // --- Seed Languages (idempotent, upsert by Code) ---
+            _logger.LogInformation("🌍 Seeding Languages...");
+            var languageSeeds = new[]
+            {
+                new AppLanguage { Name = "English",   Code = "en" },
+                new AppLanguage { Name = "Arabic",    Code = "ar" },
+                new AppLanguage { Name = "French",    Code = "fr" },
+                new AppLanguage { Name = "Spanish",   Code = "es" },
+                new AppLanguage { Name = "German",    Code = "de" },
+                new AppLanguage { Name = "Portuguese", Code = "pt" }
+            };
+
+            var existingLanguages = await _context.AppLanguages
+                .AsNoTracking()
+                .ToListAsync();
+
+            var existingCodes = new HashSet<string>(
+                existingLanguages.Select(l => l.Code),
+                StringComparer.OrdinalIgnoreCase);
+
+            var missingLanguages = languageSeeds
+                .Where(l => !existingCodes.Contains(l.Code))
+                .ToList();
+
+            if (missingLanguages.Count > 0)
+            {
+                _context.AppLanguages.AddRange(missingLanguages);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("✅ Seeded {Count} language(s)", missingLanguages.Count);
+            }
+            else
+            {
+                _logger.LogInformation("Languages already seeded, skipping.");
+            }
+
             // --- Default Users ---
             // Read admin configuration from appsettings
             _logger.LogInformation("📖 Reading admin configuration from appsettings...");
