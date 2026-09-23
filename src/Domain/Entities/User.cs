@@ -18,5 +18,5 @@ public class User : IdentityUser<Guid>
     public DateTime? RefreshTokenExpiryTime { get; set; }
     public string? FcmToken { get; set; }
 
-    public List<Language> Languages { get; set; } = new();
+    public ICollection<AppLanguage> Languages { get; set; } = new List<AppLanguage>();
 }

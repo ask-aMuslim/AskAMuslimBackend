@@ -30,11 +30,6 @@ public class UpdateStudentProfileCommandValidator : AbstractValidator<UpdateStud
             .Must(languages => languages == null || languages.Distinct().Count() == languages.Count)
             .WithMessage("Languages must not contain duplicate values");
 
-        RuleForEach(v => v.Languages)
-            .IsInEnum()
-            .When(v => v.Languages != null)
-            .WithMessage("Each language must be a valid value");
-
         RuleFor(v => v.PhoneNumber)
             .MaximumLength(20)
             .When(v => !string.IsNullOrEmpty(v.PhoneNumber))

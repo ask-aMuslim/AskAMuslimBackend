@@ -156,6 +156,32 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("AdminNotes", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.AppLanguage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Languages", (string)null);
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Certificate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2171,11 +2197,6 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
-                    b.Property<string>("LanguagesJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasDefaultValue("[]");
-
                     b.Property<DateTime?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2456,6 +2477,21 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("UserLanguages", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("LanguageId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("UserLanguages", (string)null);
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Admin", b =>
@@ -3048,6 +3084,21 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserLanguages", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.AppLanguage", null)
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AskAMuslimBackend.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
