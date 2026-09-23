@@ -14,7 +14,7 @@ public class StudentProfileDto
     public string LastName { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
     public string? Gender { get; set; }
-    public List<StudentProfileLanguageDto> Languages { get; set; } = new();
+    public List<Language> Languages { get; set; } = new();
     public ReligiousStatus ReligiousStatus { get; set; }
 
     // Basic Profile Information
@@ -35,11 +35,4 @@ public class StudentProfileDto
     public string? ReasonOfReligion { get; set; }
     public string? ReasonForConversion { get; set; }
     public bool IsProfileCompleted { get; set; }
-}
-
-public class StudentProfileLanguageDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Code { get; set; } = string.Empty;
 }

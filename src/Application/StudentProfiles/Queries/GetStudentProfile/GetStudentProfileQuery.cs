@@ -76,7 +76,6 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
 
         // Get user details
         var user = await _context.Users
-            .Include(u => u.Languages)
             .FirstOrDefaultAsync(u => u.Id == student.UserId, cancellationToken);
         if (user == null)
         {
@@ -133,14 +132,7 @@ public class GetStudentProfileQueryHandler : IRequestHandler<GetStudentProfileQu
             LastName = user.LastName,
             ImageUrl = user.ImageUrl,
             Gender = user.Gender,
-            Languages = user.Languages
-                .Select(l => new StudentProfileLanguageDto
-                {
-                    Id = l.Id,
-                    Name = l.Name,
-                    Code = l.Code
-                })
-                .ToList(),
+            Languages = user.Languages.ToList(),
             ReligiousStatus = religiousStatus,
             Address = profile.Address,
             Country = profile.Country,

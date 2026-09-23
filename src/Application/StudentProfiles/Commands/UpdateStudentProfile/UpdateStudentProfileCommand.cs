@@ -12,7 +12,7 @@ public record UpdateStudentProfileCommand : IRequest<Result<Guid>>
     public string? ImageUrl { get; init; }
     public string? Gender { get; init; }
     public ReligiousStatus? ReligionStatus { get; init; }
-    public List<int>? Languages { get; init; }
+    public List<Language>? Languages { get; init; }
 
     // Basic Profile Information
     public string? Address { get; init; }
@@ -56,7 +56,6 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
 
         // Get user to check religious status
         var user = await _context.Users
-            .Include(u => u.Languages)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user == null)
         {
@@ -81,27 +80,14 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
 
         if (request.Languages != null)
         {
-            var distinctLanguageIds = request.Languages.Distinct().ToList();
+            var distinctLanguages = request.Languages.Distinct().ToList();
 
-            if (distinctLanguageIds.Count != request.Languages.Count)
+            if (distinctLanguages.Count != request.Languages.Count)
             {
                 return Result<Guid>.Failure(new[] { "Languages must not contain duplicate values" });
             }
 
-            var appLanguages = await _context.AppLanguages
-                .Where(l => distinctLanguageIds.Contains(l.Id))
-                .ToListAsync(cancellationToken);
-
-            if (appLanguages.Count != distinctLanguageIds.Count)
-            {
-                return Result<Guid>.Failure(new[] { "One or more language IDs are invalid" });
-            }
-
-            user.Languages.Clear();
-            foreach (var language in appLanguages)
-            {
-                user.Languages.Add(language);
-            }
+            user.Languages = distinctLanguages;
         }
 
         // Get or create student profile
