@@ -84,10 +84,10 @@ public static class DependencyInjection
             options.SuppressModelStateInvalidFilter = true);
 
         // Configure JSON serialization to support enum string values
-        // builder.Services.ConfigureHttpJsonOptions(options =>
-        // {
-        //     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        // });
+        builder.Services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
 
         builder.Services.AddEndpointsApiExplorer();
 
