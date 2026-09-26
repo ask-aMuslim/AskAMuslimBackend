@@ -50,7 +50,7 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
         if (course.Level != null)
         {
             var previousLevels = await _context.Levels
-                .Where(l => l.Order < course.Level.Order)
+                .Where(l => l.Order < course.Level.Order && l.IsPublished)
                 .OrderByDescending(l => l.Order)
                 .ToListAsync(cancellationToken);
                 
@@ -77,7 +77,7 @@ public class CreateEnrollmentCommandHandler : IRequestHandler<CreateEnrollmentCo
 
         // Check prerequisites - all must be completed
         var prerequisiteIds = await _context.CoursePrerequisites
-            .Where(cp => cp.CourseId == request.CourseId)
+            .Where(cp => cp.CourseId == request.CourseId && cp.PrerequisiteCourse != null && cp.PrerequisiteCourse.IsPublished)
             .Select(cp => cp.PrerequisiteCourseId)
             .ToListAsync(cancellationToken);
 
