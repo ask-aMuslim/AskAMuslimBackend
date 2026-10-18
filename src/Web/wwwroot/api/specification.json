@@ -4991,9 +4991,9 @@
           {
             "name": "UnreadOnly",
             "in": "query",
-            "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "nullable": true
             },
             "x-position": 1
           },
@@ -7762,9 +7762,9 @@
           {
             "name": "AssignedToMe",
             "in": "query",
-            "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "nullable": true
             },
             "x-position": 5
           },
@@ -8105,9 +8105,9 @@
           {
             "name": "AssignedToMe",
             "in": "query",
-            "required": true,
             "schema": {
-              "type": "boolean"
+              "type": "boolean",
+              "nullable": true
             },
             "x-position": 5
           },

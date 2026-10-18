@@ -11,7 +11,8 @@ namespace AskAMuslimBackend.Application.Notifications.Queries.GetMyNotifications
 /// </summary>
 public record GetMyNotificationsQuery : IRequest<Result<PaginatedList<NotificationDto>>>, IPaginationQuery
 {
-    public bool UnreadOnly { get; init; }
+    // Nullable so it stays optional when bound with [AsParameters].
+    public bool? UnreadOnly { get; init; }
     public string? NotificationType { get; init; }
     public int? PageNumber { get; init; } = 1;
     public int? PageSize { get; init; } = 20;
@@ -40,7 +41,7 @@ public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifications
             .AsNoTracking()
             .Where(n => n.UserId == userId);
 
-        if (request.UnreadOnly)
+        if (request.UnreadOnly == true)
         {
             query = query.Where(n => !n.IsRead);
         }

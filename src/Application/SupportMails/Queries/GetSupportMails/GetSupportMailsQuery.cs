@@ -16,7 +16,8 @@ public record GetSupportMailsQuery : IRequest<Result<PaginatedList<SupportMailLi
     public MeetingInquiryTopic? Topic { get; init; }
     public bool? IsAssigned { get; init; }
     public Guid? ModeratorId { get; init; }
-    public bool AssignedToMe { get; init; }
+    // Nullable so it stays optional when bound with [AsParameters].
+    public bool? AssignedToMe { get; init; }
     public DateTimeOffset? From { get; init; }
     public DateTimeOffset? To { get; init; }
     public int? PageNumber { get; init; } = 1;
@@ -39,7 +40,7 @@ public class GetSupportMailsQueryHandler : IRequestHandler<GetSupportMailsQuery,
     {
         var query = _context.SupportMails.AsNoTracking();
 
-        if (request.AssignedToMe)
+        if (request.AssignedToMe == true)
         {
             if (string.IsNullOrEmpty(_user.Id))
             {
