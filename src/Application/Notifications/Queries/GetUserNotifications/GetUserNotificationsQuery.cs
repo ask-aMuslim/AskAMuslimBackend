@@ -38,6 +38,8 @@ public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificat
                 Title = n.Title,
                 Message = n.Message,
                 IsRead = n.IsRead,
+                ActionUrl = n.ActionUrl,
+                NotificationType = n.NotificationType,
                 CreatedAt = n.Created
             })
             .ToListAsync(cancellationToken);

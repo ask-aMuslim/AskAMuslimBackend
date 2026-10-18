@@ -1,6 +1,8 @@
 ﻿using System.Data.Common;
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Infrastructure.Data;
+using Hangfire;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -41,6 +43,16 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     mock.SetupGet(x => x.Id).Returns(GetUserId());
                     return mock.Object;
                 });
+            // Never send real emails, push notifications or Hangfire jobs from tests; record them instead.
+            services
+                .RemoveAll<IEmailService>()
+                .AddScoped(_ => EmailService.Object);
+            services
+                .RemoveAll<IFirebaseMessagingService>()
+                .AddScoped(_ => FirebaseMessaging.Object);
+            services
+                .RemoveAll<IBackgroundJobClient>()
+                .AddSingleton(_ => BackgroundJobClient.Object);
             services
                 .RemoveAll<DbContextOptions<ApplicationDbContext>>()
                 .AddDbContext<ApplicationDbContext>((sp, options) =>

@@ -32,6 +32,8 @@ public interface IApplicationDbContext
     DbSet<QATag> QATags { get; }
     DbSet<MeetingRequest> MeetingRequests { get; }
     DbSet<InquiryRequest> InquiryRequests { get; }
+    DbSet<SupportMail> SupportMails { get; }
+    DbSet<SupportMailMessage> SupportMailMessages { get; }
     DbSet<Event> Events { get; }
     DbSet<EventRegistration> EventRegistrations { get; }
     DbSet<Report> Reports { get; }
@@ -47,6 +49,7 @@ public interface IApplicationDbContext
     DbSet<Preacher> Preachers { get; }
     DbSet<AdminNote> AdminNotes { get; }
     DbSet<Notification> Notifications { get; }
+    DbSet<UserDeviceToken> UserDeviceTokens { get; }
     DbSet<UserPermission> UserPermissions { get; }
     DbSet<RolePermission> RolePermissions { get; }
     DbSet<NewsletterSubscription> NewsletterSubscriptions { get; }

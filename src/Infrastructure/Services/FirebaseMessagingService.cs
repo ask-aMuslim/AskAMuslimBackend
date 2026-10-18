@@ -2,7 +2,6 @@ using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Application.Notifications.Common.Models;
 using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Logging;
 
 namespace AskAMuslimBackend.Infrastructure.Services;
@@ -11,6 +10,7 @@ public class FirebaseMessagingService : IFirebaseMessagingService
 {
     private readonly ILogger<FirebaseMessagingService> _logger;
     private const int MaxBatchSize = 500;
+    public const string FirebaseNotInitializedError = "Firebase is not initialized; push notifications are disabled.";
 
     public FirebaseMessagingService(ILogger<FirebaseMessagingService> logger)
     {
@@ -41,7 +41,18 @@ public class FirebaseMessagingService : IFirebaseMessagingService
             };
         }
 
-        var result = new PushNotificationResult();
+        var messaging = FirebaseApp.DefaultInstance == null ? null : FirebaseMessaging.DefaultInstance;
+        if (messaging == null)
+        {
+            _logger.LogWarning("Skipping push notification to {Count} token(s): Firebase is not initialized.", tokens.Count);
+            return new PushNotificationResult
+            {
+                SuccessCount = 0,
+                FailureCount = tokens.Count,
+                Errors = new List<string> { FirebaseNotInitializedError }
+            };
+        }
+
         var invalidTokens = new List<string>();
         var errors = new List<string>();
         var successCount = 0;
@@ -58,7 +69,7 @@ public class FirebaseMessagingService : IFirebaseMessagingService
 
                 try
                 {
-                    var batchResponse = await FirebaseMessaging.DefaultInstance.SendEachAsync(messages, cancellationToken);
+                    var batchResponse = await messaging.SendEachAsync(messages, cancellationToken);
 
                     // Count successes and failures
                     foreach (var response in batchResponse.Responses)
