@@ -1,5 +1,6 @@
 ﻿using System.Data.Common;
 using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -41,6 +42,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                     mock.SetupGet(x => x.Id).Returns(GetUserId());
                     return mock.Object;
                 });
+            // Never send real emails or push notifications from tests.
+            services
+                .RemoveAll<IEmailService>()
+                .AddScoped(_ => new Mock<IEmailService>().Object);
+            services
+                .RemoveAll<IFirebaseMessagingService>()
+                .AddScoped(_ => new Mock<IFirebaseMessagingService>().Object);
             services
                 .RemoveAll<DbContextOptions<ApplicationDbContext>>()
                 .AddDbContext<ApplicationDbContext>((sp, options) =>

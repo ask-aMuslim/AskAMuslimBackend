@@ -67,45 +67,46 @@ public partial class Testing
         return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
     }
 
-    // Create a user directly via ApplicationDbContext (custom identity), and set test user context
-    public static async Task<string> RunAsUserAsync(string email, string password, string[] roles)
+    public static Task<string> RunAsUserAsync(string email, string password, string[] roles)
+    {
+        var role = roles.Contains(Roles.Administrator) ? UserRole.Admin : UserRole.Student;
+        return RunAsUserAsync(email, password, role, roles);
+    }
+
+    // Create (or reuse) a user via UserManager and make it the current test user.
+    // UserRole drives the app's permission defaults; roles only feed the mocked IUser.Roles.
+    public static async Task<string> RunAsUserAsync(string email, string password, UserRole role, string[]? roles = null)
     {
         using var scope = _scopeFactory.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        var existing = await userManager.FindByEmailAsync(email);
-        //if (existing == null)
-        //{
-        //    var user = new User
-        //    {
-        //        UserName = email,
-        //        Email = email,
-        //        FirstName = string.Empty,
-        //        LastName = string.Empty,
-        //        Role = roleEnum,
-        //        ReligionStatus = religiousStatus,
-        //        EmailConfirmed = true,
-        //        IsActive = true,
-        //        CreatedAt = DateTime.UtcNow
-        //    };
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new User
+            {
+                UserName = email,
+                Email = email,
+                FirstName = email.Split('@')[0],
+                LastName = "Tester",
+                Role = role,
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        //    var result = await userManager.CreateAsync(user, password);
-        //    if (result.Succeeded)
-        //    {
-        //        await userManager.AddToRoleAsync(user, roleEnum.ToString());
-        //    }
+            var result = await userManager.CreateAsync(user, password);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create test user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
 
-        //    _userId = user.Id.ToString();
-        //}
-        //else
-        //{
-        //    _userId = existing.Id.ToString();
-        //}
-
+        _userId = user.Id.ToString();
         _roles = new List<string>(roles ?? Array.Empty<string>());
-        return _userId!;
+        return _userId;
     }
 
     public static async Task ResetState()
@@ -141,6 +142,15 @@ public partial class Testing
         context.Add(entity);
 
         await context.SaveChangesAsync();
+    }
+
+    public static async Task ExecuteDbContextAsync(Func<ApplicationDbContext, Task> action)
+    {
+        using var scope = _scopeFactory.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        await action(context);
     }
 
     public static async Task<int> CountAsync<TEntity>() where TEntity : class

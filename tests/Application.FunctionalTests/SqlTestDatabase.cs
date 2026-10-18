@@ -10,6 +10,7 @@ namespace AskAMuslimBackend.Application.FunctionalTests;
 
 public class SqlTestDatabase : ITestDatabase
 {
+    private const string RequiredDatabaseSuffix = "_Tests";
     private readonly string _connectionString = null!;
     private NpgsqlConnection _connection = null!;
     private Respawner _respawner = null!;
@@ -25,6 +26,15 @@ public class SqlTestDatabase : ITestDatabase
 
         Guard.Against.Null(connectionString);
 
+        // This fixture drops and recreates the database, so never let it touch a real one.
+        var databaseName = new NpgsqlConnectionStringBuilder(connectionString).Database;
+        if (databaseName == null || !databaseName.EndsWith(RequiredDatabaseSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Refusing to run functional tests against database '{databaseName}'. " +
+                $"The fallback test database name must end with '{RequiredDatabaseSuffix}'.");
+        }
+
         _connectionString = connectionString;
     }
 
@@ -39,13 +49,14 @@ public class SqlTestDatabase : ITestDatabase
         var context = new ApplicationDbContext(options);
 
         await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
 
         await _connection.OpenAsync();
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = new[] { "public" }
+            SchemasToInclude = new[] { "public" },
+            TablesToIgnore = new Table[] { "__EFMigrationsHistory" }
         });
     }
 
