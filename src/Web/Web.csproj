@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="firebase-adminsdk.json" />
+    <!-- Local-only Firebase service-account key (git-ignored). Never published; production uses Firebase__CredentialJson. -->
+    <Content Update="firebase-adminsdk.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="firebase-adminsdk.json" />
     <EmbeddedResource Include="Localization\*.json" />
   </ItemGroup>
 

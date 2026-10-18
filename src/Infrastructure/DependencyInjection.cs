@@ -9,8 +9,6 @@ using AskAMuslimBackend.Infrastructure.Data.Interceptors;
 using AskAMuslimBackend.Infrastructure.Identity;
 using AskAMuslimBackend.Infrastructure.Services;
 using AskAMuslimBackend.Infrastructure.Services.BackgroundJobs;
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -96,18 +94,10 @@ public static class DependencyInjection
         builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
 
         // Configure Firebase Admin SDK
-        var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"];
-        if (!string.IsNullOrEmpty(firebaseCredentialPath))
-        {
-            var fullPath = Path.Combine(AppContext.BaseDirectory, firebaseCredentialPath);
-            if (File.Exists(fullPath))
-            {
-                FirebaseApp.Create(new AppOptions
-                {
-                    Credential = GoogleCredential.FromFile(fullPath)
-                });
-            }
-        }
+        var firebaseInitialization = FirebaseAppInitializer.Initialize(
+            builder.Configuration, AppContext.BaseDirectory, builder.Environment.ContentRootPath);
+        builder.Services.AddSingleton(firebaseInitialization);
+        builder.Services.AddHostedService<FirebaseStartupLogger>();
 
         builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
         builder.Services.AddScoped<IUserPushService, UserPushService>();
