@@ -324,11 +324,17 @@ The backend notifies the user about their mails in three ways. All of them are s
 (Staff also get notified about new mails and user replies; that's not something the app needs to handle.)
 
 > **Status today:** the backend side is done. The app does **not** receive pushes yet: it has no FCM client, never registers its token, and doesn't handle taps. Sections 4.1–4.4 are what the app needs to add.
+>
+> To test pushes against a backend you run locally, the backend also needs its Firebase key (see the backend README, "Firebase push notifications"). The production key is set up by DevOps.
 
 ### 4.1 Android setup (one time)
 
 1. Add Firebase Cloud Messaging: `implementation(platform("com.google.firebase:firebase-bom:<version>"))` and `implementation("com.google.firebase:firebase-messaging")` in `app/build.gradle.kts`. The `com.google.gms.google-services` plugin is already applied.
-2. Put the project's `google-services.json` in `app/`. It is gitignored, so every developer machine and the CI/release build needs a copy.
+2. Put `google-services.json` in `Mobile-App/app/`. **It was sent to you on WhatsApp.**
+   - It's for the Firebase project **`ask-a-muslim-mobile-app`** and the Android app **`com.abdallamusa.ask_a_muslim`** (the current `applicationId`). Check that `project_id` in the file is `ask-a-muslim-mobile-app`.
+   - The backend sends pushes with a key from this same project. A `google-services.json` from any other project won't receive them (FCM "sender ID mismatch").
+   - It's gitignored: don't commit it. Every developer machine and the CI/release build needs its own copy.
+   - If `applicationId` ever changes to `com.askamuslim.app` (also registered in the same project), download that app's `google-services.json` from Firebase console → Project settings → General. No backend change is needed.
 3. Create a notification channel for these pushes (e.g. id `support_mails`, name "Support mails") with `NotificationUtils`.
 4. On Android 13+ request `POST_NOTIFICATIONS` at runtime (it's already declared in the manifest). A good moment is right after the user sends their first mail, or after login.
 5. Add a `FirebaseMessagingService` subclass and register it in the manifest with the `com.google.firebase.MESSAGING_EVENT` intent filter. It handles `onNewToken` (4.2) and `onMessageReceived` (4.3).
