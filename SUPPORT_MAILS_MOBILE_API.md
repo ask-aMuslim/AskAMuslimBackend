@@ -74,9 +74,12 @@ Some endpoints return only `{ "errors": [...] }`; always read the `errors` array
 |---|---|
 | **Contact Us** (form) | `GET /topics` to fill the dropdown, `GET /eligibility` to enable/disable Send, `POST /` on Send |
 | **Contact Us** (success) | Show the success state, then `GET /eligibility` for the "You can send a new inquiry after one hour" hint |
+| **Mail icon badge** (top-right) | `GET /unread-count` |
 | **Mails History** (top-right mail icon) | `GET /?pageNumber=1&pageSize=10` |
 | **Mail #N** (detail) | `GET /{id}`, then `PUT /{id}/read` |
 | **Mail #N** (Reply box) | `POST /{id}/replies`, then reload `GET /{id}` |
+| **App start / login / logout** | Push token registration, see [Notifications](#4-notifications) |
+| **Notifications list / bell** (if the app has one) | `GET /api/Notifications/me`, see [In-app notifications](#45-in-app-notifications) |
 
 The "Welcome, Noah" name comes from the existing user-profile data the app already has; no new API is needed.
 
@@ -294,19 +297,133 @@ After success, clear the input and reload `GET /{id}` (or append the message loc
 
 ---
 
-## 4. Push notifications
+### 3.8 Unread mails count (mail icon badge)
 
-When staff reply, the user gets a push notification (plus an in-app notification and an email):
+`GET /api/SupportMails/unread-count`
 
-- **Title**: `New reply on Mail #4`
-- **Body**: `The support team replied to your inquiry "Music Enquiry".`
-- **Data payload**:
+**200**
 
 ```json
-{ "type": "support_mail", "mailId": "3f2b8f0e-6b1c-4c1e-9a55-0c1f2d3e4a5b" }
+{ "succeeded": true, "errors": [], "data": 2 }
 ```
 
-On tap (or while the app is open) with `type == "support_mail"`, open / refresh **Mail detail** for `mailId`. Push uses the FCM token the app already registers.
+The number of the user's mails where staff replied and the user hasn't opened the mail since (same rule as `hasUnreadReply`). Show it as a badge on the top-right mail icon; hide the badge at `0`. Refresh it on app resume, after `PUT /{id}/read`, and when a `support_mail` push arrives.
+
+---
+
+## 4. Notifications
+
+The backend notifies the user about their mails in three ways. All of them are sent in the background a few seconds after the change, never inside the API call.
+
+| Event | Push | In-app notification | Email |
+|---|---|---|---|
+| User sends a new mail | — | — | ✅ "We received your inquiry (Mail #4)" |
+| Staff reply | ✅ | ✅ | ✅ includes the reply text |
+| Mail closed by staff | ✅ | ✅ | — |
+
+(Staff also get notified about new mails and user replies; that's not something the app needs to handle.)
+
+> **Status today:** the backend side is done. The app does **not** receive pushes yet: it has no FCM client, never registers its token, and doesn't handle taps. Sections 4.1–4.4 are what the app needs to add.
+
+### 4.1 Android setup (one time)
+
+1. Add Firebase Cloud Messaging: `implementation(platform("com.google.firebase:firebase-bom:<version>"))` and `implementation("com.google.firebase:firebase-messaging")` in `app/build.gradle.kts`. The `com.google.gms.google-services` plugin is already applied.
+2. Put the project's `google-services.json` in `app/`. It is gitignored, so every developer machine and the CI/release build needs a copy.
+3. Create a notification channel for these pushes (e.g. id `support_mails`, name "Support mails") with `NotificationUtils`.
+4. On Android 13+ request `POST_NOTIFICATIONS` at runtime (it's already declared in the manifest). A good moment is right after the user sends their first mail, or after login.
+5. Add a `FirebaseMessagingService` subclass and register it in the manifest with the `com.google.firebase.MESSAGING_EVENT` intent filter. It handles `onNewToken` (4.2) and `onMessageReceived` (4.3).
+
+### 4.2 Register and unregister the device token
+
+A user can be signed in on several devices; each device registers its own token.
+
+**Register:** call after every successful login, on app start while signed in, and from `onNewToken`:
+
+`POST /api/Notifications/register-token`
+
+```json
+{ "fcmToken": "<token from FirebaseMessaging.getInstance().token>", "platform": 1 }
+```
+
+| Field | Rules |
+|---|---|
+| `fcmToken` | Required, max 255 chars |
+| `platform` | Optional: `0` Unknown, `1` Android, `2` iOS, `3` Web |
+
+Returns **204**. Calling it again with the same token is fine (it just refreshes it). If another account had registered the same device, the token moves to the current user.
+
+**Unregister:** call on logout, **before** clearing the access token (the call needs auth):
+
+`POST /api/Notifications/unregister-token`
+
+```json
+{ "fcmToken": "<this device's token>" }
+```
+
+Returns **204**, also if the token wasn't registered. After this the device stops getting the previous user's pushes.
+
+Tokens that Firebase reports as dead are removed by the backend automatically.
+
+### 4.3 Push payload
+
+Pushes contain both a `notification` block (title and body, shown by the system when the app is in the background) and a `data` block:
+
+| Event | Title | Body | `data` |
+|---|---|---|---|
+| Staff reply | `New reply on Mail #4` | `The support team replied to your inquiry "Music Enquiry".` | `{ "type": "support_mail", "mailId": "<id>", "event": "staff_reply" }` |
+| Mail closed | `Mail #4 was closed` | `Your inquiry "Music Enquiry" was closed. You can still reply to reopen it.` | `{ "type": "support_mail", "mailId": "<id>", "event": "closed" }` |
+
+Moderators who use the app may also receive `event` values `assigned` and `requester_reply` for mails assigned to them. Treat any unknown `event` like `staff_reply`.
+
+**App in the foreground:** Android does **not** display the notification automatically. In `onMessageReceived`:
+- if Mail #N for that `mailId` is open, reload it (`GET /{id}`) instead of showing a notification;
+- otherwise show a local notification on the `support_mails` channel with the title/body, putting `type` and `mailId` in the tap intent;
+- in both cases refresh the mail badge (`GET /api/SupportMails/unread-count`) and, if visible, the Mails History list.
+
+### 4.4 Tapping a notification
+
+When the app is in the background, the system shows the notification and a tap opens the **launcher activity** with the `data` values as intent extras (`intent.extras?.getString("type")`, `getString("mailId")`). The same applies to the local notifications you build in 4.3.
+
+On launch / `onNewIntent`:
+
+```
+if extras.type == "support_mail" and the user is signed in:
+    navigate to Mail #N (mailId)  →  GET /api/SupportMails/{mailId}  →  PUT /api/SupportMails/{mailId}/read
+if not signed in:
+    keep mailId, log in, then navigate
+```
+
+If the mail returns `400 Mail not found` (e.g. the device was handed over to another account), just open Mails History.
+
+### 4.5 In-app notifications
+
+Every push is also stored as an in-app notification, so the app can show a notification list or bell even when pushes are disabled. These endpoints work for every signed-in user and only return the current user's notifications.
+
+| Call | Purpose |
+|---|---|
+| `GET /api/Notifications/me?pageNumber=1&pageSize=20&unreadOnly=false&notificationType=SupportMail` | Paginated list, newest first (`notificationType` optional) |
+| `GET /api/Notifications/me/unread-count` | `data` is the number of unread notifications |
+| `PUT /api/Notifications/me/{notificationId}/read` | Mark one as read (204) |
+| `PUT /api/Notifications/me/read-all` | Mark all as read (204) |
+
+Item shape (`data.items[]`):
+
+```json
+{
+  "id": "9a1c...",
+  "userId": "5d2e...",
+  "title": "New reply on Mail #4",
+  "message": "The support team replied to your inquiry \"Music Enquiry\".",
+  "isRead": false,
+  "actionUrl": "support-mails/3f2b8f0e-6b1c-4c1e-9a55-0c1f2d3e4a5b?event=staff_reply&id=7c0d...",
+  "notificationType": "SupportMail",
+  "createdAt": "2026-10-12T14:15:05+00:00"
+}
+```
+
+For `notificationType == "SupportMail"`, the mail id is the second path segment of `actionUrl` (`support-mails/{mailId}?...`). On tap: mark the notification as read and open Mail #N as in 4.4.
+
+> Don't use `GET /api/Notifications/{userId}`; it's an admin endpoint and returns 403 for normal users.
 
 ---
 
@@ -348,18 +465,26 @@ Use `GET /topics` rather than hard-coding these: `1` General Inquiry, `2` Quran,
 ## 7. Suggested flow
 
 ```
+Login / app start (signed in)
+  ├─ POST /api/Notifications/register-token   (also from onNewToken)
+  └─ GET  /unread-count                        → mail icon badge
 Contact Us opens
   ├─ GET /topics
   └─ GET /eligibility ── canCreate=false → disable Send, show "after one hour" hint
 Send
   └─ POST /  → 201 → success screen → GET /eligibility (for the hint)
+              → (ask for POST_NOTIFICATIONS on Android 13+ if not granted yet)
 Mail icon (top-right)
   └─ GET /?pageNumber=1  (load more while hasNextPage)
 View Details
   ├─ GET /{id}
-  └─ PUT /{id}/read
+  └─ PUT /{id}/read → GET /unread-count
 Reply
   └─ POST /{id}/replies → GET /{id}
-Push "support_mail"
+Push "support_mail" received (foreground)
+  └─ Mail #N open? reload it : show local notification → GET /unread-count
+Push "support_mail" tapped
   └─ open Mail detail(mailId) → GET /{id} → PUT /{id}/read
+Logout
+  └─ POST /api/Notifications/unregister-token → clear session
 ```
