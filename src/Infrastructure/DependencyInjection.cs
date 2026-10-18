@@ -129,6 +129,8 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IBackgroundJobService, BackgroundNotificationJobService>();
         builder.Services.AddScoped<NotificationJobExecutor>();
+        builder.Services.AddScoped<SupportMailNotificationJobs>();
+        builder.Services.AddScoped<ISupportMailNotifier, SupportMailNotifier>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

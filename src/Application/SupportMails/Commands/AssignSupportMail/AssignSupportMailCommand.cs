@@ -3,7 +3,6 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace AskAMuslimBackend.Application.SupportMails.Commands.AssignSupportMail;
 
@@ -17,14 +16,12 @@ public record AssignSupportMailCommand : IRequest<Result>
 public class AssignSupportMailCommandHandler : IRequestHandler<AssignSupportMailCommand, Result>
 {
     private readonly IApplicationDbContext _context;
-    private readonly ISender _sender;
-    private readonly ILogger<AssignSupportMailCommandHandler> _logger;
+    private readonly ISupportMailNotifier _notifier;
 
-    public AssignSupportMailCommandHandler(IApplicationDbContext context, ISender sender, ILogger<AssignSupportMailCommandHandler> logger)
+    public AssignSupportMailCommandHandler(IApplicationDbContext context, ISupportMailNotifier notifier)
     {
         _context = context;
-        _sender = sender;
-        _logger = logger;
+        _notifier = notifier;
     }
 
     public async Task<Result> Handle(AssignSupportMailCommand request, CancellationToken cancellationToken)
@@ -72,7 +69,7 @@ public class AssignSupportMailCommandHandler : IRequestHandler<AssignSupportMail
         mail.AssignedModeratorId = request.ModeratorId;
         await _context.SaveChangesAsync(cancellationToken);
 
-        await SupportMailNotifications.NotifyModeratorOfAssignmentAsync(_sender, _logger, mail, request.ModeratorId, cancellationToken);
+        _notifier.Assigned(mail.Id, request.ModeratorId);
 
         return Result.Success();
     }

@@ -18,12 +18,14 @@ public class CreateSupportMailCommandHandler : IRequestHandler<CreateSupportMail
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
     private readonly TimeProvider _timeProvider;
+    private readonly ISupportMailNotifier _notifier;
 
-    public CreateSupportMailCommandHandler(IApplicationDbContext context, IUser user, TimeProvider timeProvider)
+    public CreateSupportMailCommandHandler(IApplicationDbContext context, IUser user, TimeProvider timeProvider, ISupportMailNotifier notifier)
     {
         _context = context;
         _user = user;
         _timeProvider = timeProvider;
+        _notifier = notifier;
     }
 
     public async Task<Result<Guid>> Handle(CreateSupportMailCommand request, CancellationToken cancellationToken)
@@ -64,6 +66,8 @@ public class CreateSupportMailCommandHandler : IRequestHandler<CreateSupportMail
 
         _context.SupportMails.Add(mail);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _notifier.MailCreated(mail.Id);
 
         return Result<Guid>.Success(mail.Id);
     }

@@ -3,7 +3,6 @@ using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace AskAMuslimBackend.Application.SupportMails.Commands.ReplyToSupportMail;
 
@@ -23,23 +22,20 @@ public class ReplyToSupportMailCommandHandler : IRequestHandler<ReplyToSupportMa
     private readonly IUser _user;
     private readonly IPermissionService _permissionService;
     private readonly TimeProvider _timeProvider;
-    private readonly ISender _sender;
-    private readonly ILogger<ReplyToSupportMailCommandHandler> _logger;
+    private readonly ISupportMailNotifier _notifier;
 
     public ReplyToSupportMailCommandHandler(
         IApplicationDbContext context,
         IUser user,
         IPermissionService permissionService,
         TimeProvider timeProvider,
-        ISender sender,
-        ILogger<ReplyToSupportMailCommandHandler> logger)
+        ISupportMailNotifier notifier)
     {
         _context = context;
         _user = user;
         _permissionService = permissionService;
         _timeProvider = timeProvider;
-        _sender = sender;
-        _logger = logger;
+        _notifier = notifier;
     }
 
     public async Task<Result<Guid>> Handle(ReplyToSupportMailCommand request, CancellationToken cancellationToken)
@@ -65,7 +61,7 @@ public class ReplyToSupportMailCommandHandler : IRequestHandler<ReplyToSupportMa
         _context.SupportMailMessages.Add(message);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await SupportMailNotifications.NotifyRequesterOfReplyAsync(_sender, _logger, mail, cancellationToken);
+        _notifier.StaffReplied(mail.Id, message.Id);
 
         return Result<Guid>.Success(message.Id);
     }

@@ -7,6 +7,12 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Models;
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 
 namespace AskAMuslimBackend.Application.FunctionalTests;
 
@@ -120,6 +126,7 @@ public partial class Testing
         }
 
         _userId = null;
+        ResetFakes();
     }
 
     public static async Task<TEntity?> FindAsync<TEntity>(params object[] keyValues)
@@ -167,5 +174,65 @@ public partial class Testing
     {
         await _database.DisposeAsync();
         await _factory.DisposeAsync();
+    }
+
+    // ---- Shared fakes for outbound side effects (emails, pushes, Hangfire jobs); reset before every test ----
+
+    public static Mock<IEmailService> EmailService { get; } = new();
+    public static Mock<IFirebaseMessagingService> FirebaseMessaging { get; } = new();
+    public static Mock<IBackgroundJobClient> BackgroundJobClient { get; } = new();
+
+    /// <summary>Jobs queued through Hangfire that have not been run yet.</summary>
+    public static List<Job> EnqueuedJobs { get; } = new();
+
+    /// <summary>Every job queued since the last reset, including ones already run.</summary>
+    public static List<Job> AllEnqueuedJobs { get; } = new();
+
+    public static void ResetFakes()
+    {
+        EnqueuedJobs.Clear();
+        AllEnqueuedJobs.Clear();
+
+        EmailService.Reset();
+
+        FirebaseMessaging.Reset();
+        FirebaseMessaging
+            .Setup(f => f.SendToTokensAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<PushNotificationRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<string> tokens, PushNotificationRequest _, CancellationToken _) =>
+                new PushNotificationResult { SuccessCount = tokens.Count() });
+
+        BackgroundJobClient.Reset();
+        BackgroundJobClient
+            .Setup(c => c.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Callback((Job job, IState _) =>
+            {
+                EnqueuedJobs.Add(job);
+                AllEnqueuedJobs.Add(job);
+            })
+            .Returns(() => Guid.NewGuid().ToString());
+    }
+
+    /// <summary>
+    /// Runs queued jobs the way Hangfire would (resolving the job class from DI), including jobs they queue, until none are left.
+    /// </summary>
+    public static async Task RunEnqueuedJobsAsync()
+    {
+        while (EnqueuedJobs.Count > 0)
+        {
+            var job = EnqueuedJobs[0];
+            EnqueuedJobs.RemoveAt(0);
+            await RunJobAsync(job);
+        }
+    }
+
+    public static async Task RunJobAsync(Job job)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var instance = ActivatorUtilities.GetServiceOrCreateInstance(scope.ServiceProvider, job.Type);
+        var result = job.Method.Invoke(instance, job.Args.ToArray());
+        if (result is Task task)
+        {
+            await task;
+        }
     }
 }

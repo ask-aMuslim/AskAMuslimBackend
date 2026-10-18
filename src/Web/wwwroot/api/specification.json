@@ -4981,6 +4981,139 @@
         ]
       }
     },
+    "/api/Notifications/me": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "GetMyNotifications",
+        "parameters": [
+          {
+            "name": "UnreadOnly",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "NotificationType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 3
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "SearchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/me/unread-count": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "GetMyUnreadCount",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/me/{notificationId}/read": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "MarkMyNotificationAsRead",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/me/read-all": {
+      "put": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "MarkAllMyNotificationsAsRead",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Notifications/register-token": {
       "post": {
         "tags": [
@@ -4993,6 +5126,36 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RegisterFcmTokenCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Notifications/unregister-token": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "operationId": "UnregisterFcmToken",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnregisterFcmTokenCommand"
               }
             }
           },
@@ -7334,6 +7497,24 @@
         ]
       }
     },
+    "/api/SupportMails/unread-count": {
+      "get": {
+        "tags": [
+          "SupportMails"
+        ],
+        "operationId": "GetUnreadCount",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/SupportMails": {
       "get": {
         "tags": [
@@ -7637,6 +7818,24 @@
             "x-position": 10
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/SupportMailsAdmin/counts": {
+      "get": {
+        "tags": [
+          "SupportMailsAdmin"
+        ],
+        "operationId": "GetCounts",
         "responses": {
           "200": {
             "description": ""
@@ -7962,6 +8161,24 @@
             "x-position": 10
           }
         ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/SupportMailsModerator/counts": {
+      "get": {
+        "tags": [
+          "SupportMailsModerator"
+        ],
+        "operationId": "GetCounts2",
         "responses": {
           "200": {
             "description": ""
@@ -9915,6 +10132,34 @@
         "additionalProperties": false
       },
       "RegisterFcmTokenCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fcmToken": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/DevicePlatform"
+          }
+        }
+      },
+      "DevicePlatform": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unknown",
+          "Android",
+          "Ios",
+          "Web"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "UnregisterFcmTokenCommand": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

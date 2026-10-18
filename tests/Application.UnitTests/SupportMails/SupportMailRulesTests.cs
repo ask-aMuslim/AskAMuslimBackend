@@ -116,3 +116,19 @@ public class SupportMailRulesTests
         result.IsValid.ShouldBeFalse();
     }
 }
+
+public class SupportMailEmailTemplatesTests
+{
+    [Test]
+    public void Templates_EncodeUserText()
+    {
+        var email = AskAMuslimBackend.Infrastructure.Services.BackgroundJobs.SupportMailEmailTemplates.NewMailForInbox(
+            "<script>alert(1)</script>", "x@y.z", 3, "Hi & <b>bye</b>", "Fiqh", "line1\nline2 <img src=x>");
+
+        email.HtmlBody.ShouldNotContain("<script>");
+        email.HtmlBody.ShouldNotContain("<img");
+        email.HtmlBody.ShouldContain("&lt;script&gt;");
+        email.HtmlBody.ShouldContain("line1<br/>line2");
+        email.HtmlBody.ShouldContain("Hi &amp; &lt;b&gt;bye&lt;/b&gt;");
+    }
+}

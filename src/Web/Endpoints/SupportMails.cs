@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.SupportMails.Commands.MarkMySupportMailAsRea
 using AskAMuslimBackend.Application.SupportMails.Commands.ReplyToMySupportMail;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetMySupportMailById;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetMySupportMails;
+using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailCounts;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailEligibility;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailTopics;
 using AskAMuslimBackend.Web.Infrastructure;
@@ -25,6 +26,10 @@ public class SupportMails : EndpointGroupBase
             .RequireAuthorization()
             .WithName("GetSupportMailEligibility")
             .WithSummary("Check whether the current user can send a new support mail");
+        groupBuilder.MapGet(GetUnreadCount, "unread-count")
+            .RequireAuthorization()
+            .WithName("GetMyUnreadSupportMailsCount")
+            .WithSummary("Count the current user's mails with an unread staff reply");
         groupBuilder.MapGet(GetMine)
             .RequireAuthorization()
             .WithName("GetMySupportMails")
@@ -56,6 +61,12 @@ public class SupportMails : EndpointGroupBase
     public async Task<IResult> GetEligibility(ISender sender)
     {
         var result = await sender.Send(new GetSupportMailEligibilityQuery());
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetUnreadCount(ISender sender)
+    {
+        var result = await sender.Send(new GetMyUnreadSupportMailsCountQuery());
         return result.ToHttpResult();
     }
 

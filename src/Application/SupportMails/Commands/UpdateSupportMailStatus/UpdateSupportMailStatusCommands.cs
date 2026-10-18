@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Enums;
 
 namespace AskAMuslimBackend.Application.SupportMails.Commands.UpdateSupportMailStatus;
@@ -12,11 +13,13 @@ public class CloseSupportMailCommandHandler : IRequestHandler<CloseSupportMailCo
 {
     private readonly IApplicationDbContext _context;
     private readonly TimeProvider _timeProvider;
+    private readonly ISupportMailNotifier _notifier;
 
-    public CloseSupportMailCommandHandler(IApplicationDbContext context, TimeProvider timeProvider)
+    public CloseSupportMailCommandHandler(IApplicationDbContext context, TimeProvider timeProvider, ISupportMailNotifier notifier)
     {
         _context = context;
         _timeProvider = timeProvider;
+        _notifier = notifier;
     }
 
     public async Task<Result> Handle(CloseSupportMailCommand request, CancellationToken cancellationToken)
@@ -29,6 +32,8 @@ public class CloseSupportMailCommandHandler : IRequestHandler<CloseSupportMailCo
             mail.Status = SupportMailStatus.Closed;
             mail.ClosedAt = _timeProvider.GetUtcNow();
             await _context.SaveChangesAsync(cancellationToken);
+
+            _notifier.Closed(mail.Id);
         }
 
         return Result.Success();

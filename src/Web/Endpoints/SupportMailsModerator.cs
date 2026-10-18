@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.SupportMails.Commands.ReplyToSupportMail;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailById;
+using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailCounts;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMails;
 using AskAMuslimBackend.Web.Infrastructure;
 
@@ -16,6 +17,10 @@ public class SupportMailsModerator : EndpointGroupBase
             .RequireAuthorization()
             .WithName("GetAssignedSupportMails")
             .WithSummary("Get support mails assigned to the current moderator");
+        groupBuilder.MapGet(GetCounts, "counts")
+            .RequireAuthorization()
+            .WithName("GetAssignedSupportMailCounts")
+            .WithSummary("Badge counts for the current moderator's assigned mails");
         groupBuilder.MapGet(GetById, "{id:guid}")
             .RequireAuthorization()
             .WithName("GetAssignedSupportMail")
@@ -29,6 +34,12 @@ public class SupportMailsModerator : EndpointGroupBase
     public async Task<IResult> GetAssigned(ISender sender, [AsParameters] GetSupportMailsQuery query)
     {
         var result = await sender.Send(query with { AssignedToMe = true, ModeratorId = null });
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetCounts(ISender sender)
+    {
+        var result = await sender.Send(new GetSupportMailCountsQuery(AssignedToMe: true));
         return result.ToHttpResult();
     }
 

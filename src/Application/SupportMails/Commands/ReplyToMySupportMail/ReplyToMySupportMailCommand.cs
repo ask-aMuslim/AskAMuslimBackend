@@ -18,12 +18,14 @@ public class ReplyToMySupportMailCommandHandler : IRequestHandler<ReplyToMySuppo
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
     private readonly TimeProvider _timeProvider;
+    private readonly ISupportMailNotifier _notifier;
 
-    public ReplyToMySupportMailCommandHandler(IApplicationDbContext context, IUser user, TimeProvider timeProvider)
+    public ReplyToMySupportMailCommandHandler(IApplicationDbContext context, IUser user, TimeProvider timeProvider, ISupportMailNotifier notifier)
     {
         _context = context;
         _user = user;
         _timeProvider = timeProvider;
+        _notifier = notifier;
     }
 
     public async Task<Result<Guid>> Handle(ReplyToMySupportMailCommand request, CancellationToken cancellationToken)
@@ -50,6 +52,8 @@ public class ReplyToMySupportMailCommandHandler : IRequestHandler<ReplyToMySuppo
 
         _context.SupportMailMessages.Add(message);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _notifier.RequesterReplied(mail.Id, message.Id);
 
         return Result<Guid>.Success(message.Id);
     }

@@ -3,6 +3,7 @@ using AskAMuslimBackend.Application.SupportMails.Commands.ReplyToSupportMail;
 using AskAMuslimBackend.Application.SupportMails.Commands.UnassignSupportMail;
 using AskAMuslimBackend.Application.SupportMails.Commands.UpdateSupportMailStatus;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailById;
+using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMailCounts;
 using AskAMuslimBackend.Application.SupportMails.Queries.GetSupportMails;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Web.Infrastructure;
@@ -20,6 +21,10 @@ public class SupportMailsAdmin : EndpointGroupBase
             .RequireAuthorization(Policies.ViewInquiryRequests)
             .WithName("GetAllSupportMails")
             .WithSummary("Get all support mails");
+        groupBuilder.MapGet(GetCounts, "counts")
+            .RequireAuthorization(Policies.ViewInquiryRequests)
+            .WithName("GetSupportMailCounts")
+            .WithSummary("Badge counts for the admin dashboard");
         groupBuilder.MapGet(GetById, "{id:guid}")
             .RequireAuthorization(Policies.ViewInquiryRequests)
             .WithName("GetSupportMail")
@@ -49,6 +54,12 @@ public class SupportMailsAdmin : EndpointGroupBase
     public async Task<IResult> GetAll(ISender sender, [AsParameters] GetSupportMailsQuery query)
     {
         var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetCounts(ISender sender)
+    {
+        var result = await sender.Send(new GetSupportMailCountsQuery());
         return result.ToHttpResult();
     }
 
