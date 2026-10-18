@@ -58,6 +58,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Preacher> Preachers => Set<Preacher>();
     public DbSet<AdminNote> AdminNotes => Set<AdminNote>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<UserDeviceToken> UserDeviceTokens => Set<UserDeviceToken>();
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<NewsletterSubscription> NewsletterSubscriptions => Set<NewsletterSubscription>();

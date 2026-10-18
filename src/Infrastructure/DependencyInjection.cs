@@ -1,5 +1,6 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
+using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
@@ -109,6 +110,7 @@ public static class DependencyInjection
         }
 
         builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
+        builder.Services.AddScoped<IUserPushService, UserPushService>();
 
         // Configure Hangfire unless the app is being launched by NSwag.
         if (!IsRunningUnderNSwag())
