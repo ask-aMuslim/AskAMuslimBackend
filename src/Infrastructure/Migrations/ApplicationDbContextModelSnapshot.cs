@@ -2048,6 +2048,117 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("StudentQuestions", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssignedModeratorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastMessageSenderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RequesterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("RequesterLastReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedModeratorId", "LastMessageAt");
+
+                    b.HasIndex("RequesterId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "LastMessageAt");
+
+                    b.ToTable("SupportMails", (string)null);
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMailMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("MailId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("MailId", "Created");
+
+                    b.ToTable("SupportMailMessages", (string)null);
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Tag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3007,6 +3118,43 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "AssignedModerator")
+                        .WithMany()
+                        .HasForeignKey("AssignedModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedModerator");
+
+                    b.Navigation("Requester");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMailMessage", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.SupportMail", "Mail")
+                        .WithMany("Messages")
+                        .HasForeignKey("MailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Mail");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.TodoItem", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.TodoList", "List")
@@ -3213,6 +3361,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("StudentNotes");
 
                     b.Navigation("StudentQuestions");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Tag", b =>

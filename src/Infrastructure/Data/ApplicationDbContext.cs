@@ -40,6 +40,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<QATag> QATags => Set<QATag>();
     public DbSet<MeetingRequest> MeetingRequests => Set<MeetingRequest>();
     public DbSet<InquiryRequest> InquiryRequests => Set<InquiryRequest>();
+    public DbSet<SupportMail> SupportMails => Set<SupportMail>();
+    public DbSet<SupportMailMessage> SupportMailMessages => Set<SupportMailMessage>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<EventRegistration> EventRegistrations => Set<EventRegistration>();
     public DbSet<Report> Reports => Set<Report>();
