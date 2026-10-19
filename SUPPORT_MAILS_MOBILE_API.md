@@ -251,7 +251,7 @@ Mapping to the card in the design:
 }
 ```
 
-- `messages` are in **chronological order** (oldest first). The design shows the newest on top; reverse the list in the UI if you keep that layout.
+- `messages` are in **chronological order** (oldest first). Show them in that order, oldest at the top and newest at the bottom (the website does the same). Don't reverse the list, even though the design shows the newest on top. After loading or replying, scroll to the newest message.
 - Header: `"Mail #" + number`; title: `subject`; badge: `status` (same labels as the list).
 - `senderType == 1` (Requester) → the user's own message: show `senderName`, `senderProfilePictureUrl`, and the subtitle "Your inquiry".
 - `senderType == 2` (Staff) → show **"Support Team"** with the app logo and the subtitle "Support reply". Staff names are intentionally `null` here.
