@@ -126,7 +126,6 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
         if (request.PhoneNumber != null) profile.PhoneNumber = request.PhoneNumber;
         if (request.Bio != null) profile.Bio = request.Bio;
         if (request.DateOfBirth.HasValue) profile.DateOfBirth = request.DateOfBirth;
-        if (request.ReasonOfReligion != null) profile.ReasonOfReligion = request.ReasonOfReligion;
 
         // Update religious information based on user's ReligionStatus
         profile.IsMuslim = user.ReligionStatus == ReligiousStatus.BornMuslim || user.ReligionStatus == ReligiousStatus.RevertedMuslim;
@@ -145,6 +144,16 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
             profile.DateOfIslamConversion = null;
             profile.OldReligion = null;
             profile.ReasonForConversion = null;
+        }
+
+        // Reason of religion only applies to non-Muslims (a missing ReligionStatus counts as NonMuslim)
+        if (user.ReligionStatus is null or ReligiousStatus.NonMuslim)
+        {
+            if (request.ReasonOfReligion != null) profile.ReasonOfReligion = request.ReasonOfReligion;
+        }
+        else
+        {
+            profile.ReasonOfReligion = null;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
