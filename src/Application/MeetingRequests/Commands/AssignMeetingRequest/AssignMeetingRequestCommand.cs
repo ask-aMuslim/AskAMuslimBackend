@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -17,10 +18,12 @@ public record AssignMeetingRequestCommand : IRequest<Result>
 public class AssignMeetingRequestCommandHandler : IRequestHandler<AssignMeetingRequestCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IMeetingRequestNotifier _notifier;
 
-    public AssignMeetingRequestCommandHandler(IApplicationDbContext context)
+    public AssignMeetingRequestCommandHandler(IApplicationDbContext context, IMeetingRequestNotifier notifier)
     {
         _context = context;
+        _notifier = notifier;
     }
 
     public async Task<Result> Handle(AssignMeetingRequestCommand request, CancellationToken cancellationToken)
@@ -62,8 +65,14 @@ public class AssignMeetingRequestCommandHandler : IRequestHandler<AssignMeetingR
             return Result.Failure(new[] { $"Moderator profile not found. Please ensure the {moderator.Role} profile is created before assignment." });
         }
 
+        var changed = entity.ModeratorId != request.ModeratorId;
         entity.ModeratorId = request.ModeratorId;
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (changed)
+        {
+            _notifier.Assigned(entity.Id, request.ModeratorId);
+        }
 
         return Result.Success();
     }

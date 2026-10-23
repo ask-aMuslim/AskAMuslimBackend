@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,13 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
+    private readonly IMeetingRequestNotifier _notifier;
 
-    public UpdateMeetingRequestStatusCommandHandler(IApplicationDbContext context, IUser user)
+    public UpdateMeetingRequestStatusCommandHandler(IApplicationDbContext context, IUser user, IMeetingRequestNotifier notifier)
     {
         _context = context;
         _user = user;
+        _notifier = notifier;
     }
 
     public async Task<Result> Handle(UpdateMeetingRequestStatusCommand request, CancellationToken cancellationToken)
@@ -55,6 +58,7 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
             entity.ModeratorId = guidUser; // Claim the request
             entity.Status = MeetingInquiryRequestStatus.Accepted;
             await _context.SaveChangesAsync(cancellationToken);
+            _notifier.StatusChanged(entity.Id, MeetingInquiryRequestStatus.Accepted, guidUser);
             return Result.Success();
         }
 
@@ -69,8 +73,15 @@ public class UpdateMeetingRequestStatusCommandHandler : IRequestHandler<UpdateMe
         };
         if (!allowed) return Result.Failure(new[] { "Not authorised to set this status." });
 
+        var changed = entity.Status != request.Status;
         entity.Status = request.Status;
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (changed)
+        {
+            _notifier.StatusChanged(entity.Id, request.Status, guidUser);
+        }
+
         return Result.Success();
     }
 }

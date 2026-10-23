@@ -3552,6 +3552,66 @@
         ]
       }
     },
+    "/api/MeetingRequests/my/{id}": {
+      "get": {
+        "tags": [
+          "MeetingRequests"
+        ],
+        "operationId": "GetMine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/MeetingRequests/my/{id}/cancel": {
+      "put": {
+        "tags": [
+          "MeetingRequests"
+        ],
+        "operationId": "CancelMine",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/MeetingRequests/{id}/status": {
       "put": {
         "tags": [
@@ -7520,7 +7580,7 @@
         "tags": [
           "SupportMails"
         ],
-        "operationId": "GetMine",
+        "operationId": "GetMine2",
         "parameters": [
           {
             "name": "Status",

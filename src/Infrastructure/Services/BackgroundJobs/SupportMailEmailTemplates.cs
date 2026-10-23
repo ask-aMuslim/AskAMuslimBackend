@@ -57,13 +57,13 @@ public static class SupportMailEmailTemplates
             <p style='margin: 6px 0;'><strong>Topic:</strong> {Encode(topic)}</p>
             <p style='margin: 6px 0;'><strong>Subject:</strong> {Encode(subject)}</p>";
 
-    private static string Quote(string? heading, string text) => $@"
+    internal static string Quote(string? heading, string text) => $@"
             <div style='margin: 16px 0;'>
                 {(heading == null ? "" : $"<h3 style='color: #1b5e20; font-size: 15px; margin: 0 0 8px;'>{Encode(heading)}:</h3>")}
                 <div style='background-color: #f5f8f5; padding: 14px; border-left: 4px solid #1b6b35; border-radius: 3px;'>{Encode(text)}</div>
             </div>";
 
-    private static string Layout(string title, string content) => $@"
+    internal static string Layout(string title, string content) => $@"
             <html>
             <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
                 <div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px;'>

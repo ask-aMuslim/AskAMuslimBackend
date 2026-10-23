@@ -1,5 +1,6 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
@@ -121,6 +122,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<NotificationJobExecutor>();
         builder.Services.AddScoped<SupportMailNotificationJobs>();
         builder.Services.AddScoped<ISupportMailNotifier, SupportMailNotifier>();
+        builder.Services.AddScoped<MeetingRequestNotificationJobs>();
+        builder.Services.AddScoped<IMeetingRequestNotifier, MeetingRequestNotifier>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

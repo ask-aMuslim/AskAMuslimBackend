@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Application.Common.Security;
 using AskAMuslimBackend.Domain.Constants;
 using FluentValidation;
@@ -19,10 +20,12 @@ public record UpdateMeetingRequestResponseCommand : IRequest<Result>
 public class UpdateMeetingRequestResponseCommandHandler : IRequestHandler<UpdateMeetingRequestResponseCommand, Result>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IMeetingRequestNotifier _notifier;
 
-    public UpdateMeetingRequestResponseCommandHandler(IApplicationDbContext context)
+    public UpdateMeetingRequestResponseCommandHandler(IApplicationDbContext context, IMeetingRequestNotifier notifier)
     {
         _context = context;
+        _notifier = notifier;
     }
 
     public async Task<Result> Handle(UpdateMeetingRequestResponseCommand request, CancellationToken cancellationToken)
@@ -30,8 +33,14 @@ public class UpdateMeetingRequestResponseCommandHandler : IRequestHandler<Update
         var entity = await _context.MeetingRequests.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
         if (entity == null) return Result.Failure(new[] { "Meeting request not found" });
 
+        var changed = entity.Response != request.Response;
         entity.Response = request.Response;
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (changed)
+        {
+            _notifier.ResponseAdded(entity.Id);
+        }
         return Result.Success();
     }
 }
