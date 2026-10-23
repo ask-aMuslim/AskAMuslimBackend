@@ -23,6 +23,7 @@ public class MeetingRequestNotificationJobs
 {
     public const string NotificationType = "MeetingRequest";
     public const string PushType = "meeting_request";
+    public const string DefaultWebBaseUrl = "https://askamuslim.com";
 
     private readonly ApplicationDbContext _context;
     private readonly IUserPushService _userPushService;
@@ -188,23 +189,24 @@ public class MeetingRequestNotificationJobs
         var requesterName = FullName(request.Requester);
         var topic = Humanize(request.Topic.ToString());
         var when = FormatWhen(request.ScheduledAt);
+        var viewUrl = ViewUrl(request.Id);
 
         SupportMailEmailTemplates.EmailContent? email = notificationEvent switch
         {
             MeetingRequestNotificationEvent.Created when recipientUserId.HasValue =>
-                MeetingRequestEmailTemplates.Receipt(recipientFirstName, topic, when),
+                MeetingRequestEmailTemplates.Receipt(recipientFirstName, topic, when, viewUrl),
             MeetingRequestNotificationEvent.Created =>
                 MeetingRequestEmailTemplates.NewRequestForInbox(requesterName, request.Requester?.Email, topic, when, request.Message),
             MeetingRequestNotificationEvent.Assigned =>
                 MeetingRequestEmailTemplates.AssignedToModerator(recipientFirstName, requesterName, topic, when, request.Message),
             MeetingRequestNotificationEvent.Accepted =>
-                MeetingRequestEmailTemplates.Accepted(recipientFirstName, topic, when, ModeratorName(request, relatedId)),
+                MeetingRequestEmailTemplates.Accepted(recipientFirstName, topic, when, ModeratorName(request, relatedId), viewUrl),
             MeetingRequestNotificationEvent.Rejected =>
-                MeetingRequestEmailTemplates.Rejected(recipientFirstName, topic, when),
+                MeetingRequestEmailTemplates.Rejected(recipientFirstName, topic, when, viewUrl),
             MeetingRequestNotificationEvent.Completed =>
-                MeetingRequestEmailTemplates.Completed(recipientFirstName, topic, when),
+                MeetingRequestEmailTemplates.Completed(recipientFirstName, topic, when, viewUrl),
             MeetingRequestNotificationEvent.ResponseAdded when !string.IsNullOrWhiteSpace(request.Response) =>
-                MeetingRequestEmailTemplates.ResponseForRequester(recipientFirstName, topic, when, request.Response),
+                MeetingRequestEmailTemplates.ResponseForRequester(recipientFirstName, topic, when, request.Response, viewUrl),
             _ => null
         };
 
@@ -274,6 +276,18 @@ public class MeetingRequestNotificationJobs
             .Include(m => m.Requester)
             .Include(m => m.Moderator)
             .FirstOrDefaultAsync(m => m.Id == requestId, cancellationToken);
+
+    /// <summary>The request's page on the website. Set <c>MeetingRequests:WebBaseUrl</c> to point emails at another site.</summary>
+    private string ViewUrl(Guid requestId)
+    {
+        var baseUrl = _configuration["MeetingRequests:WebBaseUrl"];
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            baseUrl = DefaultWebBaseUrl;
+        }
+
+        return $"{baseUrl.TrimEnd('/')}/question-and-answer/meet-scholar/history/{requestId}";
+    }
 
     private static string? ModeratorName(MeetingRequest request, Guid? actorId)
     {

@@ -123,6 +123,25 @@ public class MeetingRequestNotificationTests : BaseTestFixture
         (await NotificationsForAsync(requesterId)).Single().Title.ShouldBe("Your meeting request was accepted");
         ShouldHavePushedTo(new[] { "phone-token" });
         ShouldHaveEmailed(RequesterEmail, "Your meeting request was accepted");
+
+        // The email links to the request's page on the website.
+        var detailsUrl = $"{MeetingRequestNotificationJobs.DefaultWebBaseUrl}/question-and-answer/meet-scholar/history/{requestId}";
+        EmailService.Verify(e => e.SendEmailAsync(RequesterEmail, It.IsAny<string>(),
+            It.Is<string>(body => body.Contains(detailsUrl)), true), Times.Once());
+    }
+
+    [Test]
+    public async Task Emails_ToRequester_LinkToTheDetailsPage_AndStaffEmailsDoNot()
+    {
+        await RunAsRequesterAsync();
+        var requestId = await CreateRequestAsync();
+        await RunEnqueuedJobsAsync();
+
+        var detailsUrl = $"/question-and-answer/meet-scholar/history/{requestId}";
+        EmailService.Verify(e => e.SendEmailAsync(RequesterEmail, It.Is<string>(s => s.Contains("We received")),
+            It.Is<string>(body => body.Contains(detailsUrl)), true), Times.Once());
+        EmailService.Verify(e => e.SendEmailAsync(InboxEmail, It.IsAny<string>(),
+            It.Is<string>(body => body.Contains(detailsUrl)), true), Times.Never());
     }
 
     [Test]
