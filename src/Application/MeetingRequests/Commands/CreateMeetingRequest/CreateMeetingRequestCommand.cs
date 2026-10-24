@@ -59,11 +59,13 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
 
 public class CreateMeetingRequestCommandValidator : AbstractValidator<CreateMeetingRequestCommand>
 {
-    public CreateMeetingRequestCommandValidator()
+    public CreateMeetingRequestCommandValidator(TimeProvider timeProvider)
     {
         RuleFor(x => x.Topic).IsInEnum().When(x => x.Topic.HasValue);
         RuleFor(x => x.Message).NotEmpty().MaximumLength(4000);
-        RuleFor(x => x.ScheduledAt).GreaterThan(DateTime.UtcNow).WithMessage("Scheduled time must be in the future.");
+        RuleFor(x => x.ScheduledAt)
+            .Must(scheduledAt => scheduledAt.ToUniversalTime() >= MeetingRequestRules.EarliestStartUtc(timeProvider.GetUtcNow()))
+            .WithMessage($"Scheduled time must be at least {MeetingRequestRules.MinimumNotice.TotalHours:0} hours from now.");
         RuleFor(x => x.Languages).NotEmpty().WithMessage("At least one language must be provided.");
         RuleForEach(x => x.Languages).IsInEnum();
     }
