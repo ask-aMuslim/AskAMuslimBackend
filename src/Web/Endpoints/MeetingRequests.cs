@@ -1,10 +1,13 @@
+using AskAMuslimBackend.Application.MeetingRequests.Commands.CancelMyMeetingRequest;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.CreateMeetingRequest;
+using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMyMeetingRequestById;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestStatus;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.UpdateMeetingRequestResponse;
 using AskAMuslimBackend.Application.MeetingRequests.Commands.AssignMeetingRequest;
 using AskAMuslimBackend.Application.MeetingRequests.Queries;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetAllMeetingRequests;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestById;
+using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestCounts;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByRequester;
 using AskAMuslimBackend.Application.MeetingRequests.Queries.GetMeetingRequestsByModerator;
 using AskAMuslimBackend.Domain.Enums;
@@ -22,6 +25,10 @@ public class MeetingRequests : EndpointGroupBase
             .RequireAuthorization(Policies.ViewMeetingRequests)
             .WithName("GetAllMeetingRequests")
             .WithSummary("Get all meeting requests");
+        groupBuilder.MapGet(GetCounts, "counts")
+            .RequireAuthorization(Policies.ViewMeetingRequests)
+            .WithName("GetMeetingRequestCounts")
+            .WithSummary("Get meeting request counts for the dashboard");
         groupBuilder.MapGet(GetById, "{id}")
             .RequireAuthorization(Policies.ViewMeetingRequests)
             .WithName("GetMeetingRequest")
@@ -38,6 +45,14 @@ public class MeetingRequests : EndpointGroupBase
             .RequireAuthorization()
             .WithName("CreateMeetingRequest")
             .WithSummary("Create meeting request");
+        groupBuilder.MapGet(GetMine, "my/{id}")
+            .RequireAuthorization()
+            .WithName("GetMyMeetingRequest")
+            .WithSummary("Get one of my own meeting requests");
+        groupBuilder.MapPut(CancelMine, "my/{id}/cancel")
+            .RequireAuthorization()
+            .WithName("CancelMyMeetingRequest")
+            .WithSummary("Cancel one of my own pending or accepted meeting requests");
         groupBuilder.MapPut(UpdateStatus, "{id}/status")
             .RequireAuthorization(Policies.ManageMeetingRequests)
             .WithName("UpdateMeetingRequestStatus")
@@ -58,9 +73,27 @@ public class MeetingRequests : EndpointGroupBase
         return result.ToHttpResult();
     }
 
+    public async Task<IResult> GetCounts(ISender sender)
+    {
+        var result = await sender.Send(new GetMeetingRequestCountsQuery());
+        return result.ToHttpResult();
+    }
+
     public async Task<IResult> GetById(ISender sender, Guid id)
     {
         var result = await sender.Send(new GetMeetingRequestByIdQuery(id));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetMine(ISender sender, Guid id)
+    {
+        var result = await sender.Send(new GetMyMeetingRequestByIdQuery(id));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> CancelMine(ISender sender, Guid id)
+    {
+        var result = await sender.Send(new CancelMyMeetingRequestCommand { Id = id });
         return result.ToHttpResult();
     }
 

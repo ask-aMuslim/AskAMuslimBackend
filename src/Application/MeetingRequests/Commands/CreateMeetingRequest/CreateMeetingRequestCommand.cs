@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
 using FluentValidation;
@@ -19,11 +20,13 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
 {
     private readonly IApplicationDbContext _context;
     private readonly IUser _user;
+    private readonly IMeetingRequestNotifier _notifier;
 
-    public CreateMeetingRequestCommandHandler(IApplicationDbContext context, IUser user)
+    public CreateMeetingRequestCommandHandler(IApplicationDbContext context, IUser user, IMeetingRequestNotifier notifier)
     {
         _context = context;
         _user = user;
+        _notifier = notifier;
     }
 
     public async Task<Result<Guid>> Handle(CreateMeetingRequestCommand request, CancellationToken cancellationToken)
@@ -47,17 +50,22 @@ public class CreateMeetingRequestCommandHandler : IRequestHandler<CreateMeetingR
 
         _context.MeetingRequests.Add(mr);
         await _context.SaveChangesAsync(cancellationToken);
+
+        _notifier.RequestCreated(mr.Id);
+
         return Result<Guid>.Success(mr.Id);
     }
 }
 
 public class CreateMeetingRequestCommandValidator : AbstractValidator<CreateMeetingRequestCommand>
 {
-    public CreateMeetingRequestCommandValidator()
+    public CreateMeetingRequestCommandValidator(TimeProvider timeProvider)
     {
         RuleFor(x => x.Topic).IsInEnum().When(x => x.Topic.HasValue);
         RuleFor(x => x.Message).NotEmpty().MaximumLength(4000);
-        RuleFor(x => x.ScheduledAt).GreaterThan(DateTime.UtcNow).WithMessage("Scheduled time must be in the future.");
+        RuleFor(x => x.ScheduledAt)
+            .Must(scheduledAt => scheduledAt.ToUniversalTime() >= MeetingRequestRules.EarliestStartUtc(timeProvider.GetUtcNow()))
+            .WithMessage($"Scheduled time must be at least {MeetingRequestRules.MinimumNotice.TotalHours:0} hours from now.");
         RuleFor(x => x.Languages).NotEmpty().WithMessage("At least one language must be provided.");
         RuleForEach(x => x.Languages).IsInEnum();
     }

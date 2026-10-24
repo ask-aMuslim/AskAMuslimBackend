@@ -7,6 +7,12 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using AskAMuslimBackend.Application.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
+using AskAMuslimBackend.Application.Notifications.Common.Models;
+using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 
 namespace AskAMuslimBackend.Application.FunctionalTests;
 
@@ -67,45 +73,46 @@ public partial class Testing
         return await RunAsUserAsync("administrator@local", "Administrator1234!", new[] { Roles.Administrator });
     }
 
-    // Create a user directly via ApplicationDbContext (custom identity), and set test user context
-    public static async Task<string> RunAsUserAsync(string email, string password, string[] roles)
+    public static Task<string> RunAsUserAsync(string email, string password, string[] roles)
+    {
+        var role = roles.Contains(Roles.Administrator) ? UserRole.Admin : UserRole.Student;
+        return RunAsUserAsync(email, password, role, roles);
+    }
+
+    // Create (or reuse) a user via UserManager and make it the current test user.
+    // UserRole drives the app's permission defaults; roles only feed the mocked IUser.Roles.
+    public static async Task<string> RunAsUserAsync(string email, string password, UserRole role, string[]? roles = null)
     {
         using var scope = _scopeFactory.CreateScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        var existing = await userManager.FindByEmailAsync(email);
-        //if (existing == null)
-        //{
-        //    var user = new User
-        //    {
-        //        UserName = email,
-        //        Email = email,
-        //        FirstName = string.Empty,
-        //        LastName = string.Empty,
-        //        Role = roleEnum,
-        //        ReligionStatus = religiousStatus,
-        //        EmailConfirmed = true,
-        //        IsActive = true,
-        //        CreatedAt = DateTime.UtcNow
-        //    };
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new User
+            {
+                UserName = email,
+                Email = email,
+                FirstName = email.Split('@')[0],
+                LastName = "Tester",
+                Role = role,
+                EmailConfirmed = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        //    var result = await userManager.CreateAsync(user, password);
-        //    if (result.Succeeded)
-        //    {
-        //        await userManager.AddToRoleAsync(user, roleEnum.ToString());
-        //    }
+            var result = await userManager.CreateAsync(user, password);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create test user {email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
+        }
 
-        //    _userId = user.Id.ToString();
-        //}
-        //else
-        //{
-        //    _userId = existing.Id.ToString();
-        //}
-
+        _userId = user.Id.ToString();
         _roles = new List<string>(roles ?? Array.Empty<string>());
-        return _userId!;
+        return _userId;
     }
 
     public static async Task ResetState()
@@ -119,6 +126,7 @@ public partial class Testing
         }
 
         _userId = null;
+        ResetFakes();
     }
 
     public static async Task<TEntity?> FindAsync<TEntity>(params object[] keyValues)
@@ -143,6 +151,15 @@ public partial class Testing
         await context.SaveChangesAsync();
     }
 
+    public static async Task ExecuteDbContextAsync(Func<ApplicationDbContext, Task> action)
+    {
+        using var scope = _scopeFactory.CreateScope();
+
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        await action(context);
+    }
+
     public static async Task<int> CountAsync<TEntity>() where TEntity : class
     {
         using var scope = _scopeFactory.CreateScope();
@@ -157,5 +174,65 @@ public partial class Testing
     {
         await _database.DisposeAsync();
         await _factory.DisposeAsync();
+    }
+
+    // ---- Shared fakes for outbound side effects (emails, pushes, Hangfire jobs); reset before every test ----
+
+    public static Mock<IEmailService> EmailService { get; } = new();
+    public static Mock<IFirebaseMessagingService> FirebaseMessaging { get; } = new();
+    public static Mock<IBackgroundJobClient> BackgroundJobClient { get; } = new();
+
+    /// <summary>Jobs queued through Hangfire that have not been run yet.</summary>
+    public static List<Job> EnqueuedJobs { get; } = new();
+
+    /// <summary>Every job queued since the last reset, including ones already run.</summary>
+    public static List<Job> AllEnqueuedJobs { get; } = new();
+
+    public static void ResetFakes()
+    {
+        EnqueuedJobs.Clear();
+        AllEnqueuedJobs.Clear();
+
+        EmailService.Reset();
+
+        FirebaseMessaging.Reset();
+        FirebaseMessaging
+            .Setup(f => f.SendToTokensAsync(It.IsAny<IEnumerable<string>>(), It.IsAny<PushNotificationRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<string> tokens, PushNotificationRequest _, CancellationToken _) =>
+                new PushNotificationResult { SuccessCount = tokens.Count() });
+
+        BackgroundJobClient.Reset();
+        BackgroundJobClient
+            .Setup(c => c.Create(It.IsAny<Job>(), It.IsAny<IState>()))
+            .Callback((Job job, IState _) =>
+            {
+                EnqueuedJobs.Add(job);
+                AllEnqueuedJobs.Add(job);
+            })
+            .Returns(() => Guid.NewGuid().ToString());
+    }
+
+    /// <summary>
+    /// Runs queued jobs the way Hangfire would (resolving the job class from DI), including jobs they queue, until none are left.
+    /// </summary>
+    public static async Task RunEnqueuedJobsAsync()
+    {
+        while (EnqueuedJobs.Count > 0)
+        {
+            var job = EnqueuedJobs[0];
+            EnqueuedJobs.RemoveAt(0);
+            await RunJobAsync(job);
+        }
+    }
+
+    public static async Task RunJobAsync(Job job)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var instance = ActivatorUtilities.GetServiceOrCreateInstance(scope.ServiceProvider, job.Type);
+        var result = job.Method.Invoke(instance, job.Args.ToArray());
+        if (result is Task task)
+        {
+            await task;
+        }
     }
 }

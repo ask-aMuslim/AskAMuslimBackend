@@ -1,4 +1,7 @@
-using AskAMuslimBackend.Application.Notifications.Commands.MarkAsRead;
+﻿using AskAMuslimBackend.Application.Notifications.Commands.MarkAsRead;
+using AskAMuslimBackend.Application.Notifications.Commands.MarkMyNotificationsAsRead;
+using AskAMuslimBackend.Application.Notifications.Commands.UnregisterFcmToken;
+using AskAMuslimBackend.Application.Notifications.Queries.GetMyNotifications;
 using AskAMuslimBackend.Application.Notifications.Commands.RegisterFcmToken;
 using AskAMuslimBackend.Application.Notifications.Commands.SendBroadcastNotification;
 using AskAMuslimBackend.Application.Notifications.Commands.SendBulkNotifications;
@@ -20,9 +23,26 @@ public class Notifications : EndpointGroupBase
         app.MapPut(MarkAsRead, "{notificationId}/mark-read")
             .RequireAuthorization(Policies.ViewNotifications);
 
-        // FCM Token Management
+        // Current user's own in-app notifications (any signed-in user)
+        app.MapGet(GetMyNotifications, "me")
+            .RequireAuthorization()
+            .WithName("GetMyNotifications");
+        app.MapGet(GetMyUnreadCount, "me/unread-count")
+            .RequireAuthorization()
+            .WithName("GetMyUnreadNotificationsCount");
+        app.MapPut(MarkMyNotificationAsRead, "me/{notificationId:guid}/read")
+            .RequireAuthorization()
+            .WithName("MarkMyNotificationAsRead");
+        app.MapPut(MarkAllMyNotificationsAsRead, "me/read-all")
+            .RequireAuthorization()
+            .WithName("MarkAllMyNotificationsAsRead");
+
+        // FCM Token Management (one token per device; call unregister on logout)
         app.MapPost(RegisterFcmToken, "register-token")
             .RequireAuthorization();
+        app.MapPost(UnregisterFcmToken, "unregister-token")
+            .RequireAuthorization()
+            .WithName("UnregisterFcmToken");
 
         // Admin-only bulk notification endpoints
         app.MapPost(SendBulkNotifications, "send-to-users")
@@ -60,6 +80,36 @@ public class Notifications : EndpointGroupBase
     public async Task<IResult> RegisterFcmToken(ISender sender, RegisterFcmTokenCommand command)
     {
         var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> UnregisterFcmToken(ISender sender, UnregisterFcmTokenCommand command)
+    {
+        var result = await sender.Send(command);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetMyNotifications(ISender sender, [AsParameters] GetMyNotificationsQuery query)
+    {
+        var result = await sender.Send(query);
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> GetMyUnreadCount(ISender sender)
+    {
+        var result = await sender.Send(new GetMyUnreadNotificationsCountQuery());
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> MarkMyNotificationAsRead(ISender sender, Guid notificationId)
+    {
+        var result = await sender.Send(new MarkMyNotificationAsReadCommand(notificationId));
+        return result.ToHttpResult();
+    }
+
+    public async Task<IResult> MarkAllMyNotificationsAsRead(ISender sender)
+    {
+        var result = await sender.Send(new MarkAllMyNotificationsAsReadCommand());
         return result.ToHttpResult();
     }
 

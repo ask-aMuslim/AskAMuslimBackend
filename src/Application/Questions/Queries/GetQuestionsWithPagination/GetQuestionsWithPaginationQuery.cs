@@ -28,7 +28,8 @@ public class GetQuestionsWithPaginationQueryHandler : IRequestHandler<GetQuestio
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
-            query = query.Where(q => q.Text.Contains(request.SearchTerm));
+            var searchLower = request.SearchTerm.ToLower();
+            query = query.Where(q => q.Text.ToLower().Contains(searchLower));
         }
 
         var paginatedList = await query

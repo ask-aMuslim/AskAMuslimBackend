@@ -17,18 +17,33 @@ public class GetCertificatesByStudentQueryHandler : IRequestHandler<GetCertifica
 
     public async Task<Result<List<CertificateDto>>> Handle(GetCertificatesByStudentQuery request, CancellationToken cancellationToken)
     {
-        var certificates = await _context.Certificates
-            .Where(c => c.StudentId == request.StudentId)
-            .OrderByDescending(c => c.IssuedAt)
-            .Select(s => new CertificateDto {
-            Id = s.Id,
-            StudentId = s.StudentId,
-            LevelId = s.LevelId,
-            Url = s.Url,
-            IssuedAt = s.IssuedAt
-    })
+        var studentLookup = _context.Students
+            .Join(
+                _context.Users,
+                student => student.UserId,
+                user => user.Id,
+                (student, user) => new { student.Id, FullName = (user.FirstName + " " + user.LastName).Trim() });
+
+        var certificates = await (
+            from c in _context.Certificates.AsNoTracking()
+            join s in studentLookup on c.StudentId equals s.Id into sg
+            from s in sg.DefaultIfEmpty()
+            where c.StudentId == request.StudentId
+            orderby c.IssuedAt descending
+            select new CertificateDto
+            {
+                Id = c.Id,
+                StudentId = c.StudentId,
+                LevelId = c.LevelId,
+                CourseId = c.CourseId,
+                Url = c.Url,
+                IssuedAt = c.IssuedAt,
+                StudentFullName = s != null ? s.FullName : null,
+                LevelName = c.Level != null ? c.Level.Title : null,
+                CourseName = c.Course != null ? c.Course.Title : null
+            })
             .ToListAsync(cancellationToken);
-            
+
         return Result<List<CertificateDto>>.Success(certificates);
     }
 }

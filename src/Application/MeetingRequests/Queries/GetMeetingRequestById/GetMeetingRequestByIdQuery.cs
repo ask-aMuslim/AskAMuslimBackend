@@ -25,6 +25,7 @@ public class GetMeetingRequestByIdQueryHandler : IRequestHandler<GetMeetingReque
             Id = s.Id,
             RequesterId = s.RequesterId,
             RequesterName = s.Requester != null ? s.Requester.FirstName + " " + s.Requester.LastName : string.Empty,
+            RequesterEmail = s.Requester != null ? s.Requester.Email : null,
             ModeratorName = s.Moderator != null ? s.Moderator.FirstName + " " + s.Moderator.LastName : null,
             ModeratorId = s.ModeratorId,
             Topic = s.Topic,

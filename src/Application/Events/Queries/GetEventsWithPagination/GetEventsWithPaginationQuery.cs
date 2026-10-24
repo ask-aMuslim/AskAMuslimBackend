@@ -54,10 +54,13 @@ public class GetEventsWithPaginationQueryHandler : IRequestHandler<GetEventsWith
         if (request.To.HasValue)
             query = query.Where(e => e.EndDateTime <= request.To.Value);
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(e =>
-                e.Title.Contains(request.SearchTerm) ||
-                (e.Description != null && e.Description.Contains(request.SearchTerm)) ||
-                (e.SpeakerName != null && e.SpeakerName.Contains(request.SearchTerm)));
+                e.Title.ToLower().Contains(searchLower) ||
+                (e.Description != null && e.Description.ToLower().Contains(searchLower)) ||
+                (e.SpeakerName != null && e.SpeakerName.ToLower().Contains(searchLower)));
+        }
 
         var pagedEventData = await query
             .OrderBy(e => e.StartDateTime)

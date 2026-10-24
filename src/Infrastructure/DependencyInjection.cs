@@ -1,5 +1,7 @@
 ﻿using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
+using AskAMuslimBackend.Application.SupportMails.Common;
 using AskAMuslimBackend.Domain.Constants;
 using AskAMuslimBackend.Domain.Entities;
 using AskAMuslimBackend.Domain.Enums;
@@ -8,8 +10,6 @@ using AskAMuslimBackend.Infrastructure.Data.Interceptors;
 using AskAMuslimBackend.Infrastructure.Identity;
 using AskAMuslimBackend.Infrastructure.Services;
 using AskAMuslimBackend.Infrastructure.Services.BackgroundJobs;
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -95,20 +95,13 @@ public static class DependencyInjection
         builder.Services.AddScoped<IEventNotificationService, EventNotificationService>();
 
         // Configure Firebase Admin SDK
-        var firebaseCredentialPath = builder.Configuration["Firebase:CredentialPath"];
-        if (!string.IsNullOrEmpty(firebaseCredentialPath))
-        {
-            var fullPath = Path.Combine(AppContext.BaseDirectory, firebaseCredentialPath);
-            if (File.Exists(fullPath))
-            {
-                FirebaseApp.Create(new AppOptions
-                {
-                    Credential = GoogleCredential.FromFile(fullPath)
-                });
-            }
-        }
+        var firebaseInitialization = FirebaseAppInitializer.Initialize(
+            builder.Configuration, AppContext.BaseDirectory, builder.Environment.ContentRootPath);
+        builder.Services.AddSingleton(firebaseInitialization);
+        builder.Services.AddHostedService<FirebaseStartupLogger>();
 
         builder.Services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
+        builder.Services.AddScoped<IUserPushService, UserPushService>();
 
         // Configure Hangfire unless the app is being launched by NSwag.
         if (!IsRunningUnderNSwag())
@@ -127,6 +120,10 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<IBackgroundJobService, BackgroundNotificationJobService>();
         builder.Services.AddScoped<NotificationJobExecutor>();
+        builder.Services.AddScoped<SupportMailNotificationJobs>();
+        builder.Services.AddScoped<ISupportMailNotifier, SupportMailNotifier>();
+        builder.Services.AddScoped<MeetingRequestNotificationJobs>();
+        builder.Services.AddScoped<IMeetingRequestNotifier, MeetingRequestNotifier>();
 
         // Configure JWT Authentication
         var jwtSettings = builder.Configuration.GetSection("JwtSettings");

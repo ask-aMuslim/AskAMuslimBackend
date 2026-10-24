@@ -7,5 +7,7 @@ public class NotificationDto
     public string Title { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public bool IsRead { get; set; }
+    public string? ActionUrl { get; set; }
+    public string NotificationType { get; set; } = "General";
     public DateTimeOffset CreatedAt { get; set; }
 }

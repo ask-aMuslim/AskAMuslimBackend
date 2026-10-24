@@ -42,10 +42,11 @@ public class GetAllStudentsQueryHandler : IRequestHandler<GetAllStudentsQuery, R
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(s => 
-                s.Email.Contains(request.SearchTerm) ||
-                s.FirstName.Contains(request.SearchTerm) ||
-                s.LastName.Contains(request.SearchTerm));
+                s.Email.ToLower().Contains(searchLower) ||
+                s.FirstName.ToLower().Contains(searchLower) ||
+                s.LastName.ToLower().Contains(searchLower));
         }
 
         var paginatedList = await query

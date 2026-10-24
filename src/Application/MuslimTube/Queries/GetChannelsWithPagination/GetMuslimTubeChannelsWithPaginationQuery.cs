@@ -35,9 +35,10 @@ public class GetMuslimTubeChannelsWithPaginationQueryHandler : IRequestHandler<G
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(c => 
-                c.Name.Contains(request.SearchTerm) ||
-                (c.Description != null && c.Description.Contains(request.SearchTerm)));
+                c.Name.ToLower().Contains(searchLower) ||
+                (c.Description != null && c.Description.ToLower().Contains(searchLower)));
         }
 
         var result = await query

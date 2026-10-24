@@ -43,13 +43,14 @@ public class SqlTestcontainersTestDatabase : ITestDatabase
         var context = new ApplicationDbContext(options);
 
         await context.Database.EnsureDeletedAsync();
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.MigrateAsync();
 
         await _connection.OpenAsync();
         _respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = new[] { "public" }
+            SchemasToInclude = new[] { "public" },
+            TablesToIgnore = new Table[] { "__EFMigrationsHistory" }
         });
     }
 

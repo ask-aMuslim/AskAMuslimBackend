@@ -27,5 +27,12 @@ public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
             .WithMany()
             .HasForeignKey(c => c.StudentId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // FK to Course (optional)
+        builder
+            .HasOne(c => c.Course)
+            .WithMany(co => co.Certificates)
+            .HasForeignKey(c => c.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

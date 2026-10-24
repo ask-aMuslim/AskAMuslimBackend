@@ -188,6 +188,9 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CourseId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -215,6 +218,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("LevelId")
                         .IsUnique();
@@ -1487,6 +1492,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.HasKey("Id");
 
                     b.ToTable("QAs", (string)null);
@@ -2038,6 +2048,117 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.ToTable("StudentQuestions", (string)null);
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssignedModeratorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastMessageSenderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("RequesterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("RequesterLastReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssignedModeratorId", "LastMessageAt");
+
+                    b.HasIndex("RequesterId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("Status", "LastMessageAt");
+
+                    b.ToTable("SupportMails", (string)null);
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMailMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("MailId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SenderType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("MailId", "Created");
+
+                    b.ToTable("SupportMailMessages", (string)null);
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Tag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2059,6 +2180,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -2262,6 +2388,50 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.UserDeviceToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastModified")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDeviceTokens", (string)null);
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.UserPermission", b =>
@@ -2517,6 +2687,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Certificate", b =>
                 {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.Course", "Course")
+                        .WithMany("Certificates")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("AskAMuslimBackend.Domain.Entities.Level", "Level")
                         .WithOne("Certificate")
                         .HasForeignKey("AskAMuslimBackend.Domain.Entities.Certificate", "LevelId")
@@ -2528,6 +2703,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Course");
 
                     b.Navigation("Level");
                 });
@@ -2985,6 +3162,43 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("Student");
                 });
 
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "AssignedModerator")
+                        .WithMany()
+                        .HasForeignKey("AssignedModeratorId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssignedModerator");
+
+                    b.Navigation("Requester");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMailMessage", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.SupportMail", "Mail")
+                        .WithMany("Messages")
+                        .HasForeignKey("MailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Mail");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.TodoItem", b =>
                 {
                     b.HasOne("AskAMuslimBackend.Domain.Entities.TodoList", "List")
@@ -3017,6 +3231,17 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
                     b.Navigation("Colour")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.UserDeviceToken", b =>
+                {
+                    b.HasOne("AskAMuslimBackend.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.UserPermission", b =>
@@ -3096,6 +3321,8 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Course", b =>
                 {
+                    b.Navigation("Certificates");
+
                     b.Navigation("CoursePrerequisites");
 
                     b.Navigation("CourseTags");
@@ -3189,6 +3416,11 @@ namespace AskAMuslimBackend.Infrastructure.Migrations
                     b.Navigation("StudentNotes");
 
                     b.Navigation("StudentQuestions");
+                });
+
+            modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.SupportMail", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("AskAMuslimBackend.Domain.Entities.Tag", b =>

@@ -144,14 +144,15 @@ public class GetAllModeratorsQueryHandler : IRequestHandler<GetAllModeratorsQuer
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(m =>
-                m.Email.Contains(request.SearchTerm) ||
-                m.FirstName.Contains(request.SearchTerm) ||
-                m.LastName.Contains(request.SearchTerm) ||
-                (m.FirstName + " " + m.LastName).Contains(request.SearchTerm) ||
-                (m.Specialization != null && m.Specialization.Contains(request.SearchTerm)) ||
-                (m.Department != null && m.Department.Contains(request.SearchTerm)) ||
-                (m.Organization != null && m.Organization.Contains(request.SearchTerm)));
+                m.Email.ToLower().Contains(searchLower) ||
+                m.FirstName.ToLower().Contains(searchLower) ||
+                m.LastName.ToLower().Contains(searchLower) ||
+                (m.FirstName + " " + m.LastName).ToLower().Contains(searchLower) ||
+                (m.Specialization != null && m.Specialization.ToLower().Contains(searchLower)) ||
+                (m.Department != null && m.Department.ToLower().Contains(searchLower)) ||
+                (m.Organization != null && m.Organization.ToLower().Contains(searchLower)));
         }
 
         // Apply IsActive filter if specified

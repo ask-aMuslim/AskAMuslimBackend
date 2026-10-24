@@ -52,12 +52,13 @@ public class GetAllInstructorsQueryHandler : IRequestHandler<GetAllInstructorsQu
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(i => 
-                i.Email.Contains(request.SearchTerm) ||
-                i.FirstName.Contains(request.SearchTerm) ||
-                i.LastName.Contains(request.SearchTerm) ||
-                (i.FirstName + " " + i.LastName).Contains(request.SearchTerm) ||
-                (i.Specialization != null && i.Specialization.Contains(request.SearchTerm)));
+                i.Email.ToLower().Contains(searchLower) ||
+                i.FirstName.ToLower().Contains(searchLower) ||
+                i.LastName.ToLower().Contains(searchLower) ||
+                (i.FirstName + " " + i.LastName).ToLower().Contains(searchLower) ||
+                (i.Specialization != null && i.Specialization.ToLower().Contains(searchLower)));
         }
 
         // Apply IsActive filter if specified

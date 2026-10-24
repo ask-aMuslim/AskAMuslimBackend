@@ -49,9 +49,10 @@ public class GetCoursesWithPaginationQueryHandler : IRequestHandler<GetCoursesWi
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(c => 
-                c.Title.Contains(request.SearchTerm) ||
-                (c.Description != null && c.Description.Contains(request.SearchTerm)));
+                c.Title.ToLower().Contains(searchLower) ||
+                (c.Description != null && c.Description.ToLower().Contains(searchLower)));
         }
 
         var paginatedList = await query

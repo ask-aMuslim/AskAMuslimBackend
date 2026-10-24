@@ -1,5 +1,6 @@
 using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
+using AskAMuslimBackend.Application.MeetingRequests.Common;
 using AskAMuslimBackend.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,14 +11,20 @@ public record GetMeetingRequestsByRequesterQuery(Guid RequesterId, MeetingInquir
 public class GetMeetingRequestsByRequesterQueryHandler : IRequestHandler<GetMeetingRequestsByRequesterQuery, Result<List<MeetingRequestDto>>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IUser _user;
+    private readonly IPermissionService _permissionService;
 
-    public GetMeetingRequestsByRequesterQueryHandler(IApplicationDbContext context)
+    public GetMeetingRequestsByRequesterQueryHandler(IApplicationDbContext context, IUser user, IPermissionService permissionService)
     {
         _context = context;
+        _user = user;
+        _permissionService = permissionService;
     }
 
     public async Task<Result<List<MeetingRequestDto>>> Handle(GetMeetingRequestsByRequesterQuery request, CancellationToken cancellationToken)
     {
+        await MeetingRequestAccess.EnsureCanViewListOfAsync(request.RequesterId, _user, _permissionService, cancellationToken);
+
         var query = _context.MeetingRequests
             .Include(x => x.Requester)
             .AsQueryable()

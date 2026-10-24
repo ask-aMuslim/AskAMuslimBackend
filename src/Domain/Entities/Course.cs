@@ -19,6 +19,7 @@ public class Course : BaseAuditableEntity
     public ICollection<Lesson> Lessons { get; set; } = new HashSet<Lesson>();
     public ICollection<Quiz> Quizzes { get; set; } = new HashSet<Quiz>();
     public ICollection<Enrollment> Enrollments { get; set; } = new HashSet<Enrollment>();
+    public ICollection<Certificate> Certificates { get; set; } = new HashSet<Certificate>();
 
     // Tags (many-to-many via join entity)
     public ICollection<CourseTag> CourseTags { get; set; } = new HashSet<CourseTag>();

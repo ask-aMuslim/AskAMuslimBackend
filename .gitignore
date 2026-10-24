@@ -491,3 +491,6 @@ appsettings.*.json
 
 # JetBrains Rider config
 .idea/
+
+# Firebase service-account keys (supply via Firebase__CredentialJson instead)
+firebase-adminsdk*.json

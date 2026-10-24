@@ -1,4 +1,4 @@
-using AskAMuslimBackend.Application.Common.Interfaces;
+﻿using AskAMuslimBackend.Application.Common.Interfaces;
 using AskAMuslimBackend.Application.Common.Models;
 using AskAMuslimBackend.Application.Notifications.Common.Interfaces;
 using AskAMuslimBackend.Application.Notifications.Common.Models;
@@ -21,18 +21,18 @@ public record SendNotificationCommand : IRequest<Result<Guid>>
 public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCommand, Result<Guid>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IFirebaseMessagingService _firebaseMessaging;
+    private readonly IUserPushService _userPushService;
     private readonly IEmailService _emailService;
     private readonly ILogger<SendNotificationCommandHandler> _logger;
 
     public SendNotificationCommandHandler(
         IApplicationDbContext context,
-        IFirebaseMessagingService firebaseMessaging,
+        IUserPushService userPushService,
         IEmailService emailService,
         ILogger<SendNotificationCommandHandler> logger)
     {
         _context = context;
-        _firebaseMessaging = firebaseMessaging;
+        _userPushService = userPushService;
         _emailService = emailService;
         _logger = logger;
     }
@@ -51,50 +51,24 @@ public class SendNotificationCommandHandler : IRequestHandler<SendNotificationCo
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Send push notification via Firebase
+        // Send push notification to all of the user's devices
         try
         {
             var user = await _context.Users
                 .Where(u => u.Id == request.UserId)
-                .Select(u => new { u.FcmToken, u.Email, u.FirstName })
+                .Select(u => new { u.Email, u.FirstName })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (user != null)
             {
-                // Send mobile push notification if user has FCM token
-                if (user.FcmToken != null)
+                await _userPushService.SendToUserAsync(request.UserId, new PushNotificationRequest
                 {
-                    var pushNotification = new PushNotificationRequest
-                    {
-                        Title = request.Title,
-                        Body = request.Message,
-                        ActionUrl = request.ActionUrl,
-                        ImageUrl = request.ImageUrl,
-                        CustomData = request.CustomData
-                    };
-
-                    var result = await _firebaseMessaging.SendToTokenAsync(user.FcmToken, pushNotification, cancellationToken);
-
-                    if (result.InvalidTokens.Any())
-                    {
-                        // Clean up invalid token
-                        var userEntity = await _context.Users.FindAsync(new object[] { request.UserId }, cancellationToken);
-                        if (userEntity != null)
-                        {
-                            userEntity.FcmToken = null;
-                            await _context.SaveChangesAsync(cancellationToken);
-                        }
-                    }
-
-                    _logger.LogInformation(
-                        "Push notification sent to user {UserId}. Success: {Success}",
-                        request.UserId,
-                        result.IsSuccess);
-                }
-                else
-                {
-                    _logger.LogInformation("User {UserId} has no FCM token. Skipping push notification.", request.UserId);
-                }
+                    Title = request.Title,
+                    Body = request.Message,
+                    ActionUrl = request.ActionUrl,
+                    ImageUrl = request.ImageUrl,
+                    CustomData = request.CustomData
+                }, cancellationToken);
 
                 // Send email notification if user has email
                 if (!string.IsNullOrEmpty(user.Email))

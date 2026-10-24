@@ -42,9 +42,10 @@ public class GetLevelsWithPaginationQueryHandler : IRequestHandler<GetLevelsWith
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
+            var searchLower = request.SearchTerm.ToLower();
             query = query.Where(l => 
-                l.Title.Contains(request.SearchTerm) ||
-                (l.Description != null && l.Description.Contains(request.SearchTerm)));
+                l.Title.ToLower().Contains(searchLower) ||
+                (l.Description != null && l.Description.ToLower().Contains(searchLower)));
         }
 
         var paginatedList = await query
