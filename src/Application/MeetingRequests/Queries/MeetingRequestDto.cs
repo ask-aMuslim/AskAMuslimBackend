@@ -9,6 +9,7 @@ public class MeetingRequestDto
     public Guid Id { get; init; }
     public Guid RequesterId { get; init; }
     public string RequesterName { get; init; } = string.Empty;
+    public string? RequesterEmail { get; init; }
     public string? ModeratorName { get; init; }
     public Guid? ModeratorId { get; init; }
     public MeetingInquiryTopic Topic { get; init; }

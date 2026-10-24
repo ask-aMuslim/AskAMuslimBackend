@@ -3394,6 +3394,26 @@
               "nullable": true
             },
             "x-position": 6
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "x-position": 7
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "x-position": 8
           }
         ],
         "responses": {
@@ -3424,6 +3444,24 @@
           "required": true,
           "x-position": 1
         },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/MeetingRequests/counts": {
+      "get": {
+        "tags": [
+          "MeetingRequests"
+        ],
+        "operationId": "GetCounts",
         "responses": {
           "200": {
             "description": ""
@@ -7895,7 +7933,7 @@
         "tags": [
           "SupportMailsAdmin"
         ],
-        "operationId": "GetCounts",
+        "operationId": "GetCounts2",
         "responses": {
           "200": {
             "description": ""
@@ -8238,7 +8276,7 @@
         "tags": [
           "SupportMailsModerator"
         ],
-        "operationId": "GetCounts2",
+        "operationId": "GetCounts3",
         "responses": {
           "200": {
             "description": ""
