@@ -12,8 +12,8 @@ public static class MeetingRequestEmailTemplates
         "We received your meeting request",
         Layout("We received your meeting request", $@"
             <p>Hello {Encode(firstName)},</p>
-            <p>Thank you for your meeting request about <strong>{Encode(topic)}</strong> on <strong>{Encode(scheduledAt)}</strong>.
-               A scholar will review it and we will let you know as soon as there is an update.</p>
+            <p>Thank you for your meeting request about <strong>{Encode(topic)}</strong>. You asked for <strong>{Encode(scheduledAt)}</strong>.
+               A scholar will review it, and it is not confirmed until you hear from us. We will let you know as soon as there is an update.</p>
             {ViewButton(viewUrl)}"));
 
     public static EmailContent NewRequestForInbox(string requesterName, string? requesterEmail, string topic, string scheduledAt, string message) => new(
@@ -69,8 +69,10 @@ public static class MeetingRequestEmailTemplates
             <p style='margin: 6px 0;'><strong>Topic:</strong> {Encode(topic)}</p>
             <p style='margin: 6px 0;'><strong>Scheduled for:</strong> {Encode(scheduledAt)}</p>";
 
+    // Emails don't know the reader's timezone, so times in them are UTC; the page shows the reader's local time.
     private static string ViewButton(string? url) => string.IsNullOrWhiteSpace(url) ? "" : $@"
-            <p style='margin: 20px 0;'>
+            <p style='margin: 20px 0 8px;'>
                 <a href='{Encode(url)}' style='background-color: #1b6b35; color: #ffffff; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold;'>View your meeting</a>
-            </p>";
+            </p>
+            <p style='margin: 0; color: #7f8c8d; font-size: 13px;'>Times in this email are in UTC. The page shows the time in your local timezone.</p>";
 }

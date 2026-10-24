@@ -142,6 +142,10 @@ public class MeetingRequestNotificationTests : BaseTestFixture
             It.Is<string>(body => body.Contains(detailsUrl)), true), Times.Once());
         EmailService.Verify(e => e.SendEmailAsync(InboxEmail, It.IsAny<string>(),
             It.Is<string>(body => body.Contains(detailsUrl)), true), Times.Never());
+
+        // The email is in UTC, so it says so and points to the page for the reader's local time.
+        EmailService.Verify(e => e.SendEmailAsync(RequesterEmail, It.IsAny<string>(),
+            It.Is<string>(body => body.Contains("UTC") && body.Contains("shows the time in your local timezone")), true), Times.Once());
     }
 
     [Test]
